@@ -1,0 +1,36 @@
+version: '3.7'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+      args:
+        - WORKDIR=/app/programacao_web/
+    ports:
+      - 8000:8000
+    env_file:
+      - .env
+    volumes:
+      - ./:/app/programacao_web/
+    depends_on:
+      - db
+    networks:
+      - pgsql-network
+    command: sleep infinity
+  db:
+    image: postgres:latest
+    env_file:
+      - .env
+    ports:
+      - 5432:5432
+    networks:
+      - pgsql-network
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+networks:
+  pgsql-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

@@ -1,0 +1,16 @@
+Olá {{ user.full_name }},
+
+Seja bem-vindo ao Portal de Pais da instituição Dom Bosco!
+
+Para garantir a segurança de suas informações e concluir o seu cadastro, por favor, confirme seu e-mail clicando no link abaixo:
+
+[Confirm Email: {{ activate_url }}]
+
+Caso você não tenha solicitado este cadastro, por favor, desconsidere esta mensagem.
+
+Agradecemos por fazer parte da nossa comunidade educacional. Caso tenha dúvidas ou precise de suporte, entre em contato conosco pelo e-mail [e-mail de suporte] ou telefone [telefone de suporte].
+
+Atenciosamente,
+Equipe Dom Bosco
+[Site da instituição]
+[Telefone de contato]
