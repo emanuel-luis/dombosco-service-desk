@@ -1,6 +1,6 @@
 {
 	"name": "Programação Web Dev Container",
-	"dockerComposeFile": "../docker-compose.yml",
+	"dockerComposeFile": "../dev-docker-compose.yml",
 	"service": "app",
 	"workspaceFolder": "/app/${localWorkspaceFolderBasename}/",
 	"shutdownAction": "stopCompose",
