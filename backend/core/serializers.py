@@ -7,6 +7,7 @@ from allauth.socialaccount.models import EmailAddress
 from allauth.utils import get_username_max_length
 from django.contrib.auth.models import Group, User
 from django.contrib.auth import get_user_model
+from core.models import Application
 
 User = get_user_model()
 
@@ -104,3 +105,35 @@ class RegisterSerializer(serializers.Serializer):
         self.custom_signup(request, user)
         setup_user_email(request, user, [])
         return user
+
+
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = "__all__"
+        read_only_fields = ["id", "name"]
+
+
+class ApplicationSerializer(serializers.ModelSerializer):
+    groups = GroupSerializer(many=True, read_only=True)
+    groups_id = serializers.ListField(child=serializers.PrimaryKeyRelatedField(queryset=Group.objects.all()), write_only=True, source="groups")
+
+    class Meta:
+        model = Application
+        fields = "__all__"
+        read_only_fields = ["id", "created_at", "updated_at"]
+
+    def create(self, validated_data: dict):
+        groups = validated_data.pop("groups")
+        application = Application.objects.create(**validated_data)
+        for group in groups:
+            application.groups.add(group)
+        return application
+
+    def update(self, instance: Application, validated_data: dict):
+        groups = validated_data.pop("groups")
+        instance = super().update(instance, validated_data)
+        instance.groups.clear()
+        for group in groups:
+            instance.groups.add(group)
+        return instance

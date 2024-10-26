@@ -18,7 +18,10 @@ class UserAdmin(UserAdmin):
     )
     fieldsets = (
         (None, {"fields": ("email", "password")}),
-        ("Personal info", {"fields": ("first_name", "last_name", "phone", "mobile_phone")}),
+        (
+            "Personal info",
+            {"fields": ("first_name", "last_name", "phone", "mobile_phone")},
+        ),
         ("Permissions", {"fields": ("is_staff", "is_active", "groups")}),
     )
     add_fieldsets = (

@@ -68,17 +68,19 @@ def post(url, data, headers: dict = {}, token=None):
     response = requests.post(url, json=data, headers=headers)
     return response
 
-def get(url, params = {}, headers: dict = {}, token=None):
+
+def get(url, params={}, headers: dict = {}, token=None):
     if token:
         headers.update({"Authorization": f"Bearer {token}"})
 
     response = requests.get(url, params=params, headers=headers)
     return response
 
+
 for user in [staff, parent]:
     register_response = post(ENDPOINTS["AUTH"]["REGISTRATION"], user["register"])
     login_response = post(ENDPOINTS["AUTH"]["LOGIN"], user["login"])
-    
+
     user["token"] = login_response.json()["access"]
 
 # Create a form as a parent and then answer it as a staff

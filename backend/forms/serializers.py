@@ -1,7 +1,7 @@
-from forms.models import ParentForm, StaffForm
+from forms.models import *
 from rest_framework import serializers
 from core.serializers import UserProfileSerializer
-
+from core.utils import has_comment_permission
 
 class ParentsFormSerializer(serializers.ModelSerializer):
     responsible_party = UserProfileSerializer(read_only=True)
@@ -10,12 +10,6 @@ class ParentsFormSerializer(serializers.ModelSerializer):
         model = ParentForm
         fields = "__all__"
         read_only_fields = ["created_at", "updated_at", "status", "id"]
-
-    def get_staff_form(self, obj: ParentForm):
-        staff_form = StaffForm.objects.filter(parent_form=obj).first()
-        if staff_form:
-            return StaffFormSerializer(staff_form).data
-        return {}
 
     def create(self, validated_data):
         validated_data["responsible_party"] = self.context["request"].user
@@ -30,8 +24,23 @@ class ParentsFormListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ParentForm
-        fields = ["id", "responsible_party", "issue_description", "status", "created_at", "updated_at", "assigned_staff"]
-        read_only_fields = ["id", "issue_description", "status", "created_at", "updated_at", "assigned_staff"]
+        fields = [
+            "id",
+            "responsible_party",
+            "issue_description",
+            "status",
+            "created_at",
+            "updated_at",
+            "assigned_staff",
+        ]
+        read_only_fields = [
+            "id",
+            "issue_description",
+            "status",
+            "created_at",
+            "updated_at",
+            "assigned_staff",
+        ]
 
     def get_assigned_staff(self, obj: ParentForm):
         staff_form = StaffForm.objects.filter(parent_form=obj).first()
@@ -43,7 +52,7 @@ class ParentsFormListSerializer(serializers.ModelSerializer):
 class StaffFormSerializer(serializers.ModelSerializer):
     assigned_staff = UserProfileSerializer(read_only=True)
     parent_form = ParentsFormSerializer(read_only=True)
-    parent_form_id = serializers.PrimaryKeyRelatedField(queryset=ParentForm.objects.all(), write_only=True, source="parent_form")
+    parent_form_id = serializers.PrimaryKeyRelatedField(queryset=ParentForm.objects.all(), write_only=True)
 
     class Meta:
         model = StaffForm
@@ -53,5 +62,25 @@ class StaffFormSerializer(serializers.ModelSerializer):
         validated_data["assigned_staff"] = self.context["request"].user
         return super().create(validated_data)
 
-    def get_parent_form(self, obj: StaffForm):
-        return ParentsFormSerializer(obj.parent_form)
+
+class CommentSerializer(serializers.ModelSerializer):
+    user = UserProfileSerializer(read_only=True)
+    parent_form = ParentsFormSerializer(read_only=True)
+    parent_form_id = serializers.PrimaryKeyRelatedField(queryset=ParentForm.objects.all(), write_only=True)
+
+    class Meta:
+        model = Comment
+        fields = "__all__"
+        read_only_fields = ["created_at", "updated_at", "id"]
+
+    def validate_parent_form_id(self, value: ParentForm):       
+        if value.status == ParentForm.StatusChoices.PENDENTE:
+            raise serializers.ValidationError("It is not possible to add comments to a form that is pending.")
+
+        if not has_comment_permission(self.context["request"].user, value):
+            raise serializers.ValidationError("You do not have permission to add comments to this form.")
+
+        return value
+    def create(self, validated_data):
+        validated_data["user"] = self.context["request"].user
+        return super().create(validated_data)

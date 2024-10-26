@@ -1,5 +1,5 @@
 from django.contrib.auth.base_user import BaseUserManager
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, Group
 from django.db import models
 
 
@@ -52,3 +52,19 @@ class User(AbstractUser):
     @property
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
+
+
+class Application(models.Model):
+    name = models.CharField(max_length=255, null=False, blank=False, verbose_name="Nome")
+    description = models.TextField(null=True, blank=True, verbose_name="Descrição")
+
+    groups = models.ManyToManyField(Group, verbose_name="Grupos")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Criado em")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Atualizado em")
+
+    class Meta:
+        verbose_name = "Aplicação"
+        verbose_name_plural = "Aplicações"
+
+    def __str__(self):
+        return self.name
