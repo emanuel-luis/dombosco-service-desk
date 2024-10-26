@@ -242,7 +242,14 @@ class UpdateStatusParentFormAPI(views.APIView):
             )
         parent_form.status = request.data["status"]
         parent_form.save()
-        return Response(data={"detail": "Status updated sucessfully.", "id": parent_form.id, "status": parent_form.status}, status=status.HTTP_200_OK)
+        return Response(
+            data={
+                "detail": "Status updated sucessfully.",
+                "id": parent_form.id,
+                "status": parent_form.status,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 # StaffForm API
