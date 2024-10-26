@@ -36,6 +36,7 @@ class UserAdmin(UserAdmin):
     search_fields = ("email",)
     ordering = ("email",)
 
+
 class ApplicationAdmin(admin.ModelAdmin):
     model = Application
     list_display = (
@@ -45,6 +46,7 @@ class ApplicationAdmin(admin.ModelAdmin):
     )
     search_fields = ("name",)
     ordering = ("name",)
+
 
 admin.site.register(User, UserAdmin)
 admin.site.register(Application, ApplicationAdmin)

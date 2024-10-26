@@ -1,6 +1,7 @@
 """
 This file contains the urls for the forms app.
 """
+
 from django.urls import include, path, re_path
 from forms.views import *
 

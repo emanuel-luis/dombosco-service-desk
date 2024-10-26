@@ -4,27 +4,26 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('auth', '0012_alter_user_first_name_max_length'),
-        ('core', '0001_initial'),
+        ("auth", "0012_alter_user_first_name_max_length"),
+        ("core", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Application',
+            name="Application",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('mdm_id', models.CharField(max_length=255, verbose_name='ID MDM')),
-                ('name', models.CharField(max_length=255, verbose_name='Nome')),
-                ('description', models.TextField(blank=True, null=True, verbose_name='Descrição')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Criado em')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Atualizado em')),
-                ('groups', models.ManyToManyField(to='auth.group', verbose_name='Grupos')),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("mdm_id", models.CharField(max_length=255, verbose_name="ID MDM")),
+                ("name", models.CharField(max_length=255, verbose_name="Nome")),
+                ("description", models.TextField(blank=True, null=True, verbose_name="Descrição")),
+                ("created_at", models.DateTimeField(auto_now_add=True, verbose_name="Criado em")),
+                ("updated_at", models.DateTimeField(auto_now=True, verbose_name="Atualizado em")),
+                ("groups", models.ManyToManyField(to="auth.group", verbose_name="Grupos")),
             ],
             options={
-                'verbose_name': 'Aplicação',
-                'verbose_name_plural': 'Aplicações',
+                "verbose_name": "Aplicação",
+                "verbose_name_plural": "Aplicações",
             },
         ),
     ]

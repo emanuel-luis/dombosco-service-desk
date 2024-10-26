@@ -3,11 +3,13 @@ from rest_framework import serializers
 from core.serializers import UserProfileSerializer
 from core.utils import has_comment_permission
 
+
 class ParentQuerySerializer(serializers.Serializer):
     id = serializers.PrimaryKeyRelatedField(queryset=ParentForm.objects.all(), required=False)
     status = serializers.ChoiceField(choices=ParentForm.StatusChoices.choices, required=False)
     assigned_staff = serializers.EmailField(required=False)
-    
+
+
 class ParentsFormSerializer(serializers.ModelSerializer):
     responsible_party = UserProfileSerializer(read_only=True)
 
@@ -57,7 +59,7 @@ class ParentsFormListSerializer(serializers.ModelSerializer):
 class StaffFormSerializer(serializers.ModelSerializer):
     assigned_staff = UserProfileSerializer(read_only=True)
     parent_form = ParentsFormSerializer(read_only=True)
-    parent_form_id = serializers.PrimaryKeyRelatedField(queryset=ParentForm.objects.all(), write_only=True)
+    parent_form_id = serializers.PrimaryKeyRelatedField(queryset=ParentForm.objects.all(), write_only=True, source="parent_form")
 
     class Meta:
         model = StaffForm
@@ -71,7 +73,7 @@ class StaffFormSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):
     user = UserProfileSerializer(read_only=True)
     parent_form = ParentsFormSerializer(read_only=True)
-    parent_form_id = serializers.PrimaryKeyRelatedField(queryset=ParentForm.objects.all(), write_only=True)
+    parent_form_id = serializers.PrimaryKeyRelatedField(queryset=ParentForm.objects.all(), write_only=True, source="parent_form")
 
     class Meta:
         model = Comment
