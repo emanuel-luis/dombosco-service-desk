@@ -44,8 +44,19 @@ class ParentForm(models.Model):
     student.fget.short_description = "Aluno"
 
     # Seção para Informações do Responsável (entende-se que o usuário já terá isso cadastrado)
-    responsible_party = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False, verbose_name="Usuário Pai e/ou Responsável")
-    requested_by = models.IntegerField(choices=RequiredByChoices, null=False, blank=False, verbose_name="Solicitado por")
+    responsible_party = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        null=False,
+        blank=False,
+        verbose_name="Usuário Pai e/ou Responsável",
+    )
+    requested_by = models.IntegerField(
+        choices=RequiredByChoices,
+        null=False,
+        blank=False,
+        verbose_name="Solicitado por",
+    )
 
     # Seção de Informações do Aluno
     student_name = models.CharField(max_length=255, null=False, blank=False, verbose_name="Nome do Aluno")
@@ -58,13 +69,25 @@ class ParentForm(models.Model):
     issue_description = models.TextField(null=False, blank=False, verbose_name="Descrição da solicitação")
 
     # Metadados de controle do sistema
-    status = models.IntegerField(default=StatusChoices.PENDENTE, choices=StatusChoices, null=False, blank=False, verbose_name="Status")
+    status = models.IntegerField(
+        default=StatusChoices.PENDENTE,
+        choices=StatusChoices,
+        null=False,
+        blank=False,
+        verbose_name="Status",
+    )
     created_at = models.DateTimeField(auto_now_add=True, editable=False, verbose_name="Data de criação")
     updated_at = models.DateTimeField(auto_now=True, editable=False, verbose_name="Data de atualização")
 
 
 class StaffForm(models.Model):
-    assigned_staff = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False, verbose_name="Funcionário responsável")
+    assigned_staff = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        null=False,
+        blank=False,
+        verbose_name="Funcionário responsável",
+    )
 
     # Seção de preenchimento da escola
     school_advice = models.TextField(null=True, blank=True, verbose_name="Aconselhamento/Observações da escola")
@@ -72,8 +95,22 @@ class StaffForm(models.Model):
     final_notes = models.TextField(blank=True, null=True, verbose_name="Observações finais")
 
     # Relacionamento com o formulário de solicitação dos pais, para que possamos rastrear o histórico e obter o protocolo
-    parent_form = models.OneToOneField(ParentForm, on_delete=models.CASCADE, null=False, blank=False, verbose_name="Formulário de Solicitação")
+    parent_form = models.OneToOneField(
+        ParentForm,
+        on_delete=models.CASCADE,
+        null=False,
+        blank=False,
+        verbose_name="Formulário de Solicitação",
+    )
 
     # Metadados de controle do sistema
+    created_at = models.DateTimeField(auto_now_add=True, editable=False, verbose_name="Data de criação")
+    updated_at = models.DateTimeField(auto_now=True, editable=False, verbose_name="Data de atualização")
+
+
+class Comment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False, verbose_name="Usuário")
+    parent_form = models.ForeignKey(ParentForm, on_delete=models.CASCADE, null=False, blank=False, verbose_name="Formulário de Solicitação")
+    comment = models.TextField(null=False, blank=False, verbose_name="Comentário")
     created_at = models.DateTimeField(auto_now_add=True, editable=False, verbose_name="Data de criação")
     updated_at = models.DateTimeField(auto_now=True, editable=False, verbose_name="Data de atualização")
