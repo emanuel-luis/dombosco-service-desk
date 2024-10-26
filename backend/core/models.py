@@ -1,6 +1,7 @@
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser, Group
 from django.db import models
+from django.conf import settings
 
 
 class UserManager(BaseUserManager):
@@ -19,6 +20,11 @@ class UserManager(BaseUserManager):
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save()
+        
+        if user.email.endswith(settings.DOM_BOSCO_EMAIL_DOMAIN):
+            group = Group.objects.get_or_create(name="Colaborador")
+            user.groups.add(group)
+
         return user
 
     def create_superuser(self, email, password, **extra_fields):
@@ -55,6 +61,7 @@ class User(AbstractUser):
 
 
 class Application(models.Model):
+    mdm_id = models.CharField(max_length=255, null=False, blank=False, verbose_name="ID MDM")
     name = models.CharField(max_length=255, null=False, blank=False, verbose_name="Nome")
     description = models.TextField(null=True, blank=True, verbose_name="Descrição")
 

@@ -28,11 +28,10 @@ load_dotenv(BASE_DIR / ".env")
 SECRET_KEY = "django-insecure-fp^f!4nrb=yufiazd8voz@)s-rwl6%ac_pdou_$%x2z0aen=^2"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEPLOYMENT", "development") == "development"
+DOM_BOSCO_EMAIL_DOMAIN = os.getenv("DOM_BOSCO_EMAIL_DOMAIN", "aluno.undb.edu.br")
 
 ALLOWED_HOSTS = []
-
-APPEND_SLASH = False
 
 # Application definition
 
@@ -47,6 +46,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "rest_framework_simplejwt",
+    "drf_yasg",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
@@ -63,7 +63,7 @@ SITE_ID = 1
 AUTH_USER_MODEL = "core.User"
 
 REST_FRAMEWORK = {
-    # "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_AUTHENTICATION_CLASSES": ("dj_rest_auth.jwt_auth.JWTCookieAuthentication",),
 }
 
@@ -95,7 +95,7 @@ ACCOUNT_USERNAME_REQUIRED = False
 UNIQUE_EMAIL = True
 ACCOUNT_EMAIL_REQUIRED = True
 # ACCOUNT_EMAIL_VERIFICATION = "mandatory"  # Require email confirmation
-ACCOUNT_EMAIL_VERIFICATION = "none"
+ACCOUNT_EMAIL_VERIFICATION = "none" if DEBUG else "mandatory"
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = os.getenv("LOGIN_URL", "http://localhost:8001/home")
 ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = os.getenv("LOGIN_URL", "http://localhost:8001/home")

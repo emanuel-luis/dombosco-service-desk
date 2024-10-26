@@ -3,6 +3,11 @@ from rest_framework import serializers
 from core.serializers import UserProfileSerializer
 from core.utils import has_comment_permission
 
+class ParentQuerySerializer(serializers.Serializer):
+    id = serializers.PrimaryKeyRelatedField(queryset=ParentForm.objects.all(), required=False)
+    status = serializers.ChoiceField(choices=ParentForm.StatusChoices.choices, required=False)
+    assigned_staff = serializers.EmailField(required=False)
+    
 class ParentsFormSerializer(serializers.ModelSerializer):
     responsible_party = UserProfileSerializer(read_only=True)
 
@@ -73,7 +78,7 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ["created_at", "updated_at", "id"]
 
-    def validate_parent_form_id(self, value: ParentForm):       
+    def validate_parent_form_id(self, value: ParentForm):
         if value.status == ParentForm.StatusChoices.PENDENTE:
             raise serializers.ValidationError("It is not possible to add comments to a form that is pending.")
 
@@ -81,6 +86,7 @@ class CommentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("You do not have permission to add comments to this form.")
 
         return value
+
     def create(self, validated_data):
         validated_data["user"] = self.context["request"].user
         return super().create(validated_data)
