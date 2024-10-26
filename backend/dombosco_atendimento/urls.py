@@ -30,6 +30,7 @@ urlpatterns = [
     path("login/", LoginPage.as_view(), name="login"),
     path("api/v1/", include(api_routers.urls)),
     path("api/v1/forms/", include("forms.urls")),
+    path("api/v1/admin/", include("core.urls")),
     path("api/v1/auth/", include("dj_rest_auth.urls")),
     path("api/v1/auth/google/", GoogleLogin.as_view(), name="google_login"),
     path(
