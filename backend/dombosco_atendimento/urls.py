@@ -30,24 +30,24 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_swagger.views import get_swagger_view
 
 schema_view = get_schema_view(
-   openapi.Info(
-      title="Dombosco Atendimento API",
-      default_version='v1',
-      description="API para o sistema de atendimento do Colégio Dom Bosco",
-      terms_of_service="https://www.google.com/policies/terms/",
-      contact=openapi.Contact(email=f"atendimento@{settings.DOM_BOSCO_EMAIL_DOMAIN}"),
-      license=openapi.License(name="BSD License"),
-   ),
-   public=True,
-   permission_classes=(permissions.AllowAny,),
+    openapi.Info(
+        title="Dombosco Atendimento API",
+        default_version="v1",
+        description="API para o sistema de atendimento do Colégio Dom Bosco",
+        terms_of_service="https://www.google.com/policies/terms/",
+        contact=openapi.Contact(email=f"atendimento@{settings.DOM_BOSCO_EMAIL_DOMAIN}"),
+        license=openapi.License(name="BSD License"),
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
 )
 
 api_routers = routers.DefaultRouter()
 
 urlpatterns = [
-    path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    path("swagger<format>/", schema_view.without_ui(cache_timeout=0), name="schema-json"),
+    path("swagger/", schema_view.with_ui("swagger", cache_timeout=0), name="schema-swagger-ui"),
+    path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
     path("admin/", admin.site.urls),
     path("login/", LoginPage.as_view(), name="login"),
     path("api/v1/", include(api_routers.urls)),
