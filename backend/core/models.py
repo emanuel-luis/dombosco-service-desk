@@ -20,7 +20,7 @@ class UserManager(BaseUserManager):
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save()
-        
+
         if user.email.endswith(settings.DOM_BOSCO_EMAIL_DOMAIN):
             group = Group.objects.get_or_create(name="Colaborador")
             user.groups.add(group)

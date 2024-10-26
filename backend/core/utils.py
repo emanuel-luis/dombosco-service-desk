@@ -10,8 +10,8 @@ def is_superuser(user: User) -> bool:
 
 def is_parent(user: User, include_superuser: bool = False) -> bool:
     if include_superuser:
-        return user.groups.filter(name="Responsável").exists() or user.is_superuser
-    return user.groups.filter(name="Responsável").exists()
+        return user.groups.filter(name="Responsável").exists() or user.is_superuser or settings.DEBUG
+    return user.groups.filter(name="Responsável").exists() or settings.DEBUG
 
 
 def is_dom_bosco_staff(user: User, include_superuser: bool = False) -> bool:
