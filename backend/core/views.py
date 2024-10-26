@@ -43,7 +43,10 @@ class ApplicationViewAPI(views.APIView):
     permission_classes = [permissions.IsAuthenticated & IsDomBoscoAdmin]
 
     def get(self, request: Request):
-        applications = Application.objects.all()
+        if is_superuser(request.user):
+            applications = Application.objects.all()
+        else:
+            applications = Application.objects.filter(groups__user=request.user)
 
         serializer = ApplicationSerializer(applications, many=True)
         return Response(serializer.data)

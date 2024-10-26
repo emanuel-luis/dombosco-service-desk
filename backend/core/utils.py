@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from forms.models import ParentForm
 
+
 def is_superuser(user: User) -> bool:
     return user.is_superuser or user.is_staff or user.groups.filter(name="Administrador").exists()
 

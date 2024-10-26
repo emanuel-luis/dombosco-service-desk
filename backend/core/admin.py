@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from core.models import User
+from core.models import *
 
 
 class UserAdmin(UserAdmin):
@@ -36,5 +36,15 @@ class UserAdmin(UserAdmin):
     search_fields = ("email",)
     ordering = ("email",)
 
+class ApplicationAdmin(admin.ModelAdmin):
+    model = Application
+    list_display = (
+        "mdm_id",
+        "name",
+        "description",
+    )
+    search_fields = ("name",)
+    ordering = ("name",)
 
 admin.site.register(User, UserAdmin)
+admin.site.register(Application, ApplicationAdmin)
