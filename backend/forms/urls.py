@@ -1,9 +1,13 @@
+"""
+This file contains the urls for the forms app.
+"""
 from django.urls import include, path, re_path
 from forms.views import *
 
 urlpatterns = [
-    path("parents/", ParentsFormViewAPI.as_view(), name="parents-form"),
-    path("parents/choices/", ParentFormsChoicesViewAPI.as_view(), name="parents-form-choices"),
-    path("parents/update-status/", UpdateStatusParentsFormAPI.as_view(), name="parents-form-update-status"),
+    path("parent/", ParentFormViewAPI.as_view(), name="parent-form"),
+    path("parent/choices/", ParentFormsChoicesViewAPI.as_view(), name="parent-form-choices"),
+    path("parent/update-status/", UpdateStatusParentFormAPI.as_view(), name="parent-form-update-status"),
     path("staff/", StaffFormViewAPI.as_view(), name="staff-form"),
+    path("comment/", CommentViewAPI.as_view(), name="comments"),
 ]

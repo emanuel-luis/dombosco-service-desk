@@ -7,10 +7,12 @@ from rest_framework.request import Request
 from rest_framework import status
 from core.permissions import *
 import core.utils as forms_utils
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 
 
 # ParentForm API
-class ParentsFormViewAPI(views.APIView):
+class ParentFormViewAPI(views.APIView):
     """
     Allows a parent to submit a form with their information and their child's information.
 
@@ -20,6 +22,7 @@ class ParentsFormViewAPI(views.APIView):
 
     permission_classes = [permissions.IsAuthenticated & (IsDomBoscoStaff | IsDomBoscoParent | IsDomBoscoAdmin)]
 
+    @swagger_auto_schema(responses={200: ParentsFormSerializer(many=True)}, query_serializer=ParentQuerySerializer)
     def get(self, request: Request):
         """
         Returns a list of all forms submitted by parents.
@@ -61,6 +64,9 @@ class ParentsFormViewAPI(views.APIView):
         if request.query_params.get("status"):
             parents_forms = parents_forms.filter(status=request.query_params["status"])
 
+        if request.query_params.get("assigned_staff"):
+            parents_forms = parents_forms.filter(staffform__assigned_staff__email=request.query_params["assigned_staff"])
+
         serializer = ParentsFormListSerializer(parents_forms.order_by("status", "created_at"), many=True)
         return Response(serializer.data)
 
@@ -87,6 +93,9 @@ class ParentsFormViewAPI(views.APIView):
     def delete(self, request: Request):
         """
         Allows a parent to delete a form they submitted.
+        
+        A parent cannot delete a form that has been already assigned to a staff member,
+        unless they are a superuser.
         """
         _id = request.query_params.get("id")
         if not _id:
@@ -103,7 +112,7 @@ class ParentsFormViewAPI(views.APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        if parent_form.responsible_party == request.user or forms_utils.is_superuser(request.user):
+        if parent_form.status == ParentForm.StatusChoices.PENDENTE and parent_form.responsible_party == request.user or forms_utils.is_superuser(request.user):
             parent_form.delete()
             return Response(status=status.HTTP_200_OK)
         return Response(
@@ -114,6 +123,8 @@ class ParentsFormViewAPI(views.APIView):
     def put(self, request: Request):
         """
         Allows a parent to update a form they submitted.
+        
+        A form cannot be updated if it's already finished or cancelled.
         """
 
         _id = request.query_params.get("id")
@@ -131,7 +142,7 @@ class ParentsFormViewAPI(views.APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        if parent_form.responsible_party != request.user and not forms_utils.is_superuser(request.user):
+        if parent_form.responsible_party != request.user and not forms_utils.is_superuser(request.user) or parent_form.status > ParentForm.StatusChoices.ANDAMENTO:
             return Response(
                 data={"detail": "You do not have permission to perform this action."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -159,6 +170,8 @@ class ParentFormsChoicesViewAPI(views.APIView):
     def get(self, request: Request):
         """
         Returns a list of all choices for the parent form.
+        
+        The choices are returned as a dictionary to be handled by the frontend.
         """
 
         return Response(
@@ -171,7 +184,7 @@ class ParentFormsChoicesViewAPI(views.APIView):
         )
 
 
-class UpdateStatusParentsFormAPI(views.APIView):
+class UpdateStatusParentFormAPI(views.APIView):
     """
     Allows a staff member to update the status of a parent form.
     """
@@ -259,6 +272,10 @@ class StaffFormViewAPI(views.APIView):
     def post(self, request: Request):
         """
         Allows a staff member to answer a form submitted by a parent.
+        
+        The form is saved with the staff member's email, so that the parent can contact them.
+        Once a staff member submits a form, the status of the parent form is updated to "EM ANDAMENTO".
+        Only staff members can submit a form.
         """
 
         if not forms_utils.is_dom_bosco_staff(request.user, include_superuser=True):
@@ -276,36 +293,38 @@ class StaffFormViewAPI(views.APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request: Request):
-        """
-        Allows a staff member to delete a form they submitted
-        """
-        _id = request.query_params.get("id")
-        if not _id:
-            return Response(
-                data={"detail": "You must provide the id parameter."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+    # def delete(self, request: Request):
+    #     """
+    #     Allows a staff member to delete a form they submitted
+    #     """
+    #     _id = request.query_params.get("id")
+    #     if not _id:
+    #         return Response(
+    #             data={"detail": "You must provide the id parameter."},
+    #             status=status.HTTP_400_BAD_REQUEST,
+    #         )
 
-        try:
-            staff_form = StaffForm.objects.get(id=_id)
-        except StaffForm.DoesNotExist:
-            return Response(
-                data={"detail": "Staff form not found."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+    #     try:
+    #         staff_form = StaffForm.objects.get(id=_id)
+    #     except StaffForm.DoesNotExist:
+    #         return Response(
+    #             data={"detail": "Staff form not found."},
+    #             status=status.HTTP_404_NOT_FOUND,
+    #         )
 
-        if staff_form.assigned_staff == request.user or forms_utils.is_superuser(request.user):
-            staff_form.delete()
-            return Response(status=status.HTTP_200_OK)
-        return Response(
-            data={"detail": "You do not have permission to perform this action."},
-            status=status.HTTP_403_FORBIDDEN,
-        )
+    #     if staff_form.assigned_staff == request.user or forms_utils.is_superuser(request.user):
+    #         staff_form.delete()
+    #         return Response(status=status.HTTP_200_OK)
+    #     return Response(
+    #         data={"detail": "You do not have permission to perform this action."},
+    #         status=status.HTTP_403_FORBIDDEN,
+    #     )
 
     def put(self, request: Request):
         """
         Allows a staff member to update a form they submitted.
+        
+        A staff form cannot be updated if it's already finished or cancelled.
         """
 
         _id = request.query_params.get("id")
@@ -323,7 +342,7 @@ class StaffFormViewAPI(views.APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        if staff_form.assigned_staff != request.user and not forms_utils.is_superuser(request.user):
+        if staff_form.assigned_staff != request.user and not forms_utils.is_superuser(request.user) or staff_form.parent_form.status > ParentForm.StatusChoices.ANDAMENTO:
             return Response(
                 data={"detail": "You do not have permission to perform this action."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -348,6 +367,8 @@ class CommentViewAPI(views.APIView):
     def post(self, request: Request):
         """
         Allows a user to add a comment to a form.
+        
+        A user can only add a comment to a form they submitted or are assigned to.
         """
         serializer = CommentSerializer(data=request.data, context={"request": request})
         if serializer.is_valid():
@@ -358,6 +379,8 @@ class CommentViewAPI(views.APIView):
     def get(self, request: Request):
         """
         Returns a list of all comments for a form.
+        
+        A user can only see comments for a form they submitted or are assigned to.
         """
         _id = request.query_params.get("id")
         if not _id:
@@ -387,6 +410,8 @@ class CommentViewAPI(views.APIView):
     def delete(self, request: Request):
         """
         Allows a user to delete a comment.
+        
+        A user can only delete their own comments, unless they are a superuser, and the form is still in progress.
         """
         _id = request.query_params.get("id")
         if not _id:
@@ -402,7 +427,7 @@ class CommentViewAPI(views.APIView):
                 data={"detail": "Comment not found."},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        if comment.user == request.user or forms_utils.is_superuser(request.user):
+        if (comment.user == request.user and comment.parent_form.status == ParentForm.StatusChoices.ANDAMENTO) or forms_utils.is_superuser(request.user):
             comment.delete()
             return Response(status=status.HTTP_200_OK)
         return Response(
@@ -413,6 +438,8 @@ class CommentViewAPI(views.APIView):
     def put(self, request: Request):
         """
         Allows a user to update a comment.
+        
+        A user can only update their own comments, unless they are a superuser, and the form is still in progress.
         """
 
         _id = request.query_params.get("id")
@@ -429,7 +456,7 @@ class CommentViewAPI(views.APIView):
                 data={"detail": "Comment not found."},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        if comment.user != request.user and not forms_utils.is_superuser(request.user):
+        if comment.user != request.user and not forms_utils.is_superuser(request.user) or comment.parent_form.status != ParentForm.StatusChoices.ANDAMENTO:
             return Response(
                 data={"detail": "You do not have permission to perform this action."},
                 status=status.HTTP_403_FORBIDDEN,
