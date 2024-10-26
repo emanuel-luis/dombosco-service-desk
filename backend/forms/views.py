@@ -244,9 +244,9 @@ class UpdateStatusParentFormAPI(views.APIView):
         parent_form.save()
         return Response(
             data={
-                "detail": "Status updated sucessfully.",
                 "id": parent_form.id,
                 "status": parent_form.status,
+                "detail": "Status updated sucessfully.",
             },
             status=status.HTTP_200_OK,
         )
