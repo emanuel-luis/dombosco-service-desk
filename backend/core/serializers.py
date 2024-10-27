@@ -115,7 +115,6 @@ class GroupSerializer(serializers.ModelSerializer):
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
-    groups = GroupSerializer(many=True, read_only=True)
     groups_id = serializers.ListField(child=serializers.PrimaryKeyRelatedField(queryset=Group.objects.all()), write_only=True, source="groups")
 
     class Meta:
