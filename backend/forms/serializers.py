@@ -63,8 +63,8 @@ class StaffFormSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    user = UserProfileSerializer(read_only=True)
-    parent_form_id = serializers.PrimaryKeyRelatedField(queryset=ParentForm.objects.all(), write_only=True, source="parent_form")
+    user = serializers.EmailField(read_only=True)
+    parent_form_id = serializers.PrimaryKeyRelatedField(queryset=ParentForm.objects.all(), write_only=True)
 
     class Meta:
         model = Comment
