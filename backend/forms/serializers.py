@@ -25,7 +25,6 @@ class ParentsFormSerializer(serializers.ModelSerializer):
 
 class ParentsFormListSerializer(serializers.ModelSerializer):
     responsible_party = serializers.EmailField(read_only=True)
-    assigned_staff = serializers.SerializerMethodField(read_only=True)
     issue_description = serializers.CharField(read_only=True, source="briefing")
     updated_at = serializers.DateTimeField(read_only=True)
 
@@ -49,16 +48,10 @@ class ParentsFormListSerializer(serializers.ModelSerializer):
             "assigned_staff",
         ]
 
-    def get_assigned_staff(self, obj: ParentForm):
-        staff_form = StaffForm.objects.filter(parent_form=obj).first()
-        if staff_form:
-            return staff_form.assigned_staff.email
-        return None
-
 
 class StaffFormSerializer(serializers.ModelSerializer):
     assigned_staff = UserProfileSerializer(read_only=True)
-    parent_form_id = serializers.PrimaryKeyRelatedField(queryset=ParentForm.objects.all(), write_only=True, source="parent_form")
+    parent_form_id = serializers.PrimaryKeyRelatedField(queryset=ParentForm.objects.all(), source="parent_form")
 
     class Meta:
         model = StaffForm
