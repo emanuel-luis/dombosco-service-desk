@@ -64,12 +64,12 @@ class StaffFormSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     user = serializers.EmailField(read_only=True)
-    parent_form_id = serializers.PrimaryKeyRelatedField(queryset=ParentForm.objects.all(), write_only=True)
+    parent_form_id = serializers.PrimaryKeyRelatedField(queryset=ParentForm.objects.all(), write_only=True, source="parent_form")
 
     class Meta:
         model = Comment
         exclude = ["id"]
-        read_only_fields = ["created_at", "updated_at", "id"]
+        read_only_fields = ["created_at", "updated_at", "id", "parent_form"]
 
     def validate_parent_form_id(self, value: ParentForm):
         if value.status == ParentForm.StatusChoices.PENDENTE:
