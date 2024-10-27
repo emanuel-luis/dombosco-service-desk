@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+	:root {
+		--background: red; /* Cor de fundo */
+		--foreground: red; /* Pode manter ou alterar */
+		--card: red; /* Cor do card */
+		--card-foreground: red; /* Pode manter ou alterar */
+		--popover: red; /* Cor do popover */
+		--popover-foreground: red; /* Pode manter ou alterar */
+		--primary: red; /* Cor primária */
+		--primary-foreground: red; /* Pode manter ou alterar */
+		--secondary: red; /* Cor secundária */
+		--secondary-foreground: red; /* Pode manter ou alterar */
+		--muted: red; /* Cor atenuada */
+		--muted-foreground: red; /* Pode manter ou alterar */
+		--accent: red; /* Acento */
+		--accent-foreground: red; /* Pode manter ou alterar */
+		--destructive: red; /* Cor destrutiva */
+		--destructive-foreground: red; /* Pode manter ou alterar */
+		--border: red; /* Cor da borda */
+		--input: red; /* Cor do input */
+		--ring: red; /* Cor do anel */
+		--radius: 0.5rem; /* Raio */
+		--chart-1: red; /* Cor do gráfico 1 */
+		--chart-2: red; /* Cor do gráfico 2 */
+		--chart-3: red; /* Cor do gráfico 3 */
+		--chart-4: red; /* Cor do gráfico 4 */
+		--chart-5: red; /* Cor do gráfico 5 */
+	}
+
+	.dark {
+		--background: red; /* Cor de fundo escura */
+		--foreground: red; /* Pode manter ou alterar */
+		--card: red; /* Pode manter ou alterar */
+		--card-foreground: red; /* Pode manter ou alterar */
+		--popover: red; /* Pode manter ou alterar */
+		--popover-foreground: red; /* Pode manter ou alterar */
+		--primary: red; /* Cor primária escura */
+		--primary-foreground: red; /* Pode manter ou alterar */
+		--secondary: red; /* Cor secundária escura */
+		--secondary-foreground: red; /* Pode manter ou alterar */
+		--muted: red; /* Cor atenuada escura */
+		--muted-foreground: red; /* Pode manter ou alterar */
+		--accent: red; /* Acento escuro */
+		--accent-foreground: red; /* Pode manter ou alterar */
+		--destructive: red; /* Cor destrutiva escura */
+		--destructive-foreground: red; /* Pode manter ou alterar */
+		--border: red; /* Cor da borda escura */
+		--input: red; /* Cor do input escuro */
+		--ring: red; /* Cor do anel escuro */
+		--chart-1: red; /* Cor do gráfico 1 escura */
+		--chart-2: red; /* Cor do gráfico 2 escura */
+		--chart-3: red; /* Cor do gráfico 3 escura */
+		--chart-4: red; /* Cor do gráfico 4 escura */
+		--chart-5: red; /* Cor do gráfico 5 escura */
+	}
+}
