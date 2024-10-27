@@ -63,12 +63,13 @@ class StaffFormSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    user = serializers.EmailField(read_only=True)
+    user = UserProfileSerializer(read_only=True, source="user.first_name")
     parent_form_id = serializers.PrimaryKeyRelatedField(queryset=ParentForm.objects.all(), source="parent_form")
 
     class Meta:
         model = Comment
         fields = "__all__"
+        exclude = ["parent_form"]
         read_only_fields = ["created_at", "updated_at", "id", "parent_form"]
 
     def validate_parent_form_id(self, value: ParentForm):
