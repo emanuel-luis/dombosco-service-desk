@@ -43,7 +43,7 @@ class ApplicationViewAPI(views.APIView):
     permission_classes = [permissions.IsAuthenticated & IsDomBoscoAdmin]
 
     def get(self, request: Request):
-        if is_superuser(request.user):
+        if is_superuser(request.user, include_superuser=True):
             applications = Application.objects.all()
         else:
             applications = Application.objects.filter(groups__user=request.user)
