@@ -16,4 +16,4 @@ class IsDomBoscoParent(permissions.BasePermission):
 
 class IsDomBoscoAdmin(permissions.BasePermission):
     def has_permission(self, request: Request, view):
-        return is_superuser(request.user, include_superuser=True)
+        return is_superuser(request.user)
