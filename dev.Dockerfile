@@ -33,5 +33,4 @@ EXPOSE 8000
 EXPOSE 3000
 
 # Run the Django development server
-RUN python backend/manage.py migrate
 # CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

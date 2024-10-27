@@ -58,7 +58,6 @@ class ParentsFormListSerializer(serializers.ModelSerializer):
 
 class StaffFormSerializer(serializers.ModelSerializer):
     assigned_staff = UserProfileSerializer(read_only=True)
-    parent_form = ParentsFormSerializer(read_only=True)
     parent_form_id = serializers.PrimaryKeyRelatedField(queryset=ParentForm.objects.all(), write_only=True, source="parent_form")
 
     class Meta:
@@ -72,7 +71,6 @@ class StaffFormSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     user = UserProfileSerializer(read_only=True)
-    parent_form = ParentsFormSerializer(read_only=True)
     parent_form_id = serializers.PrimaryKeyRelatedField(queryset=ParentForm.objects.all(), write_only=True, source="parent_form")
 
     class Meta:
