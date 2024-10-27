@@ -69,7 +69,7 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         exclude = ["parent_form"]
-        read_only_fields = ["created_at", "updated_at", "id", "parent_form"]
+        read_only_fields = ["created_at", "updated_at", "id"]
 
     def validate_parent_form_id(self, value: ParentForm):
         if value.status == ParentForm.StatusChoices.PENDENTE:
