@@ -2,27 +2,45 @@
 
 import { signIn } from "next-auth/react";
 import type React from "react";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { FaGoogle, FaSignOutAlt } from "react-icons/fa";
 import { Header } from "./header";
+import { AuthContext } from "../context/authContext";
+import formsServices from "../services/ContactsService";
+import { useRouter } from "next/navigation";
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { login } = useContext(AuthContext)
+  const router =  useRouter()
+
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Aqui você pode adicionar sua lógica de autenticação com email e senha
 
     if (email === "" || password === "") {
       setError("Por favor, preencha todos os campos.");
       return;
     }
 
+    const token = await formsServices.getToken(email, password)
+
+    if (!login) {
+      return <div>Loading...</div>; // ou outra lógica de fallback
+    }
+
+    await login(token.access)
+
+    router.push('/')
+
     console.log("Email:", email);
     console.log("Senha:", password);
   };
+
+  
 
   return (
     <>

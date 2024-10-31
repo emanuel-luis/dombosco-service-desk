@@ -1,14 +1,15 @@
 "use client"
-import React, { useState } from "react";
+
+import React, { useCallback, useEffect, useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../_components/ui/select";
 import { Textarea } from "../_components/ui/textarea";
 import { Button } from "../_components/ui/button";
 import { Header } from "../_components/header";
 
-const PersonsResponsibleForm = () => {
+const PersonsResponsibleForm =  () => {
   const [isDisable, setIsDisable] = useState(false);
-  const [showTratativa, setShowTratativa] = useState(false); // Novo estado para alternar entre os formulários
+  const [showTratativa, setShowTratativa] = useState(false);
 
   const initialValues = {
     nome: "",
