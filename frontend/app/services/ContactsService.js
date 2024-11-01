@@ -6,11 +6,11 @@ class ContactsServices {
   }
 
   async getToken(email, password) {
-    return this.httpClient.post('/api/v1/auth/login/', email, password)
+    return this.httpClient.postGetToken('/api/v1/auth/login/', email, password)
   }
 
-  async listForms(id) {
-    return this.httpClient.get(`/api/v1/forms/parent/?id=${id}`);
+  async listForms(email) {
+    return this.httpClient.get(`/api/v1/forms/parent/?id=${email}`);
   }
 
   async listStatus() {
