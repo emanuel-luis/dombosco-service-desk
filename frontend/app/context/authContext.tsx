@@ -21,12 +21,12 @@ export const AuthProviderJWT: React.FC<{ children: ReactNode }> = ({ children })
     }, []);
 
     const login = (token: string) => {
-        localStorage.setItem('token', token); // Armazena o token no localStorage
+        localStorage.setItem('token', token); 
         setIsAuthenticated(true);
     };
 
     const logout = () => {
-        localStorage.removeItem('token'); // Remove o token do localStorage
+        localStorage.removeItem('token'); 
         setIsAuthenticated(false);
     };
 

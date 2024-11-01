@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import { Header } from "../../_components/header";
 import TableGrid from "../../_components/tableGrid";
 import { Button } from "../../_components/ui/button";
+import formsServices from "../../services/ContactsService";
 import {
   Pagination,
   PaginationContent,
@@ -13,8 +14,24 @@ import {
   PaginationPrevious,
   PaginationNext,
 } from "../../pagination";
-// import providers from "../services/apiProvider";
-import formsServices from "../../services/ContactsService";
+
+
+interface Column {
+  accessor: string;
+  Header: string;
+}
+
+interface Data {
+  [key: string]: any; // Ajuste conforme necessário
+}
+
+interface Props {
+  columns: Column[];
+  currentData: Data[];
+  currentPage: number;
+  totalPages: number;
+  handlePageChange: (page: number) => void;
+}
 
 const columns = [
   { head: "Aluno", accessor: "student_name" },
@@ -24,6 +41,7 @@ const columns = [
   { head: "Data da Solicitação", accessor: "created_at" },
   { head: "Status", accessor: "status" },
 ];
+
 
 export default function Solicitações() {
   const router = useParams();
@@ -35,13 +53,14 @@ export default function Solicitações() {
 
   const { id } = router
 
+
   console.log(router)
 
   useEffect(() => {
 
     const fetchData = async () => {
       try {
-        const response = await formsServices.listForms(2);
+        const response = await formsServices.listForms(id);
         console.log('Resposta da API:', response);
         
         if (response && typeof response === 'object') {
@@ -116,7 +135,7 @@ export default function Solicitações() {
 
         <Button
           variant="link"
-          onClick={() => router.back()} // Navega para a página anterior
+          onClick={() => router.back()} 
           className="mt-4"
         >
           Voltar

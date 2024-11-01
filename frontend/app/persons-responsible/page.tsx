@@ -20,7 +20,7 @@ const PersonsResponsibleForm =  () => {
     tratativa: "",
   };
 
-  const handleSubmit = (values) => {
+  const handleSubmit = (values:any) => {
     console.log("Formulário enviado:", values);
     // Lógica para envio de dados
   };
@@ -135,7 +135,7 @@ const PersonsResponsibleForm =  () => {
                         Tratativa
                       </label>
                       <Field name="tratativa">
-                        {({ field }) => (
+                        {({ field }:{field:any}) => (
                           <Textarea
                             {...field}
                             className="mt-1 block w-full border border-gray-300 rounded-md p-2 bg-white text-gray-800 placeholder-gray-500"
