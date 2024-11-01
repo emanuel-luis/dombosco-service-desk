@@ -12,6 +12,17 @@ import {
   TableRow,
 } from "../_components/ui/table";
 
+interface Column {
+  accessor: string;
+}
+
+interface Row {
+  [key: string]: any; // Pode ser ajustado para tipos mais específicos, se necessário
+}
+
+interface Status {
+  [key: string]: any; // Ou você pode definir um tipo específico se conhecer as chaves
+}
 
 interface Column {
   Header: string;
@@ -22,11 +33,17 @@ interface Data {
   [key: string]: string; // Permite qualquer chave como string
 }
 
-const TableGrid = ({ columns, data }: { columns: Column[]; data: Data[] }) => {
-  const [isMounted, setIsMounted] = useState(false);
-  const [status, setStatus] = useState([]);
+interface TableProps {
+  data: any[];
+  columns: any[];
+}
 
-  const formatDate = (dateString) => {
+
+const TableGrid: React.FC<TableProps> = ({ columns, data }) => {
+  const [isMounted, setIsMounted] = useState(false);
+  const [status, setStatus] = useState<Status[]>([]);
+
+  const formatDate = (dateString: any) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("pt-BR");
   };
@@ -45,31 +62,27 @@ const TableGrid = ({ columns, data }: { columns: Column[]; data: Data[] }) => {
       });
   }, []);
 
-  const renderCellValue = (column, row) => {
-    const renderMap = {
+  const renderCellValue = (column: Column, row: Row) => {
+    const renderMap: Record<string, () => any> = {
       created_at: () => formatDate(row[column.accessor]),
-      status: () => status['status']?.[row[column.accessor]]
+      status: () => status[row[column.accessor]] || 'N/A', // Ajuste conforme a estrutura do status
     };
-  
+
     return renderMap[column.accessor] ? renderMap[column.accessor]() : row[column.accessor];
   };
-  
 
   if (!isMounted) {
     return null;
   }
-  
+
   return (
     <Table>
       <TableCaption></TableCaption>
       <TableHeader>
         <TableRow>
-          <TableHead>Aluno</TableHead>
-          <TableHead>Data de Nascimento</TableHead>
-          <TableHead>Série</TableHead>
-          <TableHead>Turma</TableHead>
-          <TableHead>Data da Solicitação</TableHead>
-          <TableHead>Status</TableHead>
+          {columns.map((column) => (
+            <TableHead key={column.accessor}>{column.Header}</TableHead>
+          ))}
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -78,7 +91,6 @@ const TableGrid = ({ columns, data }: { columns: Column[]; data: Data[] }) => {
             {columns.map((column) => (
               <TableCell key={column.accessor}>
                 {renderCellValue(column, row)}
-
               </TableCell>
             ))}
           </TableRow>
@@ -89,3 +101,4 @@ const TableGrid = ({ columns, data }: { columns: Column[]; data: Data[] }) => {
 };
 
 export default TableGrid;
+

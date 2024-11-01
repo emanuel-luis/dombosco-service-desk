@@ -31,7 +31,7 @@ SECRET_KEY = "django-insecure-fp^f!4nrb=yufiazd8voz@)s-rwl6%ac_pdou_$%x2z0aen=^2
 DEBUG = os.getenv("DEPLOYMENT", "development") == "development"
 DOM_BOSCO_EMAIL_DOMAIN = os.getenv("DOM_BOSCO_EMAIL_DOMAIN", "aluno.undb.edu.br")
 
-ALLOWED_HOSTS = []
+
 
 # Application definition
 
@@ -56,7 +56,32 @@ INSTALLED_APPS = [
     "forms",
     "core",
     "accounts",
+    "corsheaders",
 ]
+
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+]
+
+CORS_ALLOW_METHODS = (
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+)
+
+CORS_ALLOW_HEADERS = (
+    "accept",
+    "authorization",
+    "content-type",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+)
+
 
 SITE_ID = 1
 
@@ -134,6 +159,7 @@ SOCIALACCOUNT_PROVIDERS = {
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
