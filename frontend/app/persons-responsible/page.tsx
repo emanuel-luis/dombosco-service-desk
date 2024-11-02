@@ -1,14 +1,15 @@
 "use client"
-import React, { useState } from "react";
+
+import React, { useCallback, useEffect, useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../_components/ui/select";
 import { Textarea } from "../_components/ui/textarea";
 import { Button } from "../_components/ui/button";
 import { Header } from "../_components/header";
 
-const PersonsResponsibleForm = () => {
+const PersonsResponsibleForm =  () => {
   const [isDisable, setIsDisable] = useState(false);
-  const [showTratativa, setShowTratativa] = useState(false); // Novo estado para alternar entre os formulários
+  const [showTratativa, setShowTratativa] = useState(false);
 
   const initialValues = {
     nome: "",
@@ -19,7 +20,7 @@ const PersonsResponsibleForm = () => {
     tratativa: "",
   };
 
-  const handleSubmit = (values) => {
+  const handleSubmit = (values:any) => {
     console.log("Formulário enviado:", values);
     // Lógica para envio de dados
   };
@@ -134,7 +135,7 @@ const PersonsResponsibleForm = () => {
                         Tratativa
                       </label>
                       <Field name="tratativa">
-                        {({ field }) => (
+                        {({ field }:{field:any}) => (
                           <Textarea
                             {...field}
                             className="mt-1 block w-full border border-gray-300 rounded-md p-2 bg-white text-gray-800 placeholder-gray-500"
