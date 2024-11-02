@@ -1,22 +1,23 @@
-FROM node:18-alpine
+# Usar uma imagem base do Node.js
+FROM node:18
 
+# Definir o diretório de trabalho
 WORKDIR /app
 
-ENV NEXT_TELEMETRY_DISABLED 1
-
-RUN mkdir -p .next node_modules
-
+# Copiar o package.json e o package-lock.json (ou yarn.lock)
 COPY package*.json ./
 
-RUN npm ci
+# Instalar dependências
+RUN npm install --production
 
+# Copiar todo o código do projeto
 COPY . .
 
-RUN chown -R node:node /app
+# Construir o projeto Next.js
+RUN npm run build
 
-USER node
+# Expor a porta em que o Next.js vai rodar
+EXPOSE 3000
 
-RUN npx prisma generate --schema ./prisma/schema.prisma
-
-ENTRYPOINT ["./entrypoint.sh"]
-# CMD ["npm", "run", "dev"]
+# Comando para iniciar a aplicação
+CMD ["npm", "run", "dev"]

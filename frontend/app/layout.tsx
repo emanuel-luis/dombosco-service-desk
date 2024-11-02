@@ -1,10 +1,13 @@
+
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
 import { Footer } from "./_components/footer";
-import ProtectedPage from "./_components/protectedPage";
 import { AuthProvider } from "./_providers/auth";
+import { AuthProviderJWT } from "./context/authContext";
+import RequireAuth from "./context/requireAuth";
+
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,7 +24,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`bg-[#F6F5FC]`}>
-        <AuthProvider> {children}</AuthProvider>
+        <AuthProviderJWT>
+          <AuthProvider> 
+            <RequireAuth>
+              {children}
+            </RequireAuth>
+            </AuthProvider>
+        </AuthProviderJWT>
       </body>
     </html>
   );
