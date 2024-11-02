@@ -1,5 +1,7 @@
 "use client"; // Indica que este é um componente de cliente
 import React, { useEffect, useState } from "react";
+// import providers from "../services/apiProvider";
+import formsServices from "../services/ContactsService";
 import {
   Table,
   TableBody,
@@ -11,6 +13,18 @@ import {
 } from "../_components/ui/table";
 
 interface Column {
+  accessor: string;
+}
+
+interface Row {
+  [key: string]: any; // Pode ser ajustado para tipos mais específicos, se necessário
+}
+
+interface Status {
+  [key: string]: any; // Ou você pode definir um tipo específico se conhecer as chaves
+}
+
+interface Column {
   Header: string;
   accessor: string;
 }
@@ -19,29 +33,56 @@ interface Data {
   [key: string]: string; // Permite qualquer chave como string
 }
 
-const TableGrid = ({ columns, data }: { columns: Column[]; data: Data[] }) => {
+interface TableProps {
+  data: any[];
+  columns: any[];
+}
+
+
+const TableGrid: React.FC<TableProps> = ({ columns, data }) => {
   const [isMounted, setIsMounted] = useState(false);
+  const [status, setStatus] = useState<Status[]>([]);
+
+  const formatDate = (dateString: any) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("pt-BR");
+  };
 
   useEffect(() => {
-    setIsMounted(true); // Define como montado quando o componente é renderizado no cliente
+    setIsMounted(true);
   }, []);
 
+  useEffect(() => {
+    formsServices.listStatus()
+      .then(response => {
+        setStatus(response);
+      })
+      .catch(error => {
+        console.error("Error fetching status:", error);
+      });
+  }, []);
+
+  const renderCellValue = (column: Column, row: Row) => {
+    const renderMap: Record<string, () => any> = {
+      created_at: () => formatDate(row[column.accessor]),
+      status: () => status[row[column.accessor]] || 'N/A', // Ajuste conforme a estrutura do status
+    };
+
+    return renderMap[column.accessor] ? renderMap[column.accessor]() : row[column.accessor];
+  };
+
   if (!isMounted) {
-    return null; // Retorna null até que o componente esteja montado
+    return null;
   }
 
   return (
     <Table>
-      <TableCaption>Solicitações</TableCaption>
+      <TableCaption></TableCaption>
       <TableHeader>
         <TableRow>
-          {/* Definindo as colunas diretamente no cabeçalho */}
-          <TableHead>Aluno</TableHead>
-          <TableHead>Série</TableHead>
-          <TableHead>Telefone</TableHead>
-          <TableHead>Email</TableHead>
-          <TableHead>Data</TableHead>
-          <TableHead>Status</TableHead>
+          {columns.map((column) => (
+            <TableHead key={column.accessor}>{column.Header}</TableHead>
+          ))}
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -49,7 +90,7 @@ const TableGrid = ({ columns, data }: { columns: Column[]; data: Data[] }) => {
           <TableRow key={rowIndex}>
             {columns.map((column) => (
               <TableCell key={column.accessor}>
-                {row[column.accessor]}
+                {renderCellValue(column, row)}
               </TableCell>
             ))}
           </TableRow>
@@ -60,3 +101,4 @@ const TableGrid = ({ columns, data }: { columns: Column[]; data: Data[] }) => {
 };
 
 export default TableGrid;
+
