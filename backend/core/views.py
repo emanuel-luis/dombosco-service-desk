@@ -42,6 +42,11 @@ class GroupViewAPI(views.APIView):
 class ApplicationViewAPI(views.APIView):
     permission_classes = [permissions.IsAuthenticated & IsDomBoscoAdmin]
 
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [permissions.IsAuthenticated]
+        return super().get_permissions()
+
     def get(self, request: Request):
         if is_superuser(request.user):
             applications = Application.objects.all()
