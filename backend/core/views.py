@@ -44,7 +44,7 @@ class ApplicationViewAPI(views.APIView):
 
     def get_permissions(self):
         if self.request.method == "GET":
-            return [permissions.IsAuthenticated]
+            return [permissions.IsAuthenticated()]
         return super().get_permissions()
 
     def get(self, request: Request):
