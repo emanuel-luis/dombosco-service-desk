@@ -22,8 +22,6 @@ import {
 } from "./ui/sheet";
 
 export const Header = () => {
-  const { data, status } = useSession();
-
   return (
     <Card>
       <CardContent className="flex flex-row justify-between items-center bg-[#F6F5FC]">
@@ -42,16 +40,16 @@ export const Header = () => {
               <SheetTitle>Menu</SheetTitle>
             </SheetHeader>
 
-            {data?.user ? (
+            {true ? (
               <div className="flex justify-between px-5 py-6 items-center">
                 <div className="flex items-center gap-3">
-                  <Avatar>
+                  {/* <Avatar>
                     <AvatarImage
-                      src={data.user?.image ?? ""}
-                      alt={data.user.name ?? ""}
+                      src=
+                      alt=
                     />
-                  </Avatar>
-                  <h2 className="font-bold ">{data.user.name}</h2>
+                  </Avatar> */}
+                  <h2 className="font-bold "></h2>
                 </div>
                 <Button
                   onClick={() => signOut({ callbackUrl: "/login" })}
@@ -85,14 +83,6 @@ export const Header = () => {
                   Inicio
                 </Link>
               </Button>
-              {data?.user && (
-                <Button variant="default" className="justify-start" asChild>
-                  <Link href="/bookings">
-                    <CalendarIcon size={18} className="mr-2" />
-                    Agendamentos
-                  </Link>
-                </Button>
-              )}
             </div>
           </SheetContent>
         </Sheet>
