@@ -6,8 +6,7 @@ import Card from "../_components/Card";
 import { Header } from "../_components/header";
 import formsServices from "../services/ContactsService";
 import { useEffect, useState } from "react";
-import Loader from "../Loader/page";
-
+import Loader from "../_components/loader";
 
 interface User {
   first_name: string;
@@ -15,63 +14,44 @@ interface User {
   email: string;
 }
 
-
 export default function Home() {
   const [user, setUser] = useState<User[]>([]);
   const [userRole, setUserRole] = useState<number | null>(null);
   const [group, setGroup] = useState([])
-  const [isLoading, setIsLoading] = useState(false)
-
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    setIsLoading(true)
-
     const getUser = async () => {
       try {
-
         const data = await formsServices.listUsers()
         console.log(data)
         const parsedName = data?.last_name.split(' ')
         setUser(prevState => [...prevState, data])
         setUserRole(parsedName === '(PARENT)' ? 1 : 2)
         setIsLoading(false)
-
       } catch(error) {
-
         console.log(error)
-
       } finally {
-
         setIsLoading(false)
       }
     }
-
     getUser()
   }, [])
   
-  console.log(user[0])
-
   useEffect (() => {
-    setIsLoading(true)
-
     if (userRole) {
       const getApllication = async () => {
-
         try {
           const data = await formsServices.listAplications()
-          console.log(data, 'home')
           const matchingGroups = data.filter((c: any) => c?.groups.includes(userRole))
           setGroup(matchingGroups)
           setIsLoading(false)
-
           } catch(error) {
           console.log(error)
         } finally {
           setIsLoading(false)
-
         }
       }
-    
       getApllication()
     }
   }, [userRole])
@@ -90,12 +70,18 @@ export default function Home() {
             {/* CRIAR TRATAMENTO PARA ERROS DA API */}
             {group.map((data) => (
               <div key={Math.random()} className="w-1/3 p-4 my-4"> 
+                {data['name'] == 'Atendimentos' ? <Card
+                  title={data['name']}
+                  description={data['description']}
+                  icon={data['mdm_id']}
+                  link={`/persons-responsible`}
+                /> : 
                 <Card
                   title={data['name']}
                   description={data['description']}
                   icon={data['mdm_id']}
-                  link={`/petitions/${user[0]['email']}`}
-                />
+                  link={`/petitions`}
+                />}
               </div>
             ))}
           </div>

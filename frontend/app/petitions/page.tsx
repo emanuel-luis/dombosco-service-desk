@@ -1,11 +1,11 @@
 "use client"; 
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { Header } from "../../_components/header";
-import TableGrid from "../../_components/tableGrid";
-import { Button } from "../../_components/ui/button";
-import formsServices from "../../services/ContactsService";
+import { Header } from "../_components/header";
+import TableGrid from "../_components/tableGrid";
+import { Button } from "../_components/ui/button";
+import formsServices from "../services/ContactsService";
 import {
   Pagination,
   PaginationContent,
@@ -13,25 +13,7 @@ import {
   PaginationLink,
   PaginationPrevious,
   PaginationNext,
-} from "../../pagination";
-
-
-interface Column {
-  accessor: string;
-  Header: string;
-}
-
-interface Data {
-  [key: string]: any; // Ajuste conforme necessário
-}
-
-interface Props {
-  columns: Column[];
-  currentData: Data[];
-  currentPage: number;
-  totalPages: number;
-  handlePageChange: (page: number) => void;
-}
+} from "../pagination";
 
 const columns = [
   { head: "Aluno", accessor: "student_name" },
@@ -41,7 +23,6 @@ const columns = [
   { head: "Data da Solicitação", accessor: "created_at" },
   { head: "Status", accessor: "status" },
 ];
-
 
 export default function Solicitações() {
   const router = useParams();
@@ -53,16 +34,11 @@ export default function Solicitações() {
 
   const { id } = router
 
-
-  console.log(router)
-
   useEffect(() => {
-
     const fetchData = async () => {
       try {
-        const response = await formsServices.listForms(id);
+        const response = await formsServices.listFormsByUser();
         console.log('Resposta da API:', response);
-        
         if (response && typeof response === 'object') {
           const dataArray = Array.isArray(response.data) ? response.data : [response];
           setData(dataArray);
@@ -78,14 +54,10 @@ export default function Solicitações() {
         setTotalItems(0);
       }
     };
-
     fetchData();
-
 }, [id]);
   
-
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-
 
   const currentData = Array.isArray(data) && data.length > 0 
     ? data.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
@@ -103,7 +75,7 @@ export default function Solicitações() {
       <div className="px-5 pt-5 bg-[white] mh-[480px] mt-[72px] mr-[115px] ml-[115px] rounded-[20px] shadow-[0_10px_60px_0_rgba(226,236,249,0.5)]">
         <h2 className="text-xl font-bold">Solicitações</h2>
         <br/>
-        <TableGrid columns={columns} data={currentData} /> {/* Passar apenas os dados da página atual */}
+        <TableGrid columns={columns} data={currentData} />
 
         <div>
           <Pagination>
@@ -135,7 +107,6 @@ export default function Solicitações() {
 
         <Button
           variant="link"
-          onClick={() => router.back()} 
           className="mt-4"
         >
           Voltar
