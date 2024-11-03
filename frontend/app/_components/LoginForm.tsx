@@ -17,12 +17,11 @@ const LoginForm: React.FC = () => {
   const authContext = useContext(AuthContext);
   const router = useRouter();
 
-
   if (!authContext) {
-    return <div>Loading...</div>; 
+    return <div>Loading...</div>;
   }
 
-  const { login } = authContext;
+  const { login, loginWithGoogle } = authContext;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,17 +33,13 @@ const LoginForm: React.FC = () => {
 
     try {
       const token = await formsServices.getToken(email, password);
-      login(token.access); 
-      router.push('/');
-      
+      login(token.access);
+      router.push("/");
     } catch (error) {
-      setError("Erro ao fazer login."); 
-      console.log(await formsServices.getToken(email, password))
+      setError("Erro ao fazer login.");
+      console.log(await formsServices.getToken(email, password));
       console.error("Login error:", error);
     }
-
-    console.log("Email:", email);
-    console.log("Senha:", password);
   };
 
   return (
@@ -55,7 +50,10 @@ const LoginForm: React.FC = () => {
         {error && <p className="text-red-500">{error}</p>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700"
+            >
               Email Aluno
             </label>
             <input
@@ -68,10 +66,15 @@ const LoginForm: React.FC = () => {
             />
           </div>
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700"
+            >
               <div className="flex justify-between">
                 <span>Senha</span>
-                <span className="text-blue-500 cursor-pointer">Esqueceu sua Senha?</span>
+                <span className="text-blue-500 cursor-pointer">
+                  Esqueceu sua Senha?
+                </span>
               </div>
             </label>
             <input
@@ -92,7 +95,7 @@ const LoginForm: React.FC = () => {
         </form>
         <button
           type="button"
-          onClick={() => signIn("google", { callbackUrl: "/" })}
+          onClick={loginWithGoogle}
           className="w-full mt-4 bg-red-600 text-white p-2 rounded-md flex items-center justify-center hover:bg-red-700 transition"
         >
           <FaGoogle color="#fff" size={20} className="mr-2" /> Entrar com Google
