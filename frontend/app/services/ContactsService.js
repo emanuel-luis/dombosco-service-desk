@@ -14,15 +14,15 @@ class ContactsServices {
   }
 
   async listFormsByUser() {
-    const { pk } = await this.listUsers()
-    return this.httpClient.get(`/api/v1/forms/parent/?id=${pk}`);
+    const { pk } = await this.listUser()
+    return this.httpClient.get(`/api/v1/forms/parent/`);
   }
 
   async listStatus() {
     return this.httpClient.get("/api/v1/forms/parent/choices");
   }
 
-  async listUsers() {
+  async listUser() {
     return this.httpClient.get("/api/v1/auth/user")
   }
 
