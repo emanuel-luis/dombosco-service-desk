@@ -5,6 +5,7 @@ from django.conf import settings
 from urllib.parse import urljoin
 
 import requests
+import json
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.response import Response
@@ -22,6 +23,9 @@ class GoogleLogin(SocialLoginView):
 
 
 class GoogleLoginCallback(APIView):
+    authentication_classes = []
+    permission_classes = []
+
     def get(self, request, *args, **kwargs):
         """
         If you are building a fullstack application (eq. with React app next to Django)
@@ -33,12 +37,12 @@ class GoogleLoginCallback(APIView):
 
         if code is None:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-
+        
         # Remember to replace the localhost:8000 with the actual domain name before deployment
         token_endpoint_url = urljoin("http://localhost:8000", reverse("google_login"))
         response = requests.post(url=token_endpoint_url, data={"code": code})
-
-        return Response(response.json(), status=status.HTTP_200_OK)
+        print(response)
+        return Response(data=json.loads(response.content), status=status.HTTP_200_OK)
 
 
 class LoginPage(View):
