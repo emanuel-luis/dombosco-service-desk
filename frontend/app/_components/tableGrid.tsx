@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "../_components/ui/table";
+import { useRouter } from "next/navigation";
 
 interface Column {
   accessor: string;
@@ -42,6 +43,8 @@ interface TableProps {
 const TableGrid: React.FC<TableProps> = ({ columns, data }) => {
   const [isMounted, setIsMounted] = useState(false);
   const [status, setStatus] = useState<Status[]>([]);
+  const [selectedStudent, setSelectedStudent] = useState<Row | null>(null);
+  const router = useRouter()
 
   const formatDate = (dateString: any) => {
     const date = new Date(dateString);
@@ -63,10 +66,22 @@ const TableGrid: React.FC<TableProps> = ({ columns, data }) => {
   }, []);
 
   const renderCellValue = (column: Column, row: Row) => {
+    const statusText = ["Pendente", "Em andamento", "Finalizado", "Cancelado"]
     const renderMap: Record<string, () => any> = {
       created_at: () => formatDate(row[column.accessor]),
-      status: () => status[row[column.accessor]] || 'N/A', // Ajuste conforme a estrutura do status
+      status: () => statusText[row['status']] || 'N/A',
+      student_name: () => (
+        <button
+          onClick={(e) => {
+            router.push(`/form/${e.target?.innerText}`)
+          }} 
+          className="text-blue-500 underline"
+        >
+          {row[column.accessor]}
+        </button>
+      ),
     };
+    console.log(row)
 
     return renderMap[column.accessor] ? renderMap[column.accessor]() : row[column.accessor];
   };
@@ -81,7 +96,7 @@ const TableGrid: React.FC<TableProps> = ({ columns, data }) => {
       <TableHeader>
         <TableRow>
           {columns.map((column) => (
-            <TableHead key={column.accessor}>{column.Header}</TableHead>
+             <TableHead key={column.accessor}><strong>{column.head}</strong></TableHead>
           ))}
         </TableRow>
       </TableHeader>
@@ -95,8 +110,10 @@ const TableGrid: React.FC<TableProps> = ({ columns, data }) => {
             ))}
           </TableRow>
         ))}
+        <hr />
       </TableBody>
     </Table>
+
   );
 };
 

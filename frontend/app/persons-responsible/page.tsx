@@ -1,15 +1,22 @@
 "use client"
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../_components/ui/select";
 import { Textarea } from "../_components/ui/textarea";
 import { Button } from "../_components/ui/button";
 import { Header } from "../_components/header";
+import AlunoForm from "../studentform/page";
+import formsServices from "../services/ContactsService";
+import Confirm from "../_components/Success";
+import Loader from "../_components/loader";
 
 const PersonsResponsibleForm =  () => {
-  const [isDisable, setIsDisable] = useState(false);
+  const [responseTrue, setResponseTrue] = useState(false);
   const [showTratativa, setShowTratativa] = useState(false);
+  const [studentForm, setStudentForm] = useState(false);
+  const [isLoading, setIsLoading] = useState(false)
+  
 
   const initialValues = {
     nome: "",
@@ -20,9 +27,8 @@ const PersonsResponsibleForm =  () => {
     tratativa: "",
   };
 
-  const handleSubmit = (values:any) => {
-    console.log("Formulário enviado:", values);
-    // Lógica para envio de dados
+  const handleSubmit = () => {
+    console.log("Formulário enviado da onde não era pra enviar")
   };
 
   const handleAdvance = () => {
@@ -33,6 +39,23 @@ const PersonsResponsibleForm =  () => {
     setShowTratativa(false);
   };
 
+  const showStudentForm = () => {
+    setStudentForm(true)
+  }
+
+  const toggleChange = async (data : any) => {
+    setIsLoading(true)
+
+    try {
+      await formsServices.createForm(data)
+      setResponseTrue(true)
+    } catch(error) {
+      console.log(error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return  (
     <>
       <Header />
@@ -40,13 +63,12 @@ const PersonsResponsibleForm =  () => {
         <div className="w-full max-w-md px-5 pt-5">
           <button className="text-[#5061FC] mb-5">Voltar</button>
           <h2 className="text-xl font-bold text-left mb-8">
-            Formulário de Responsável
+            {!studentForm ? "Formulário de Responsável" : "Formulário do Aluno"}
           </h2>
 
           <Formik initialValues={initialValues} onSubmit={handleSubmit}>
-            {({ values, setFieldValue, handleBlur }) => (
-              <Form>
-                {/* Exibe os campos iniciais ou o campo Tratativa */}
+            {({ values, setFieldValue, handleBlur }) => ( 
+              <Form> 
                 {!showTratativa ? (
                   <>
                     <div className="mb-4">
@@ -58,6 +80,7 @@ const PersonsResponsibleForm =  () => {
                         type="text"
                         className="w-[389px] h-[52px] border border-gray-300 rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-blue-500"
                         placeholder="Nome"
+                        required
                       />
                       <ErrorMessage name="nome" component="div" className="text-red-600 text-sm" />
                     </div>
@@ -118,16 +141,15 @@ const PersonsResponsibleForm =  () => {
                       <ErrorMessage name="solicitado" component="div" className="text-red-600 text-sm" />
                     </div>
 
-                    {/* Botão para avançar ao campo Tratativa */}
                     <Button                    
                       type="button"
-                      onClick={handleAdvance}
+                      onClick={(values : any) => handleAdvance()}
                       className="bg-[#5061FC] w-[389px] h-[52px] border border-gray-300 rounded-[4px] p-3 shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] mt-8 text-white"
                     >
                       Avançar
                     </Button>
                   </>
-                ) : (
+                ) : !studentForm ? (
                   <>
                     {/* Campo Tratativa */}
                     <div className="mb-4">
@@ -146,7 +168,6 @@ const PersonsResponsibleForm =  () => {
                       <ErrorMessage name="tratativa" component="div" className="text-red-600 text-sm" />
                     </div>
 
-                    {/* Botões de Voltar e Enviar */}
                     <Button
                       type="button"
                       onClick={handleBack}
@@ -155,18 +176,24 @@ const PersonsResponsibleForm =  () => {
                       Voltar
                     </Button>
                     <Button
-                      type="submit"
+                      type="button"
                       className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full"
+                      onClick={showStudentForm}
                     >
                       Enviar
                     </Button>
                   </>
-                )}
+                ) : responseTrue ? <Confirm /> : isLoading ? <Loader isLoading /> : <AlunoForm 
+                        toggleChange={toggleChange}
+                        formValues={values}
+                    /> }
               </Form>
             )}
+
           </Formik>
         </div>
       </div>
+      
     </>
   );
 };
