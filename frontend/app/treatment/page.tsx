@@ -5,6 +5,7 @@ import { z } from "zod";
 import { Button } from "../_components/ui/button"; // Importing the button from ShadCN
 import { Textarea } from "../_components/ui/textarea"; // Importing the Textarea from ShadCN
 import { Header } from "../_components/header";
+import formsServices from "../services/ContactsService";
 
 const validationSchema = z.object({
   tratativa: z.string().min(1, "Tratativa é obrigatória"), // Adding validation for tratativa
@@ -17,7 +18,7 @@ const Treatment = () => {
 
   const handleSubmit = (values) => {
     console.log("Formulário enviado:", values);
-    // Here you can make a request to send the data
+
   };
 
   return (
@@ -64,6 +65,7 @@ const Treatment = () => {
         </Formik>
       </div>
     </div>
+    
     </>
   );
 };
