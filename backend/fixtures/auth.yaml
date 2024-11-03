@@ -1,0 +1,20 @@
+- model: auth.group
+  pk: 1
+  fields:
+    name: Administrador
+- model: auth.group
+  pk: 2
+  fields:
+    name: Colaborador
+- model: auth.group
+  pk: 3
+  fields:
+    name: Responsável
+- model: auth.group
+  pk: 4
+  fields:
+    name: Usuário
+- model: auth.group
+  pk: 5
+  fields:
+    name: Visitante
