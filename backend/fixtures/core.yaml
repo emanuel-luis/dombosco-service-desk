@@ -1,0 +1,5 @@
+- model: core.applications
+  pk: 1
+  fields:
+    name: Administrador
+    description: Administradorz
