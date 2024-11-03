@@ -16,7 +16,6 @@ interface User {
 
 export default function Home() {
   const [user, setUser] = useState<User[]>([]);
-  const [userRole, setUserRole] = useState<number | null>(null);
   const [group, setGroup] = useState([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -24,10 +23,7 @@ export default function Home() {
     const getUser = async () => {
       try {
         const data = await formsServices.listUsers()
-        console.log(data)
-        const parsedName = data?.last_name.split(' ')
         setUser(prevState => [...prevState, data])
-        setUserRole(parsedName === '(PARENT)' ? 1 : 2)
         setIsLoading(false)
       } catch(error) {
         console.log(error)
@@ -39,22 +35,20 @@ export default function Home() {
   }, [])
   
   useEffect (() => {
-    if (userRole) {
-      const getApllication = async () => {
-        try {
-          const data = await formsServices.listAplications()
-          const matchingGroups = data.filter((c: any) => c?.groups.includes(userRole))
-          setGroup(matchingGroups)
-          setIsLoading(false)
-          } catch(error) {
-          console.log(error)
-        } finally {
-          setIsLoading(false)
-        }
+    const getApllication = async () => {
+      try {
+        const data = await formsServices.listAplications()
+        console.log(data)
+        setGroup(data)
+        setIsLoading(false)
+        } catch(error) {
+        console.log(error)
+      } finally {
+        setIsLoading(false)
       }
-      getApllication()
     }
-  }, [userRole])
+    getApllication()
+  }, [])
 
   return (
     <>
@@ -70,18 +64,12 @@ export default function Home() {
             {/* CRIAR TRATAMENTO PARA ERROS DA API */}
             {group.map((data) => (
               <div key={Math.random()} className="w-1/3 p-4 my-4"> 
-                {data['name'] == 'Atendimentos' ? <Card
-                  title={data['name']}
-                  description={data['description']}
-                  icon={data['mdm_id']}
-                  link={`/persons-responsible`}
-                /> : 
-                <Card
+                {data['name'] == 'Solicitações' ? <Card
                   title={data['name']}
                   description={data['description']}
                   icon={data['mdm_id']}
                   link={`/petitions`}
-                />}
+                /> : null } 
               </div>
             ))}
           </div>
