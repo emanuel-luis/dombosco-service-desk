@@ -66,10 +66,14 @@ class ParentFormViewAPI(views.APIView):
 
         if request.query_params.get("assigned_staff"):
             parents_forms = parents_forms.filter(staffform__assigned_staff__email=request.query_params["assigned_staff"])
+        
+        if request.query_params.get("responsible_party"):
+            parents_forms = parents_forms.filter(responsible_party__email=request.query_params["responsible_party"])
 
-        serializer = ParentsFormListSerializer(parents_forms.order_by("status", "created_at"), many=True)
+        serializer = ParentsFormSerializer(parents_forms.order_by("status", "created_at"), many=True)
         return Response(serializer.data)
 
+    @swagger_auto_schema(responses={201: ParentsFormSerializer()}, request_body=ParentsFormSerializer)
     def post(self, request: Request):
         """
         Allows a parent to submit a form with their information and their child's information.
@@ -90,6 +94,7 @@ class ParentFormViewAPI(views.APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @swagger_auto_schema(responses={200: ParentsFormSerializer()}, query_serializer=ParentQuerySerializer)
     def delete(self, request: Request):
         """
         Allows a parent to delete a form they submitted.
@@ -124,6 +129,7 @@ class ParentFormViewAPI(views.APIView):
             status=status.HTTP_403_FORBIDDEN,
         )
 
+    @swagger_auto_schema(responses={200: ParentsFormSerializer()}, request_body=ParentsFormSerializer)
     def put(self, request: Request):
         """
         Allows a parent to update a form they submitted.
