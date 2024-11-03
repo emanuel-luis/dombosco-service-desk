@@ -81,8 +81,8 @@ const TableGrid: React.FC<TableProps> = ({ columns, data }) => {
         </button>
       ),
     };
-    console.log(row)
 
+    console.log(data)
     return renderMap[column.accessor] ? renderMap[column.accessor]() : row[column.accessor];
   };
 

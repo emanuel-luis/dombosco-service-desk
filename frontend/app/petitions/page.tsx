@@ -1,10 +1,10 @@
 "use client"; 
 
-import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { Header } from "../_components/header";
 import TableGrid from "../_components/tableGrid";
 import { Button } from "../_components/ui/button";
+import { useRouter } from "next/navigation";
 import formsServices from "../services/ContactsService";
 import {
   Pagination,
@@ -25,37 +25,50 @@ const columns = [
 ];
 
 export default function Solicitações() {
-  const router = useParams();
+  const router = useRouter();
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5); 
   const [data, setData] = useState([]);
   const [totalItems, setTotalItems] = useState(0); 
+  const [application, setApplication] = useState([]);
 
-  const { id } = router
+
+  useEffect(() => {
+    const applications = async () => {
+      const data = await formsServices.listAplications()
+      setApplication(data)
+    }
+
+    applications()
+  }, [])
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await formsServices.listFormsByUser();
-        console.log('Resposta da API:', response);
+        const { email } = await formsServices.listUser()
+
         if (response && typeof response === 'object') {
           const dataArray = Array.isArray(response.data) ? response.data : [response];
-          setData(dataArray);
+          response["dataEmail"] = email
+          console.log(response, 'já era pra ter email')
+          setData(response);
           setTotalItems(dataArray.length);
-        } else {
+
+          } else {
           console.error('A resposta da API não contém dados válidos:', response);
           setData([]);
           setTotalItems(0);
         }
       } catch (error) {
-        console.log('ERROR:', error);
         setData([]);
         setTotalItems(0);
       }
     };
+
     fetchData();
-}, [id]);
+}, []);
   
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
@@ -75,6 +88,14 @@ export default function Solicitações() {
       <div className="px-5 pt-5 bg-[white] mh-[480px] mt-[72px] mr-[115px] ml-[115px] rounded-[20px] shadow-[0_10px_60px_0_rgba(226,236,249,0.5)]">
         <h2 className="text-xl font-bold">Solicitações</h2>
         <br/>
+        {application.map(element => {
+          console.log(element?.description)
+          if (element?.description == "ATENDIMENTOS") {
+            return <button onClick={() => router.push('/persons-responsible')}>
+              Nova Solicitação
+            </button>
+          }
+        })}
         <TableGrid columns={columns} data={currentData} />
 
         <div>
