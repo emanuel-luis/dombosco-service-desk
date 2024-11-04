@@ -44,7 +44,7 @@ const LoginForm: React.FC = () => {
 
   return (
     <>
-      <Header />
+      <Header showMenuButton={false} />
       <div className="max-w-lg mx-auto p-8 min-w-[500px]">
         <h2 className="text-2xl font-semibold text-center">Login</h2>
         {error && <p className="text-red-500">{error}</p>}
@@ -54,7 +54,7 @@ const LoginForm: React.FC = () => {
               htmlFor="email"
               className="block text-sm font-medium text-gray-700"
             >
-              Email Aluno
+              Email
             </label>
             <input
               type="email"
