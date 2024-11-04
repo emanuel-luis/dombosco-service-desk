@@ -14,7 +14,6 @@ class ContactsServices {
   }
 
   async listFormsByUser() {
-    const { pk } = await this.listUser()
     return this.httpClient.get(`/api/v1/forms/parent/`);
   }
 
