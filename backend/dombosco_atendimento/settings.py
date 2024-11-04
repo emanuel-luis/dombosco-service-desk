@@ -10,11 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
-from pathlib import Path
-from datetime import timedelta
-from dotenv import load_dotenv
 import os
+from datetime import timedelta
+from pathlib import Path
 
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,7 +30,6 @@ SECRET_KEY = "django-insecure-fp^f!4nrb=yufiazd8voz@)s-rwl6%ac_pdou_$%x2z0aen=^2
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEPLOYMENT", "development") == "development"
 DOM_BOSCO_EMAIL_DOMAIN = os.getenv("DOM_BOSCO_EMAIL_DOMAIN", "aluno.undb.edu.br")
-
 
 
 # Application definition
@@ -61,7 +60,7 @@ INSTALLED_APPS = [
 
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
+    "http://localhost:3000",
 ]
 
 CORS_ALLOW_METHODS = (
