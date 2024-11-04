@@ -52,11 +52,11 @@ class ParentsFormListSerializer(serializers.ModelSerializer):
 
 class StaffFormSerializer(serializers.ModelSerializer):
     assigned_staff = UserProfileSerializer(read_only=True)
-    parent_form_id = serializers.PrimaryKeyRelatedField(queryset=ParentForm.objects.all(), source="parent_form")
+    parent_form_id = serializers.PrimaryKeyRelatedField(queryset=ParentForm.objects.all(), write_only=True, source="parent_form")
 
     class Meta:
         model = StaffForm
-        fields = "__all__"
+        exclude = ["parent_form"]
 
     def create(self, validated_data):
         validated_data["assigned_staff"] = self.context["request"].user
