@@ -41,8 +41,7 @@ class GoogleLoginCallback(APIView):
         # Remember to replace the localhost:8000 with the actual domain name before deployment
         token_endpoint_url = urljoin("http://localhost:8000", reverse("google_login"))
         response = requests.post(url=token_endpoint_url, data={"code": code})
-        print(response)
-        return Response(data=json.loads(response.content), status=status.HTTP_200_OK)
+        return Response(data=response.json(), status=status.HTTP_200_OK)
 
 
 class LoginPage(View):
