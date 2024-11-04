@@ -2,15 +2,21 @@
 import { useParams } from "next/navigation";
 import React, { createContext, useState, ReactNode, useEffect } from "react";
 
-interface AuthContextType {
+export interface AuthContextType {
   isAuthenticated: boolean;
   login: (token: string) => void;
   logout: () => void;
   loginWithGoogle: () => void; // Novo método para login com Google
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(
-  undefined
+const defaultAuthContextValue: AuthContextType = {
+  isAuthenticated: false,
+  login: () => {},
+  logout: () => {},
+  loginWithGoogle: () => {},
+};
+export const AuthContext = createContext<AuthContextType>(
+  defaultAuthContextValue
 );
 
 export const AuthProviderJWT: React.FC<{ children: ReactNode }> = ({
