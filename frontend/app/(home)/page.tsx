@@ -22,7 +22,7 @@ export default function Home() {
   useEffect(() => {
     const getUser = async () => {
       try {
-        const data = await formsServices.listUsers()
+        const data = await formsServices.listUser()
         setUser(prevState => [...prevState, data])
         setIsLoading(false)
       } catch(error) {
@@ -64,7 +64,9 @@ export default function Home() {
             {/* CRIAR TRATAMENTO PARA ERROS DA API */}
             {group.map((data) => (
               <div key={Math.random()} className="w-1/3 p-4 my-4"> 
-                {data['name'] == 'Solicitações' ? <Card
+                {String(data['name']).toLowerCase() == 'Solicitações'.toLowerCase() 
+                ? 
+                <Card
                   title={data['name']}
                   description={data['description']}
                   icon={data['mdm_id']}

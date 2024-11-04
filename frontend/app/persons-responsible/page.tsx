@@ -10,13 +10,15 @@ import AlunoForm from "../studentform/page";
 import formsServices from "../services/ContactsService";
 import Confirm from "../_components/Success";
 import Loader from "../_components/loader";
+import { useRouter } from "next/navigation";
+
 
 const PersonsResponsibleForm =  () => {
   const [responseTrue, setResponseTrue] = useState(false);
   const [showTratativa, setShowTratativa] = useState(false);
   const [studentForm, setStudentForm] = useState(false);
   const [isLoading, setIsLoading] = useState(false)
-  
+  const router = useRouter()
 
   const initialValues = {
     nome: "",
@@ -61,7 +63,7 @@ const PersonsResponsibleForm =  () => {
       <Header />
       <div className="flex justify-center items-center w-full">
         <div className="w-full max-w-md px-5 pt-5">
-          <button className="text-[#5061FC] mb-5">Voltar</button>
+          <button onClick={() => router.back()} className="text-[#5061FC] mb-5"><img className="-rotate-90" src="/arrow.svg"/></button>
           <h2 className="text-xl font-bold text-left mb-8">
             {!studentForm ? "Formulário de Responsável" : "Formulário do Aluno"}
           </h2>
