@@ -88,7 +88,7 @@ SITE_ID = 1
 AUTH_USER_MODEL = "core.User"
 
 REST_FRAMEWORK = {
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    # "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_AUTHENTICATION_CLASSES": ("dj_rest_auth.jwt_auth.JWTCookieAuthentication",),
 }
 
@@ -119,8 +119,8 @@ ACCOUNT_AUTHENTICATION_METHOD = "email"  # Use Email / Password authentication
 ACCOUNT_USERNAME_REQUIRED = False
 UNIQUE_EMAIL = True
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"  # Require email confirmation
-# ACCOUNT_EMAIL_VERIFICATION = "none" if DEBUG else "mandatory"
+# ACCOUNT_EMAIL_VERIFICATION = "mandatory"  # Require email confirmation
+ACCOUNT_EMAIL_VERIFICATION = "none" if DEBUG else "mandatory"
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = os.getenv("LOGIN_URL", "http://localhost:8001/home")
 ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = os.getenv("LOGIN_URL", "http://localhost:8001/home")
@@ -231,7 +231,6 @@ LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "UTC"
 USE_I18N = True
-
 USE_TZ = True
 
 

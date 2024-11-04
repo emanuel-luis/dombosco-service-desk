@@ -7,6 +7,7 @@ from allauth.socialaccount.models import EmailAddress
 from allauth.utils import get_username_max_length
 from django.contrib.auth.models import Group, User
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from core.models import Application
 
 User = get_user_model()
@@ -37,7 +38,6 @@ class RegisterSerializer(serializers.Serializer):
     password2 = serializers.CharField(write_only=True)
     phone = serializers.CharField(max_length=20, required=False)
     mobile_phone = serializers.CharField(max_length=20, required=False)
-    groups = serializers.ListField(child=serializers.CharField(), required=False)
 
     def validate_username(self, username):
         username = get_adapter().clean_username(username)
@@ -69,7 +69,6 @@ class RegisterSerializer(serializers.Serializer):
             "last_name": self.validated_data.get("last_name", ""),
             "phone": self.validated_data.get("phone", ""),
             "mobile_phone": self.validated_data.get("mobile_phone", ""),
-            "groups": self.validated_data.get("groups", []),
         }
 
     def save(self, request):
@@ -86,20 +85,13 @@ class RegisterSerializer(serializers.Serializer):
         user.mobile_phone = self.cleaned_data.get("mobile_phone")
         user.first_name = self.cleaned_data.get("first_name")
         user.last_name = self.cleaned_data.get("last_name")
-
-        groups = []
-        for group_name in self.cleaned_data.get("groups"):
-            try:
-                group = Group.objects.get(name=group_name)
-                groups.append(group)
-            except Group.DoesNotExist as exc:
-                raise serializers.ValidationError(f"Group {group_name} does not exist.")
-
         user.save()
 
-        # add user to groups
-        for group in groups:
-            user.groups.add(group)
+        if user.email.endswith(settings.DOM_BOSCO_EMAIL_DOMAIN):
+            group, _ = Group.objects.get_or_create(name="Colaborador")
+        else:
+            group, _ = Group.objects.get_or_create(name="Responsável")
+        user.groups.add(group)
         user.save()
 
         self.custom_signup(request, user)
