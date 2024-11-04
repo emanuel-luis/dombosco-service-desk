@@ -37,13 +37,13 @@ interface Data {
 interface TableProps {
   data: any[];
   columns: any[];
+  email: any[];
 }
 
 
-const TableGrid: React.FC<TableProps> = ({ columns, data }) => {
+const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
   const [isMounted, setIsMounted] = useState(false);
   const [status, setStatus] = useState<Status[]>([]);
-  const [selectedStudent, setSelectedStudent] = useState<Row | null>(null);
   const router = useRouter()
 
   const formatDate = (dateString: any) => {
@@ -82,7 +82,7 @@ const TableGrid: React.FC<TableProps> = ({ columns, data }) => {
       ),
     };
 
-    console.log(data)
+    console.log(row.resposible_party) 
     return renderMap[column.accessor] ? renderMap[column.accessor]() : row[column.accessor];
   };
 
@@ -92,16 +92,20 @@ const TableGrid: React.FC<TableProps> = ({ columns, data }) => {
 
   return (
     <Table>
-      <TableCaption></TableCaption>
-      <TableHeader>
-        <TableRow>
-          {columns.map((column) => (
-             <TableHead key={column.accessor}><strong>{column.head}</strong></TableHead>
-          ))}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {data.map((row, rowIndex) => (
+    <TableCaption></TableCaption>
+    <TableHeader>
+      <TableRow>
+        {columns.map((column) => (
+          <TableHead key={column.accessor}>
+            <strong>{column.head}</strong>
+          </TableHead>
+        ))}
+      </TableRow>
+    </TableHeader>
+    <TableBody>
+      {data
+        .filter((row) => row.responsible_party.email == email)  
+        .map((row, rowIndex) => (
           <TableRow key={rowIndex}>
             {columns.map((column) => (
               <TableCell key={column.accessor}>
@@ -110,9 +114,8 @@ const TableGrid: React.FC<TableProps> = ({ columns, data }) => {
             ))}
           </TableRow>
         ))}
-        <hr />
-      </TableBody>
-    </Table>
+    </TableBody>
+  </Table>
 
   );
 };
