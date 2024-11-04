@@ -1,14 +1,14 @@
-from rest_framework import serializers
 from allauth.account import app_settings as allauth_account_settings
-from django.core.exceptions import ValidationError as DjangoValidationError
 from allauth.account.adapter import get_adapter
 from allauth.account.utils import setup_user_email
 from allauth.socialaccount.models import EmailAddress
 from allauth.utils import get_username_max_length
-from django.contrib.auth.models import Group, User
-from django.contrib.auth import get_user_model
-from django.conf import settings
 from core.models import Application
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group, User
+from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework import serializers
 
 User = get_user_model()
 
