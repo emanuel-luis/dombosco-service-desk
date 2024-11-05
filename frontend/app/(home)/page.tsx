@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -16,8 +16,8 @@ interface User {
 
 export default function Home() {
   const [user, setUser] = useState<User[]>([]);
-  const [group, setGroup] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [group, setGroup] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const getUser = async () => {
@@ -28,27 +28,27 @@ export default function Home() {
       } catch(error) {
         console.log(error)
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
-    getUser()
-  }, [])
-  
-  useEffect (() => {
+    };
+    getUser();
+  }, []);
+
+  useEffect(() => {
     const getApllication = async () => {
       try {
-        const data = await formsServices.listAplications()
-        console.log(data)
-        setGroup(data)
-        setIsLoading(false)
-        } catch(error) {
-        console.log(error)
+        const data = await formsServices.listAplications();
+        console.log(data);
+        setGroup(data);
+        setIsLoading(false);
+      } catch (error) {
+        console.log(error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
-    getApllication()
-  }, [])
+    };
+    getApllication();
+  }, []);
 
   return (
     <>
