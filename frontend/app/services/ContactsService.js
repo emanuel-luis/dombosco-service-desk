@@ -29,8 +29,8 @@ class ContactsServices {
     return this.httpClient.get('/api/v1/admin/applications/')
   }
 
-  async uptadeFormByStaff() {
-    return this.httpClient.put('')
+  async listChoices() {
+    return this.httpClient.get('/api/v1/forms/parent/choices/')
   }
   
 }
