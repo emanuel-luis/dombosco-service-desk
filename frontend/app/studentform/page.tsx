@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { Button } from "../_components/ui/button";
 import useLoginValidation from "../utils/loginValidation"
+import Loader from "../_components/loader";
 import * as Yup from "yup"
 
 
@@ -11,11 +12,12 @@ const AlunoForm = ({toggleChange, formValues} : any) => {
 
   const [isDisable, setIsDisable] = useState(false)
   const [formInfo, setFormInfo] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
 
   const validationSchema = Yup.object({
   
-    nome: Yup.string()
-    .min(1, "Nome é obrigatório"),
+    nomeAluno: Yup.string()
+    .required('Campo nome é obrigatório'),
     dataNascimento: Yup.date()
     .max(new Date(), "Data de nascimento deve ser no passado")
     .nullable(),
@@ -34,19 +36,17 @@ const AlunoForm = ({toggleChange, formValues} : any) => {
   };
 
   const handleSubmit = (itens : any) => {
-    toggleChange(
-      Object.assign({}, itens.values, formValues)
-    );
-
-  };
-  
-  useEffect(() => {
-    const storedInfo = localStorage.getItem('formInfo');
-    if (storedInfo) {
-      setFormInfo(JSON.parse(storedInfo));
+    try {
+      toggleChange(
+        Object.assign({}, itens.values, formValues)
+      );
+    } catch(error) {
+      console.log(error)
+    } finally {
+      setIsLoading(false)
     }
 
-  }, []); 
+  };
 
   return (
     <>
@@ -64,8 +64,9 @@ const AlunoForm = ({toggleChange, formValues} : any) => {
                 <Field
                   name="nomeAluno"
                   type="text"
-                  className="w-[389px] h-[52px] border border-gray-300 rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] 
-                  hover:border-blue-500"
+                  className={`w-[389px] h-[52px] border ${
+                    errors.nomeAluno && touched.nomeAluno ? 'border-red-600' : 'border-gray-300'
+                  } rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-blue-500 outline-none`}
                   placeholder="Nome do Aluno"
                 />
                 <ErrorMessage
@@ -84,9 +85,10 @@ const AlunoForm = ({toggleChange, formValues} : any) => {
                 </label>
                 <Field
                   name="dataNascimento"
-                  type="date"
-                  className="w-[389px] h-[52px] border border-gray-300 rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] 
-                  hover:border-blue-500"
+                  type="date" // TIRA ISSO AQUI E PÕE UMA MÁSCARA
+                  className={`w-[389px] h-[52px] border ${
+                    errors.dataNascimento && touched.dataNascimento ? 'border-red-600' : 'border-gray-300'
+                  } rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-blue-500 outline-none`}
                   placeholder="Data de Nascimento"
                 />
                 <ErrorMessage
@@ -103,8 +105,9 @@ const AlunoForm = ({toggleChange, formValues} : any) => {
                 <Field
                   name="serie"
                   type="text"
-                  className="w-[389px] h-[52px] border border-gray-300 rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] 
-                  hover:border-blue-500"
+                  className={`w-[389px] h-[52px] border ${
+                    errors.serie && touched.serie ? 'border-red-600' : 'border-gray-300'
+                  } rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-blue-500 outline-none`}
                   placeholder="Ano/Série"
                 />
                 <ErrorMessage
@@ -124,8 +127,9 @@ const AlunoForm = ({toggleChange, formValues} : any) => {
                 <Field
                   name="dataAtendimento"
                   type="date"
-                  className="w-[389px] h-[52px] border border-gray-300 rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] 
-                  hover:border-blue-500"
+                  className={`w-[389px] h-[52px] border ${
+                    errors.dataAtendimento && touched.dataAtendimento ? 'border-red-600' : 'border-gray-300'
+                  } rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-blue-500 outline-none`}
                   placeholder="Data de Atendimento"
                 />
                 <ErrorMessage
@@ -142,8 +146,9 @@ const AlunoForm = ({toggleChange, formValues} : any) => {
                 <Field
                   name="turma"
                   type="text"
-                  className="w-[389px] h-[52px] border border-gray-300 rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] 
-                  hover:border-blue-500"
+                  className={`w-[389px] h-[52px] border ${
+                    errors.turma && touched.turma ? 'border-red-600' : 'border-gray-300'
+                  } rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-blue-500 outline-none`}
                   placeholder="Turma"
                 />
                 <ErrorMessage
