@@ -11,6 +11,7 @@ import formsServices from "../services/ContactsService";
 import Confirm from "../_components/Success";
 import Loader from "../_components/loader";
 import { useRouter } from "next/navigation";
+import * as Yup from 'yup';
 
 
 const PersonsResponsibleForm =  () => {
@@ -28,6 +29,15 @@ const PersonsResponsibleForm =  () => {
     phone: "",
     tratativa: "",
   };
+
+  const validationSchema = Yup.object({
+    nome: Yup.string()
+      .required('O campo Nome é obrigatório')
+      .min(3, 'O nome deve ter pelo menos 3 caracteres')
+      .max(50, 'O nome deve ter no máximo 50 caracteres'),
+    parentesco: Yup.number()
+      .required('O campo parentesco é obrigatório')
+  });
 
   const handleSubmit = () => {
     console.log("Formulário enviado da onde não era pra enviar")
@@ -68,24 +78,26 @@ const PersonsResponsibleForm =  () => {
             {!studentForm ? "Formulário de Responsável" : "Formulário do Aluno"}
           </h2>
 
-          <Formik initialValues={initialValues} onSubmit={handleSubmit}>
-            {({ values, setFieldValue, handleBlur }) => ( 
-              <Form> 
-                {!showTratativa ? (
-                  <>
-                    <div className="mb-4">
-                      <label htmlFor="nome" className="hidden text-sm font-medium">
-                        Nome
-                      </label>
-                      <Field
-                        name="nome"
-                        type="text"
-                        className="w-[389px] h-[52px] border border-gray-300 rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-blue-500"
-                        placeholder="Nome"
-                        required
-                      />
-                      <ErrorMessage name="nome" component="div" className="text-red-600 text-sm" />
-                    </div>
+            <Formik initialValues={initialValues} validationSchema={validationSchema}  onSubmit={handleSubmit}>
+              {({ values, setFieldValue, errors, touched, dirty, isValid}) => ( 
+                <Form> 
+                  {!showTratativa ? (
+                    <>
+                      <div className="mb-4">
+                        <label htmlFor="nome" className="hidden text-sm font-medium">
+                          Nome
+                        </label>
+                        <Field
+                          name="nome"
+                          type="text"
+                          className={`w-[389px] h-[52px] border ${
+                            errors.nome && touched.nome ? 'border-red-600' : 'border-gray-300'
+                          } rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-blue-500 outline-none`}
+                          placeholder="Nome"
+                          required
+                        />
+                        <ErrorMessage name="nome" component="div" className="text-red-600 text-sm mt-1" />
+                      </div>
 
                     <div className="mb-4">
                       <label htmlFor="parentesco" className="hidden text-sm font-medium">
@@ -93,9 +105,12 @@ const PersonsResponsibleForm =  () => {
                       </label>
                       <Field
                         name="parentesco"
-                        className="w-[389px] h-[52px] border border-gray-300 rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-blue-500"
+                        className={`w-[389px] h-[52px] border ${
+                          errors.parentesco && touched.parentesco ? 'border-red-600' : 'border-gray-300'
+                        } rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-blue-500 outline-none`}
                         placeholder="Grau de Parentesco"
                       />
+                      <ErrorMessage name="parentesco" component="div" className="text-red-600 text-sm mt-1" />
                     </div>
 
                     <div className="mb-4">
@@ -123,30 +138,28 @@ const PersonsResponsibleForm =  () => {
                     </div>
 
                     <div className="mb-4">
-                      <label htmlFor="solicitado" className="hidden text-sm font-medium">
-                        Solicitado
-                      </label>
-                      <Field name="solicitado">
-                        {() => (
-                          <Select onValueChange={(value) => setFieldValue("solicitado", value)}>
-                            <SelectTrigger className="w-[389px] h-[52px] border border-gray-300 rounded-[4px] p-4 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-blue-500">
-                              <SelectValue placeholder="Selecione uma opção" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-[white]">
-                              <SelectItem value="light" className="border border-gray-300">Light</SelectItem>
-                              <SelectItem value="dark" className="border border-gray-300">Dark</SelectItem>
-                              <SelectItem value="system" className="border border-gray-300">System</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        )}
-                      </Field>
-                      <ErrorMessage name="solicitado" component="div" className="text-red-600 text-sm" />
+                    <label htmlFor="solicitado" className="text-sm font-medium">
+                    </label>
+                    <Field
+                      as="select" // Usando o campo select do Formik
+                      name="solicitado"
+                      className={`w-[389px] h-[52px] border ${
+                        errors.solicitado && touched.solicitado ? 'border-red-600' : 'border-gray-300'
+                      } rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-blue-500 outline-none`}
+                    >
+                      <option value="" label="Selecione uma opção" />
+                      <option value="light" label="Light" />
+                      <option value="dark" label="Dark" />
+                      <option value="system" label="System" />
+                    </Field>
+                    <ErrorMessage name="solicitado" component="div" className="text-red-600 text-sm mt-1" />
                     </div>
 
                     <Button                    
                       type="button"
                       onClick={(values : any) => handleAdvance()}
                       className="bg-[#5061FC] w-[389px] h-[52px] border border-gray-300 rounded-[4px] p-3 shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] mt-8 text-white"
+                      disabled={!(isValid && dirty)}
                     >
                       Avançar
                     </Button>

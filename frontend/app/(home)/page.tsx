@@ -62,7 +62,7 @@ export default function Home() {
           </p>
           <div className="flex flex-wrap -m-4"> {/* Removi o min-w-1000px para permitir responsividade */}
             {/* CRIAR TRATAMENTO PARA ERROS DA API */}
-            {group.map((data) => (
+            {group?.map((data) => (
               <div key={Math.random()} className="w-1/3 p-4 my-4"> 
                 {String(data['name']).toLowerCase() == 'Solicitações'.toLowerCase() 
                 ? 

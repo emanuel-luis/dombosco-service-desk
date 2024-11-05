@@ -77,7 +77,7 @@ export default function Solicitações() {
           <img className="-rotate-90" src="/arrow.svg" />
         </Button>
         <h2 className="text-xl font-bold">Solicitações</h2>
-        {application.map(element => {
+        {application?.map(element => {
           console.log(element?.description)
           if (String(element?.description).toLowerCase() == "ATENDIMENTOS".toLowerCase()) {
             return (
