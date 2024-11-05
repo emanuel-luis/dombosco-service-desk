@@ -62,7 +62,7 @@ class HttpClient {
     console.log(user)
 
     const payload = {
-      "requested_by": user.pk,
+      "requested_by": 0, // WARNING
       "student_name": params.nomeAluno,  
       "student_birth_date": params.dataNascimento, 
       "student_grade_year": params.serie,
