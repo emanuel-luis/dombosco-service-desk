@@ -1,8 +1,9 @@
 "use client"; 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { Button } from "../_components/ui/button";
 import useLoginValidation from "../utils/loginValidation"
+import InputMask from 'react-input-mask'
 import Loader from "../_components/loader";
 import * as Yup from "yup"
 
@@ -15,17 +16,35 @@ const AlunoForm = ({toggleChange, formValues} : any) => {
   const [isLoading, setIsLoading] = useState(true)
 
   const validationSchema = Yup.object({
-  
     nomeAluno: Yup.string()
-    .required('Campo nome é obrigatório'),
+        .required('Campo nome é obrigatório'),
     dataNascimento: Yup.date()
-    .max(new Date(), "Data de nascimento deve ser no passado")
-    .nullable(),
-    serie: Yup.string()
-    .min(1, "Ano/Série é obrigatório"),
+        .transform((value, originalValue) => {
+            const isValidDate = /^\d{2}\/\d{2}\/\d{4}$/.test(originalValue);
+            return isValidDate ? new Date(originalValue.split('/').reverse().join('-')) : null;
+        })
+        .nullable()
+        .required("Data de nascimento é obrigatória")
+        .test("min-age", "O aluno deve ter pelo menos 18 anos", function(value) {
+            if (!value) return false;
+            const today = new Date();
+            const birthDate = new Date(value);
+            const age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            const dayDiff = today.getDate() - birthDate.getDate();
+
+            return age > 18 || (age === 18 && (monthDiff > 0 || (monthDiff === 0 && dayDiff >= 0)));
+        }),
+    serie: Yup.number()
+        .min(1, "Ano/Série é obrigatório")
+        .required("Ano/Série é obrigatório"),
     turma: Yup.string()
-    .min(1, "Turma é obrigatória"),
-  });
+        .min(1, "Turma é obrigatória")
+        .max(2, "Turma é no máximo 2 caracteres")
+        .required("Turma é obrigatória"),
+});
+
+
   
   const initialValues = {
     nomeAluno: "",
@@ -85,11 +104,17 @@ const AlunoForm = ({toggleChange, formValues} : any) => {
                 </label>
                 <Field
                   name="dataNascimento"
-                  type="date" // TIRA ISSO AQUI E PÕE UMA MÁSCARA
-                  className={`w-[389px] h-[52px] border ${
-                    errors.dataNascimento && touched.dataNascimento ? 'border-red-600' : 'border-gray-300'
-                  } rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-blue-500 outline-none`}
-                  placeholder="Data de Nascimento"
+                  render={({ field } : any) => (
+                    <InputMask
+                      {...field}
+                      mask="99/99/9999" // Define a máscara para data no formato DD/MM/YYYY
+                      type="text"
+                      className={`w-[389px] h-[52px] border ${
+                        errors.dataNascimento && touched.dataNascimento ? 'border-red-600' : 'border-gray-300'
+                      } rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-blue-500 outline-none`}
+                      placeholder="Data de Nascimento"
+                    />
+                  )}
                 />
                 <ErrorMessage
                   name="dataNascimento"
@@ -118,28 +143,6 @@ const AlunoForm = ({toggleChange, formValues} : any) => {
               </div>
 
               <div className="mb-4">
-                <label
-                  htmlFor="dataAtendimento"
-                  className="hidden text-sm font-medium"
-                >
-                  Data de Atendimento
-                </label>
-                <Field
-                  name="dataAtendimento"
-                  type="date"
-                  className={`w-[389px] h-[52px] border ${
-                    errors.dataAtendimento && touched.dataAtendimento ? 'border-red-600' : 'border-gray-300'
-                  } rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-blue-500 outline-none`}
-                  placeholder="Data de Atendimento"
-                />
-                <ErrorMessage
-                  name="dataAtendimento"
-                  component="div"
-                  className="text-red-600 text-sm"
-                />
-              </div>
-
-              <div className="mb-4">
                 <label htmlFor="turma" className="hidden text-sm font-medium">
                   Turma
                 </label>
@@ -150,6 +153,7 @@ const AlunoForm = ({toggleChange, formValues} : any) => {
                     errors.turma && touched.turma ? 'border-red-600' : 'border-gray-300'
                   } rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-blue-500 outline-none`}
                   placeholder="Turma"
+                  max="2"
                 />
                 <ErrorMessage
                   name="turma"

@@ -60,7 +60,7 @@ export default function Home() {
           <p className="capitalize text-sm">
             {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}
           </p>
-          <div className="flex flex-wrap -m-4"> {/* Removi o min-w-1000px para permitir responsividade */}
+          <div className="flex flex-wrap -m-4"> 
             {/* CRIAR TRATAMENTO PARA ERROS DA API */}
             {group?.map((data) => (
               <div key={Math.random()} className="w-1/3 p-4 my-4"> 

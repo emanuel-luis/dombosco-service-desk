@@ -37,30 +37,29 @@ export default function Solicitações() {
     applications()
   }, [])
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await formsServices.listFormsByUser();
-        const { email } = await formsServices.listUser()
-        console.log(email, 'aquui no meila')
+    useEffect(() => {
+      const fetchData = async () => {
+        try {
+          const response = await formsServices.listFormsByUser();
+          const { email } = await formsServices.listUser()
+          console.log(email, 'aquui no meila')
 
-        setEmail(email)
-        setData(response);
-        setIsLoading(false)
+          setEmail(email)
+          setData(response);
+          setIsLoading(false)
 
-      } catch (error) {
-        setData([]);
-      } finally {
-        setIsLoading(false)
-      }
-    };
+        } catch (error) {
+          setData([]);
+        } finally {
+          setIsLoading(false)
+        }
+      };
 
-    fetchData();
-}, []);
-  
-
+      fetchData();
+  }, []);
+    
   const currentData = Array.isArray(data) && data.length > 0 
-    ? data.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+    ? data
     : []; 
 
   return (
@@ -68,7 +67,7 @@ export default function Solicitações() {
      {isLoading ? <Loader isLoading={isLoading}/> : 
      <>
      <Header />
-     <div className="flex flex-col px-5 pt-5 bg-[white] min-h-[480px] mt-[72px] mx-[115px] rounded-[20px] shadow-[0_10px_60px_0_rgba(226,236,249,0.5)]">
+     <div className="flex flex-col px-5 pt-5 bg-[white] min-h-[550px] mt-[72px] mx-[115px] rounded-[20px] shadow-[0_10px_60px_0_rgba(226,236,249,0.5)] ">
         <Button
           variant="link"
           className="self-start"
