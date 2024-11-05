@@ -1,30 +1,29 @@
-"use client"; // Indica que este é um componente de cliente
+"use client"; 
 import React, { useEffect, useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "../_components/ui/button";
-import { Header } from "../_components/header";
-import formsServices from "../services/ContactsService";
+import useLoginValidation from "../utils/loginValidation"
+import * as Yup from "yup"
 
-const validationSchema = z.object({
-  nome: z.string().min(1, "Nome é obrigatório"),
-  dataNascimento: z
-    .date()
-    .max(new Date(), "Data de nascimento deve ser no passado")
-    .nullable(),
-  serie: z.string().min(1, "Ano/Série é obrigatório"),
-  dataAtendimento: z
-    .date()
-    .max(new Date(), "Data de atendimento deve ser no máximo hoje")
-    .nullable(),
-  turma: z.string().min(1, "Turma é obrigatória"),
-});
 
 const AlunoForm = ({toggleChange, formValues} : any) => {
+  useLoginValidation()
+
   const [isDisable, setIsDisable] = useState(false)
   const [formInfo, setFormInfo] = useState([])
 
+  const validationSchema = Yup.object({
+  
+    nome: Yup.string()
+    .min(1, "Nome é obrigatório"),
+    dataNascimento: Yup.date()
+    .max(new Date(), "Data de nascimento deve ser no passado")
+    .nullable(),
+    serie: Yup.string()
+    .min(1, "Ano/Série é obrigatório"),
+    turma: Yup.string()
+    .min(1, "Turma é obrigatória"),
+  });
   
   const initialValues = {
     nomeAluno: "",
@@ -55,8 +54,8 @@ const AlunoForm = ({toggleChange, formValues} : any) => {
     <div className="flex justify-center items-center">
       <div className="w-full max-w-md px-5 pt-5">
 
-        <Formik initialValues={initialValues} onSubmit={handleSubmit}>
-          {(values) => (
+        <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmit}>
+          {({ values, errors, touched, dirty, isValid} : any) => (
             <Form>
               <div className="mb-4">
                 <label htmlFor="nomeAluno" className="hidden text-sm font-medium">
@@ -158,8 +157,7 @@ const AlunoForm = ({toggleChange, formValues} : any) => {
                 type="button"
                 className={`${isDisable ? "bg-[#BCBCBC]" : "bg-[#5061FC]"} w-[389px] h-[52px] border border-gray-300 rounded-[4px] p-3 shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] mt-8 text-white`}
                 onClick={() => {handleSubmit(values)}}
-                // Adicionando largura total ao botão
-                // disabled={!isDisable}
+                disabled={!(isValid && dirty)}
               >
                 Enviar
               </Button>
