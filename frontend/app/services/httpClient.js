@@ -146,11 +146,6 @@ class HttpClient {
       }
     });
 
-    const contentType = response.headers.get("Content-Type");
-
-    if (contentType.includes("application/json")) {
-      body = await response.json();
-    }
 
     if (response.ok) {
       return body;

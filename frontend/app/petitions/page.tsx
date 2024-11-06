@@ -33,7 +33,7 @@ export default function Solicitações() {
       const data = await formsServices.listAplications()
       setApplication(data)
 
-      const containsGroup2 = data.some((app: any) => app.groups && app.groups.length === 1 && app.groups[0] === 2);
+      const containsGroup2 = data?.some((app: any) => app.groups && app.groups.length === 1 && app.groups[0] === 2);
 
       if (containsGroup2) {
         setUserStaff(true);
