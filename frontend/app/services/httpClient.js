@@ -113,7 +113,7 @@ class HttpClient {
     
     const tokenJwt = localStorage.getItem('token')
     const payload = {
-      "status": status
+      "status": Number(status)
   };
   
     const response = await fetch(`${this.baseURL}${path}`, {
