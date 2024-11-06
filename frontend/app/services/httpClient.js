@@ -57,10 +57,6 @@ class HttpClient {
     
     const tokenJwt = localStorage.getItem('token')
 
-    const user = await formsServices.listUser()
-
-    console.log(user)
-
     const payload = {
       "requested_by": 0, // WARNING
       "student_name": params.nomeAluno,  
@@ -89,6 +85,37 @@ class HttpClient {
     }
   }
 
+  async postFormByStaff(path, params) {
+    let body;
+    
+    const tokenJwt = localStorage.getItem('token')
+
+    console.log(params)
+    const payload = {
+      "parent_form_id": params[1].pk,
+      "parent_form": params[0].nomeAluno,  
+      "school_advice": params[0].collaboratorResponse, 
+      "actions_taken": params[0].actionToTake,
+      "final_notes": params[0].measuresToTake,
+  };
+  
+    const response = await fetch(`${this.baseURL}${path}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${tokenJwt}`
+      },
+      body: JSON.stringify(payload)
+    })
+
+    if (response.ok) {
+      body = await response.json();
+      return true
+    } else {
+      const errorDetails = await response.json();
+      console.log("Erro de resposta:", errorDetails);
+    }
+  }
 
 }
 
