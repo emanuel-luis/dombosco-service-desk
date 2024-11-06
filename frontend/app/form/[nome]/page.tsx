@@ -31,6 +31,7 @@ export default function Solicitações() {
   const [showAnswers, setShowAnswers] = useState(true)
   const [staffAnswers, setstaffAnswers] = useState()
   const [closeStaffFields, setCloseStaffFields] = useState(false)
+  const [statusFormFinished, setStatusFormFinished] = useState(false)
 
   const { nome: id } = router
 
@@ -92,11 +93,17 @@ export default function Solicitações() {
         const responseData = await formsServices.listUser();
         setUser(responseData); 
 
-        if (filteredApplications.length > 0) {
-          setParent(false); 
+        if (response[0].status == 2) {
+          setStatusFormFinished(true)
         }
 
-        if (staffForm) {
+        if (filteredApplications.length > 0) {
+          setParent(false); 
+        } else {
+          setParent(true)
+        }
+
+        if (staffForm[0]?.parent_form_id == id) {
           setstaffAnswers(staffForm)
         }
 
@@ -166,160 +173,162 @@ export default function Solicitações() {
                 </section>
 
                 {showAnswers ? 
-                <>
-                  <section aria-labelledby="staff-answer-1" className="bg-white p-6 rounded-lg shadow-md mb-6 border-l-4 border-blue-500">
-                    <h2 id="staff-answer-1" className="text-xl font-semibold text-gray-800 mb-3">
-                      Descrição do Problema
-                    </h2>
-                    <p className="text-gray-700 text-lg">
-                      {staffAnswers[0]?.school_advice || 'Nenhuma descrição disponível.'}
-                    </p>
-                  </section>
+                    <>
+                      <section aria-labelledby="staff-answer-1" className="bg-white p-6 rounded-lg shadow-md mb-6 border-l-4 border-blue-500">
+                        <h2 id="staff-answer-1" className="text-xl font-semibold text-gray-800 mb-3">
+                          Descrição do Problema
+                        </h2>
+                        <p className="text-gray-700 text-lg">
+                          {staffAnswers && staffAnswers?.length > 0 ? staffAnswers[0]?.school_advice : 'Nenhuma descrição disponível.'}
+                        </p>
+                      </section>
 
-                  <section aria-labelledby="staff-answer-2" className="bg-white p-6 rounded-lg shadow-md mb-6 border-l-4 border-green-500">
-                    <h2 id="staff-answer-2" className="text-xl font-semibold text-gray-800 mb-3">
-                      Ações Tomadas
-                    </h2>
-                    <p className="text-gray-700 text-lg">
-                      {staffAnswers[0]?.actions_taken || 'Nenhuma ação tomada até o momento.'}
-                    </p>
-                  </section>
+                      <section aria-labelledby="staff-answer-2" className="bg-white p-6 rounded-lg shadow-md mb-6 border-l-4 border-green-500">
+                        <h2 id="staff-answer-2" className="text-xl font-semibold text-gray-800 mb-3">
+                          Ações Tomadas
+                        </h2>
+                        <p className="text-gray-700 text-lg">
+                          {staffAnswers && staffAnswers?.length > 0 ? staffAnswers[0]?.actions_taken : 'Nenhuma ação tomada até o momento.'}
+                        </p>
+                      </section>
 
-                  <section aria-labelledby="staff-answer-3" className="bg-white p-6 rounded-lg shadow-md mb-6 border-l-4 border-yellow-500">
-                    <h2 id="staff-answer-3" className="text-xl font-semibold text-gray-800 mb-3">
-                      Notas Finais
-                    </h2>
-                    <p className="text-gray-700 text-lg">
-                      {staffAnswers[0]?.final_notes || 'Nenhuma nota final disponível.'}
-                    </p>
-                  </section>
-
-                </>
-                
-                : null
-                } 
+                      <section aria-labelledby="staff-answer-3" className="bg-white p-6 rounded-lg shadow-md mb-6 border-l-4 border-yellow-500">
+                        <h2 id="staff-answer-3" className="text-xl font-semibold text-gray-800 mb-3">
+                          Notas Finais
+                        </h2>
+                        <p className="text-gray-700 text-lg">
+                          {staffAnswers && staffAnswers?.length > 0 ? staffAnswers[0]?.final_notes : 'Nenhuma nota final disponível.'}
+                        </p>
+                      </section>
+                    </>
+                  : null }
 
                 {/* Resposta do Colaborador */}
-                {!parent && !closeStaffFields
+                {!parent && !closeStaffFields && !statusFormFinished
                 ? 
-                  <section aria-labelledby="collaborator-response" className="bg-blue-50 p-4 rounded-lg">
-                    <Formik
-                      initialValues={{
-                        collaboratorResponse: '',
-                        actionToTake: '',
-                        measuresToTake: '',
-                      }}
-                      validationSchema={validationSchema}
-                      onSubmit={handleStaffForm}
-                    >
-                      {({ handleChange, handleBlur, values, errors, touched, dirty, isValid }) => (
-                        <Form>
-                          {/* Resposta do Colaborador */}
-                          <h2 id="collaborator-response" className="text-lg font-semibold text-blue-800 mb-2">
-                            Resposta do Colaborador
-                          </h2>
-                          <Field
-                            as="textarea"
-                            name="collaboratorResponse"
-                            className={`w-full h-32 p-3 border ${touched.collaboratorResponse && errors.collaboratorResponse ? 'border-red-500' : 'border-blue-200'} rounded-lg focus:outline-none focus:border-blue-400`}
-                            placeholder="Escreva sua resposta aqui..."
-                            onChange={handleChange}
-                            onBlur={handleBlur}
-                            value={values.collaboratorResponse}
-                          />
-                          <ErrorMessage
-                            name="collaboratorResponse"
-                            component="div"
-                            className="text-red-500 text-sm mt-1"
-                          />
-
-                          {/* O que fazer */}
-                          <h2 id="what-to-do" className="text-lg font-semibold text-blue-800 mb-2">
-                            O que fazer
-                          </h2>
-                          <Field
-                            as="textarea"
-                            name="actionToTake"
-                            className={`w-full h-32 p-3 border ${touched.actionToTake && errors.actionToTake ? 'border-red-500' : 'border-blue-200'} rounded-lg focus:outline-none focus:border-blue-400`}
-                            placeholder="Escreva sua resposta aqui..."
-                            onChange={handleChange}
-                            onBlur={handleBlur}
-                            value={values.actionToTake}
-                          />
-                          <ErrorMessage
-                            name="actionToTake"
-                            component="div"
-                            className="text-red-500 text-sm mt-1"
-                          />
-
-                          {/* Medidas a tomar */}
-                          <h2 id="measures-to-take" className="text-lg font-semibold text-blue-800 mb-2">
-                            Medidas a tomar
-                          </h2>
-                          <Field
-                            as="textarea"
-                            name="measuresToTake"
-                            className={`w-full h-32 p-3 border ${touched.measuresToTake && errors.measuresToTake ? 'border-red-500' : 'border-blue-200'} rounded-lg focus:outline-none focus:border-blue-400`}
-                            placeholder="Escreva sua resposta aqui..."
-                            onChange={handleChange}
-                            onBlur={handleBlur}
-                            value={values.measuresToTake}
-                          />
-                          <ErrorMessage
-                            name="measuresToTake"
-                            component="div"
-                            className="text-red-500 text-sm mt-1"
-                          />
-                          <div className="flex flex-col items-end mb-2">
-                            <Field 
-                              as="select" 
-                              name="status" 
-                              className="mt-3 px-4 py-2 border-gray-300 border rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                              <option value="" disabled className="text-gray-500">Selecione um status</option>
-                              <option value="0">Pendente</option>
-                              <option value="2">Finalizado</option>
-                              <option value="3">Cancelado</option>
-                              <option value="1">Em andamento</option>
-                            </Field>
-                            <ErrorMessage
-                              name="status"
-                              component="div"
-                              className="text-red-500 text-sm mt-1"
-                            />
-                          </div>
-
-                            <div className="flex justify-between mt-4">
-                              <button
-                                type="submit"
-                                className={`px-4 py-2 rounded-lg text-white ${
-                                  !(isValid && dirty)
-                                    ? 'bg-gray-400 cursor-not-allowed'
-                                    : 'bg-blue-600 hover:bg-blue-700'
-                                }`}
-                                disabled={!(isValid && dirty)}  // Habilita o botão apenas quando o formulário for válido e tiver sido modificado
-                              >
-                                Enviar Resposta
-                              </button>
-                            </div>
-
-
-                          {formStaffError ? <h1>JÁ EXISTE UM COLABORADOR COM LIDANDO COM ESTE FORMULÁRIO</h1> : null}
-                        </Form>
+                <section aria-labelledby="collaborator-response" className="bg-blue-50 p-4 rounded-lg">
+                <Formik
+                  initialValues={{
+                    collaboratorResponse: '',
+                    actionToTake: '',
+                    measuresToTake: '',
+                    status: '',
+                  }}
+                  validationSchema={validationSchema}
+                  onSubmit={handleStaffForm}
+                >
+                  {({ handleChange, handleBlur, values, errors, touched, dirty, isValid }) => (
+                    <Form>
+                      {/* Resposta do Colaborador */}
+                      <h2 id="collaborator-response" className="text-lg font-semibold text-blue-800 mb-2">
+                        Resposta do Colaborador
+                      </h2>
+                      <Field
+                        as="textarea"
+                        name="collaboratorResponse"
+                        className={`w-full h-32 p-3 border ${touched.collaboratorResponse && errors.collaboratorResponse ? 'border-red-500' : 'border-blue-200'} rounded-lg focus:outline-none focus:border-blue-400`}
+                        placeholder="Escreva sua resposta aqui..."
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        value={values.collaboratorResponse}
+                      />
+                      <ErrorMessage
+                        name="collaboratorResponse"
+                        component="div"
+                        className="text-red-500 text-sm mt-1"
+                      />
+              
+                      {/* O que fazer */}
+                      <h2 id="what-to-do" className="text-lg font-semibold text-blue-800 mb-2">
+                        O que fazer
+                      </h2>
+                      <Field
+                        as="textarea"
+                        name="actionToTake"
+                        className={`w-full h-32 p-3 border ${touched.actionToTake && errors.actionToTake ? 'border-red-500' : 'border-blue-200'} rounded-lg focus:outline-none focus:border-blue-400`}
+                        placeholder="Escreva sua resposta aqui..."
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        value={values.actionToTake}
+                      />
+                      <ErrorMessage
+                        name="actionToTake"
+                        component="div"
+                        className="text-red-500 text-sm mt-1"
+                      />
+              
+                      {/* Medidas a tomar */}
+                      <h2 id="measures-to-take" className="text-lg font-semibold text-blue-800 mb-2">
+                        Medidas a tomar
+                      </h2>
+                      <Field
+                        as="textarea"
+                        name="measuresToTake"
+                        className={`w-full h-32 p-3 border ${touched.measuresToTake && errors.measuresToTake ? 'border-red-500' : 'border-blue-200'} rounded-lg focus:outline-none focus:border-blue-400`}
+                        placeholder="Escreva sua resposta aqui..."
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        value={values.measuresToTake}
+                      />
+                      <ErrorMessage
+                        name="measuresToTake"
+                        component="div"
+                        className="text-red-500 text-sm mt-1"
+                      />
+              
+                      {/* Status */}
+                      <div className="flex flex-col items-end mb-2">
+                        <Field 
+                          as="select" 
+                          name="status" 
+                          className="mt-3 px-4 py-2 border-gray-300 border rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="" disabled className="text-gray-500">Selecione um status</option>
+                          <option value="0">Pendente</option>
+                          <option value="2">Finalizado</option>
+                          <option value="3">Cancelado</option>
+                          <option value="1">Em andamento</option>
+                        </Field>
+                        <ErrorMessage
+                          name="status"
+                          component="div"
+                          className="text-red-500 text-sm mt-1"
+                        />
+                      </div>
+              
+                      {/* Botão de Submissão */}
+                      <div className="flex justify-between mt-4">
+                        <button
+                          type="submit"
+                          className={`px-4 py-2 rounded-lg text-white ${
+                            !(isValid && dirty)
+                              ? 'bg-gray-400 cursor-not-allowed'
+                              : 'bg-blue-600 hover:bg-blue-700'
+                          }`}
+                          disabled={!(isValid && dirty)}  // Habilita o botão apenas quando o formulário for válido e tiver sido modificado
+                        >
+                          Enviar Resposta
+                        </button>
+                      </div>
+              
+                      {/* Mensagem de erro */}
+                      {formStaffError && (
+                        <h1 className="text-red-500 text-sm mt-4">
+                          JÁ EXISTE UM COLABORADOR LIDANDO COM ESTE FORMULÁRIO
+                        </h1>
                       )}
-                    </Formik>
-                  </section>
-
+                    </Form>
+                  )}
+                </Formik>
+              </section>
+              
                 : 
                 null }
               </div>
             </>
-          )) 
-
-          }
-          
+          ))}
         </div>
-        </>
+      </>
      }
     </> 
   );
