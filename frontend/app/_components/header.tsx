@@ -1,19 +1,12 @@
 "use client";
-import {
-  CalendarIcon,
-  HomeIcon,
-  LogInIcon,
-  LogOutIcon,
-  MenuIcon,
-  UserIcon,
-} from "lucide-react";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { HomeIcon, LogOutIcon, MenuIcon, UserIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { Avatar, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 
+import { useContext } from "react";
+import { AuthContext, AuthContextType } from "../context/authContext";
 import {
   Sheet,
   SheetContent,
@@ -21,11 +14,17 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "./ui/sheet";
-import { useContext } from "react";
-import { AuthContext, AuthContextType } from "../context/authContext";
+import { useRouter } from "next/navigation";
 
 export const Header = ({ showMenuButton = true }) => {
   const { logout, isAuthenticated } = useContext<AuthContextType>(AuthContext);
+  const router = useRouter(); // Inicializando o router
+
+  const handleLogout = () => {
+    logout(); // Chama a função de logout
+    router.push("/login"); // Redireciona para a página de login
+  };
+
   return (
     <Card>
       <CardContent className="flex flex-row justify-between items-center bg-[#F6F5FC]">
@@ -46,7 +45,7 @@ export const Header = ({ showMenuButton = true }) => {
               <SheetTitle>Menu</SheetTitle>
             </SheetHeader>
 
-            {isAuthenticated ? ( // Substitua `true` pela condição real de autenticação
+            {isAuthenticated ? ( // Verifica se o usuário está autenticado
               <div className="flex justify-between px-5 py-6 items-center">
                 <div className="flex items-center gap-3">
                   {/* <Avatar>
@@ -57,9 +56,6 @@ export const Header = ({ showMenuButton = true }) => {
                   </Avatar> */}
                   <h2 className="font-bold "></h2>
                 </div>
-                <Button onClick={() => logout()} variant="link" size="icon">
-                  <LogOutIcon size={25} />
-                </Button>
               </div>
             ) : (
               <div className="flex flex-col px-5 py-6 gap-3">
@@ -72,9 +68,22 @@ export const Header = ({ showMenuButton = true }) => {
 
             <div className="flex flex-col gap-3 px-5">
               <Button variant="link" className="justify-start" asChild>
-                <Link href="/">
+                <Link href="/login">
                   <HomeIcon size={18} className="mr-2" />
                   Início
+                </Link>
+              </Button>
+            </div>
+            <div className="flex flex-col gap-3 px-5">
+              <Button
+                variant="link"
+                onClick={handleLogout} // Chama a função handleLogout ao clicar
+                className="justify-start"
+                asChild
+              >
+                <Link href="#">
+                  <LogOutIcon size={18} className="mr-2" />
+                  Logout
                 </Link>
               </Button>
             </div>
