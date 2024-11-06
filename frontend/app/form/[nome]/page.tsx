@@ -93,7 +93,7 @@ export default function Solicitações() {
         const responseData = await formsServices.listUser();
         setUser(responseData); 
 
-        if (response[0].status == 2) {
+        if (response[0].status == 2 || response[0].status == 3) {
           setStatusFormFinished(true)
         }
 
@@ -305,7 +305,7 @@ export default function Solicitações() {
                               ? 'bg-gray-400 cursor-not-allowed'
                               : 'bg-blue-600 hover:bg-blue-700'
                           }`}
-                          disabled={!(isValid && dirty)}  // Habilita o botão apenas quando o formulário for válido e tiver sido modificado
+                          disabled={!(isValid && dirty)} 
                         >
                           Enviar Resposta
                         </button>
