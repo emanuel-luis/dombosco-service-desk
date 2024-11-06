@@ -35,7 +35,7 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
   const [isMounted, setIsMounted] = useState(false);
   const [status, setStatus] = useState<Status[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Número de itens por página
+  const itemsPerPage = 5; 
   const router = useRouter();
 
   const formatDate = (dateString: any) => {
@@ -62,7 +62,7 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
       student_name: () => (
         <button
           onClick={(e) => {
-            router.push(`/form/${e.target?.innerText}`)
+            router.push(`/form/${row?.id}`)
           }} 
           className="text-blue-500 underline"
         >
@@ -74,7 +74,6 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
     return renderMap[column.accessor] ? renderMap[column.accessor]() : row[column.accessor];
   };
 
-  // Função de paginação
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedData = data.filter(row => row.responsible_party?.email === email).slice(startIndex, endIndex);

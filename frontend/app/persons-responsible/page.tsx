@@ -61,7 +61,8 @@ const PersonsResponsibleForm =  () => {
     setShowTratativa(false);
   };
 
-  const showStudentForm = () => {
+  const showStudentForm = (values : any) => {
+    console.log(values)
     setStudentForm(true)
   }
 
@@ -71,6 +72,31 @@ const PersonsResponsibleForm =  () => {
 
   const toggleChange = async (data : any) => {
     setIsLoading(true)
+
+    const relationship = {
+        "0": "Pai",
+        "1": "Mãe",
+        "2": "Avô",
+        "3": "Avó",
+        "4": "Tio",
+        "5": "Tia",
+        "6": "Irmão",
+        "7": "Irmã",
+        "8": "Outro"
+    };
+
+    function getRelationshipKey(data : any) {
+        for (const [key, relValue] of Object.entries(relationship)) {
+            if (relValue.toLowerCase() === data.toLowerCase()) {  
+                return key;
+            }
+        }
+        return null; 
+    }
+
+    data.parentesco = getRelationshipKey(data.parentesco);
+
+    console.log(data); 
 
     try {
       await formsServices.createForm(data)

@@ -1,12 +1,14 @@
 "use client";
 import { useParams } from "next/navigation";
 import React, { createContext, useState, ReactNode, useEffect } from "react";
+import formsServices from "../services/ContactsService";
 
 export interface AuthContextType {
   isAuthenticated: boolean;
   login: (token: string) => void;
   logout: () => void;
   loginWithGoogle: () => void; // Novo método para login com Google
+  user: any
 }
 
 const defaultAuthContextValue: AuthContextType = {
@@ -14,23 +16,35 @@ const defaultAuthContextValue: AuthContextType = {
   login: () => {},
   logout: () => {},
   loginWithGoogle: () => {},
+  user: {}
 };
 export const AuthContext = createContext<AuthContextType>(
   defaultAuthContextValue
 );
 
 export const AuthProviderJWT: React.FC<{ children: ReactNode }> = ({
-  children,
+  children, 
 }) => {
   const router = useParams();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      setIsAuthenticated(true);
-    }
-  }, []);
+    const fetchUserData = async () => {
+      const token = localStorage.getItem("token");
+
+      if (token) {
+        try {
+          setIsAuthenticated(true);
+        } catch (error) {
+          console.error('Erro ao buscar dados do usuário:', error);
+        }
+      } else {
+        setIsAuthenticated(false);
+      }
+    };
+
+    fetchUserData(); // Chama a função assíncrona
+  }, []); 
 
   const login = (token: string) => {
     localStorage.setItem("token", token);
