@@ -135,6 +135,26 @@ class HttpClient {
     }
   }
 
+  async delete(path) {
+    let body;
+    const tokenJwt = localStorage.getItem('token')
+  
+    const response = await fetch(`${this.baseURL}${path}`, {
+      method: 'DELETE', 
+      headers: {
+        "Authorization": `Bearer ${tokenJwt}`
+      }
+    });
+
+
+    if (response.ok) {
+      return body;
+    }
+    else {
+      return false
+    }
+  }
+
 }
 
 export default HttpClient
