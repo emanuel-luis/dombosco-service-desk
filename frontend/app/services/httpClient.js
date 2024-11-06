@@ -108,6 +108,33 @@ class HttpClient {
     }
   }
 
+  async put(path, status) {
+    let body;
+    
+    const tokenJwt = localStorage.getItem('token')
+    const payload = {
+      "status": status
+  };
+  
+    const response = await fetch(`${this.baseURL}${path}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${tokenJwt}`
+      },
+      body: JSON.stringify(payload)
+    })
+
+    if (response.ok) {
+      body = await response.json();
+      return true
+    } else {
+      const errorDetails = await response.json();
+      console.log("Erro de resposta:", errorDetails);
+      return false
+    }
+  }
+
 }
 
 export default HttpClient

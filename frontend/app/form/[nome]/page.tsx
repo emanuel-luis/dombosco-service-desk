@@ -30,7 +30,7 @@ export default function Solicitações() {
   const [formStaffError, setFormStaffError] = useState(false)
   const [showAnswers, setShowAnswers] = useState(true)
   const [staffAnswers, setstaffAnswers] = useState()
-  const [closeStaffFields, setCloseStaffFields] = useState(true)
+  const [closeStaffFields, setCloseStaffFields] = useState(false)
 
   const { nome: id } = router
 
@@ -44,14 +44,30 @@ export default function Solicitações() {
     measuresToTake: Yup.string()
       .required('As medidas a tomar são obrigatórias.')
       .min(5, 'A descrição das medidas deve ter no mínimo 5 caracteres.'),
+    status: Yup.string()
+    .required('Selecione um status')
   });
+
+  const handleFinalize = async (status : any) => {
+    const formUpdateStatus = await formsServices.updateFormStatus(id, status)
+    if (!formUpdateStatus) {
+      console.log(formUpdateStatus)
+      return false
+    }
+  }
 
   const handleStaffForm = async (values : any) => {
     try {
       const formStaffSubmited = await formsServices.createFormStaff({values, data, user})
+      const formStatus = handleFinalize(values.status)
+
       setShowAnswers(true)
       setCloseStaffFields(true)
-      setstaffAnswers(values)
+
+      if (!formStatus) {
+        console.log('erro status')
+        return null
+      }
 
       if (!formStaffSubmited) {
         setFormStaffError(true)
@@ -68,6 +84,7 @@ export default function Solicitações() {
       try {
         const response = await formsServices.listFormsByUser();
         const aplication = await formsServices.listAplications();
+        const staffForm = await formsServices.listStaffForms()
         const filteredApplications = aplication.filter((item: any) =>
           Array.isArray(item.groups) && item.groups.length === 1 && item.groups[0] === 2
         );
@@ -77,6 +94,10 @@ export default function Solicitações() {
 
         if (filteredApplications.length > 0) {
           setParent(false); 
+        }
+
+        if (staffForm) {
+          setstaffAnswers(staffForm)
         }
 
         const responseFiltered = response.filter((ele: any) => ele.id == id);
@@ -151,8 +172,7 @@ export default function Solicitações() {
                       Descrição do Problema
                     </h2>
                     <p className="text-gray-700 text-lg">
-                      {staffAnswers?.collaboratorResponse || 'Nenhuma descrição disponível.'}
-                      {console.log(staffAnswers)}
+                      {staffAnswers[0]?.school_advice || 'Nenhuma descrição disponível.'}
                     </p>
                   </section>
 
@@ -161,16 +181,16 @@ export default function Solicitações() {
                       Ações Tomadas
                     </h2>
                     <p className="text-gray-700 text-lg">
-                      {staffAnswers?.actionToTake || 'Nenhuma ação tomada até o momento.'}
+                      {staffAnswers[0]?.actions_taken || 'Nenhuma ação tomada até o momento.'}
                     </p>
                   </section>
 
                   <section aria-labelledby="staff-answer-3" className="bg-white p-6 rounded-lg shadow-md mb-6 border-l-4 border-yellow-500">
                     <h2 id="staff-answer-3" className="text-xl font-semibold text-gray-800 mb-3">
-                      {}
+                      Notas Finais
                     </h2>
                     <p className="text-gray-700 text-lg">
-                      {staffAnswers?.measuresToTake || 'Nenhuma nota final disponível.'}
+                      {staffAnswers[0]?.final_notes || 'Nenhuma nota final disponível.'}
                     </p>
                   </section>
 
@@ -182,87 +202,114 @@ export default function Solicitações() {
                 {/* Resposta do Colaborador */}
                 {!parent && !closeStaffFields
                 ? 
-                <section aria-labelledby="collaborator-response" className="bg-blue-50 p-4 rounded-lg">
-                <Formik
-                  initialValues={{
-                    collaboratorResponse: '',
-                    actionToTake: '',
-                    measuresToTake: '',
-                  }}
-                  validationSchema={validationSchema}
-                  onSubmit={handleStaffForm}
-                >
-                  {({ handleChange, handleBlur, values, errors, touched, dirty, isValid }) => (
-                    <Form>
-                      {/* Resposta do Colaborador */}
-                      <h2 id="collaborator-response" className="text-lg font-semibold text-blue-800 mb-2">
-                        Resposta do Colaborador
-                      </h2>
-                      <Field
-                        as="textarea"
-                        name="collaboratorResponse"
-                        className={`w-full h-32 p-3 border ${touched.collaboratorResponse && errors.collaboratorResponse ? 'border-red-500' : 'border-blue-200'} rounded-lg focus:outline-none focus:border-blue-400`}
-                        placeholder="Escreva sua resposta aqui..."
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        value={values.collaboratorResponse}
-                      />
-                      <ErrorMessage
-                        name="collaboratorResponse"
-                        component="div"
-                        className="text-red-500 text-sm mt-1"
-                      />
+                  <section aria-labelledby="collaborator-response" className="bg-blue-50 p-4 rounded-lg">
+                    <Formik
+                      initialValues={{
+                        collaboratorResponse: '',
+                        actionToTake: '',
+                        measuresToTake: '',
+                      }}
+                      validationSchema={validationSchema}
+                      onSubmit={handleStaffForm}
+                    >
+                      {({ handleChange, handleBlur, values, errors, touched, dirty, isValid }) => (
+                        <Form>
+                          {/* Resposta do Colaborador */}
+                          <h2 id="collaborator-response" className="text-lg font-semibold text-blue-800 mb-2">
+                            Resposta do Colaborador
+                          </h2>
+                          <Field
+                            as="textarea"
+                            name="collaboratorResponse"
+                            className={`w-full h-32 p-3 border ${touched.collaboratorResponse && errors.collaboratorResponse ? 'border-red-500' : 'border-blue-200'} rounded-lg focus:outline-none focus:border-blue-400`}
+                            placeholder="Escreva sua resposta aqui..."
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            value={values.collaboratorResponse}
+                          />
+                          <ErrorMessage
+                            name="collaboratorResponse"
+                            component="div"
+                            className="text-red-500 text-sm mt-1"
+                          />
 
-                      {/* O que fazer */}
-                      <h2 id="what-to-do" className="text-lg font-semibold text-blue-800 mb-2">
-                        O que fazer
-                      </h2>
-                      <Field
-                        as="textarea"
-                        name="actionToTake"
-                        className={`w-full h-32 p-3 border ${touched.actionToTake && errors.actionToTake ? 'border-red-500' : 'border-blue-200'} rounded-lg focus:outline-none focus:border-blue-400`}
-                        placeholder="Escreva sua resposta aqui..."
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        value={values.actionToTake}
-                      />
-                      <ErrorMessage
-                        name="actionToTake"
-                        component="div"
-                        className="text-red-500 text-sm mt-1"
-                      />
-         
-                      {/* Medidas a tomar */}
-                      <h2 id="measures-to-take" className="text-lg font-semibold text-blue-800 mb-2">
-                        Medidas a tomar
-                      </h2>
-                      <Field
-                        as="textarea"
-                        name="measuresToTake"
-                        className={`w-full h-32 p-3 border ${touched.measuresToTake && errors.measuresToTake ? 'border-red-500' : 'border-blue-200'} rounded-lg focus:outline-none focus:border-blue-400`}
-                        placeholder="Escreva sua resposta aqui..."
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        value={values.measuresToTake}
-                      />
-                      <ErrorMessage
-                        name="measuresToTake"
-                        component="div"
-                        className="text-red-500 text-sm mt-1"
-                      />
-                      <button
-                        type="submit"
-                        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                        disabled={!(isValid && dirty)}
-                      >
-                        Enviar Resposta
-                      </button>
+                          {/* O que fazer */}
+                          <h2 id="what-to-do" className="text-lg font-semibold text-blue-800 mb-2">
+                            O que fazer
+                          </h2>
+                          <Field
+                            as="textarea"
+                            name="actionToTake"
+                            className={`w-full h-32 p-3 border ${touched.actionToTake && errors.actionToTake ? 'border-red-500' : 'border-blue-200'} rounded-lg focus:outline-none focus:border-blue-400`}
+                            placeholder="Escreva sua resposta aqui..."
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            value={values.actionToTake}
+                          />
+                          <ErrorMessage
+                            name="actionToTake"
+                            component="div"
+                            className="text-red-500 text-sm mt-1"
+                          />
 
-                      {formStaffError ? <h1>JÁ EXISTE UM COLABORADOR COM LIDANDO COM ESTE FORMULÁRIO</h1> : null}
-                    </Form>
-                  )}
-                </Formik>
-              </section>
+                          {/* Medidas a tomar */}
+                          <h2 id="measures-to-take" className="text-lg font-semibold text-blue-800 mb-2">
+                            Medidas a tomar
+                          </h2>
+                          <Field
+                            as="textarea"
+                            name="measuresToTake"
+                            className={`w-full h-32 p-3 border ${touched.measuresToTake && errors.measuresToTake ? 'border-red-500' : 'border-blue-200'} rounded-lg focus:outline-none focus:border-blue-400`}
+                            placeholder="Escreva sua resposta aqui..."
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            value={values.measuresToTake}
+                          />
+                          <ErrorMessage
+                            name="measuresToTake"
+                            component="div"
+                            className="text-red-500 text-sm mt-1"
+                          />
+                          <div className="flex flex-col items-end mb-2">
+                            <Field 
+                              as="select" 
+                              name="status" 
+                              className="mt-3 px-4 py-2 border-gray-300 border rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                              <option value="" disabled className="text-gray-500">Selecione um status</option>
+                              <option value="0">Pendente</option>
+                              <option value="2">Finalizado</option>
+                              <option value="3">Cancelado</option>
+                              <option value="1">Em andamento</option>
+                            </Field>
+                            <ErrorMessage
+                              name="status"
+                              component="div"
+                              className="text-red-500 text-sm mt-1"
+                            />
+                          </div>
+
+                            <div className="flex justify-between mt-4">
+                              <button
+                                type="submit"
+                                className={`px-4 py-2 rounded-lg text-white ${
+                                  !(isValid && dirty)
+                                    ? 'bg-gray-400 cursor-not-allowed'
+                                    : 'bg-blue-600 hover:bg-blue-700'
+                                }`}
+                                disabled={!(isValid && dirty)}  // Habilita o botão apenas quando o formulário for válido e tiver sido modificado
+                              >
+                                Enviar Resposta
+                              </button>
+                            </div>
+
+
+                          {formStaffError ? <h1>JÁ EXISTE UM COLABORADOR COM LIDANDO COM ESTE FORMULÁRIO</h1> : null}
+                        </Form>
+                      )}
+                    </Formik>
+                  </section>
+
                 : 
                 null }
               </div>
