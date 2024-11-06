@@ -9,6 +9,10 @@ class ContactsServices {
     return this.httpClient.postGetToken('/api/v1/auth/login/', email, password)
   }
 
+  async updateFormStatus(id, status) {
+    return this.httpClient.put(`/api/v1/forms/parent/update-status/?id=${id}`, status)
+  }
+
   async createForm(params) {
     return this.httpClient.post('/api/v1/forms/parent/', params)
   }
@@ -37,6 +41,10 @@ class ContactsServices {
     return this.httpClient.get('/api/v1/forms/parent/choices/')
   }
   
+  async listStaffForms() {
+    return this.httpClient.get('/api/v1/forms/staff/')
+  }
+
 }
 
 const formsServices = new ContactsServices()
