@@ -24,7 +24,6 @@ export default function Solicitações() {
     const fetchData = async () => {
       try {
         const response = await formsServices.listFormsByUser();
-        console.log("Resposta da API:", response);
         if (response && typeof response === "object") {
           const dataArray = Array.isArray(response.data)
             ? response.data

@@ -35,7 +35,8 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
   const [isMounted, setIsMounted] = useState(false);
   const [status, setStatus] = useState<Status[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Número de itens por página
+  const [userStaff, setUserStaff] = useState(false);
+  const itemsPerPage = 5; 
   const router = useRouter();
 
   const formatDate = (dateString: any) => {
@@ -45,13 +46,16 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
 
   useEffect(() => {
     setIsMounted(true);
-    formsServices.listStatus()
-      .then(response => {
-        setStatus(response);
-      })
-      .catch(error => {
-        console.error("Error fetching status:", error);
-      });
+    const getUserInfo = async () => {
+      const apps = await formsServices.listAplications();
+      const containsGroup2 = apps.some((app: any) => app.groups && app.groups.length === 1 && app.groups[0] === 2);
+
+      if (containsGroup2) {
+        setUserStaff(true);
+      }
+    };
+
+    getUserInfo();
   }, []);
 
   const renderCellValue = (column: Column, row: Row) => {
@@ -61,8 +65,8 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
       status: () => statusText[row['status']] || 'N/A',
       student_name: () => (
         <button
-          onClick={(e) => {
-            router.push(`/form/${e.target?.innerText}`)
+          onClick={() => {
+            router.push(`/form/${row?.id}`);
           }} 
           className="text-blue-500 underline"
         >
@@ -74,12 +78,12 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
     return renderMap[column.accessor] ? renderMap[column.accessor]() : row[column.accessor];
   };
 
-  // Função de paginação
+  const filteredData = userStaff ? data : data.filter(row => row.responsible_party?.email === email);
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedData = data.filter(row => row.responsible_party?.email === email).slice(startIndex, endIndex);
-
-  const totalPages = Math.ceil(data.length / itemsPerPage);
+  const paginatedData = filteredData.slice(startIndex, endIndex);
 
   if (!isMounted) {
     return null;
@@ -91,21 +95,42 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
         <TableCaption></TableCaption>
         <TableHeader>
           <TableRow>
-            {columns.map((column) => (
+            {columns.filter(column => column.accessor != "id").map((column) => (
               <TableHead key={column.accessor}>
                 <strong>{column.head}</strong>
               </TableHead>
             ))}
+            {userStaff && (
+              <TableHead>
+                <strong>Responder</strong>
+              </TableHead>
+            )}
           </TableRow>
         </TableHeader>
         <TableBody>
           {paginatedData.map((row, rowIndex) => (
             <TableRow key={rowIndex}>
-              {columns.map((column) => (
+              {columns.filter(column => column.accessor !== "id").map((column) => (
                 <TableCell key={column.accessor}>
                   {renderCellValue(column, row)}
                 </TableCell>
               ))}
+              {userStaff && (
+                <TableCell>
+                  {row.status !== 2 ? ( 
+                    <button
+                      onClick={() => {
+                        router.push(`/form/${row?.id}`);
+                      }}
+                      className="text-blue-500 underline"
+                    >
+                      Responder
+                    </button>
+                  ) : (
+                    <span>-</span> 
+                  )}
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>

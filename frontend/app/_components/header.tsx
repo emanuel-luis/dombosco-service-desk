@@ -5,8 +5,6 @@ import Link from "next/link";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 
-import { useContext } from "react";
-import { AuthContext, AuthContextType } from "../context/authContext";
 import {
   Sheet,
   SheetContent,
@@ -14,6 +12,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "./ui/sheet";
+import { useContext } from "react";
+import { AuthContext, AuthContextType } from "../context/authContext";
 import { useRouter } from "next/navigation";
 
 export const Header = ({ showMenuButton = true }) => {
@@ -56,6 +56,13 @@ export const Header = ({ showMenuButton = true }) => {
                   </Avatar> */}
                   <h2 className="font-bold "></h2>
                 </div>
+                <Button
+                  onClick={() => router.push("/login")}
+                  variant="link"
+                  size="icon"
+                >
+                  <LogOutIcon size={25} />
+                </Button>
               </div>
             ) : (
               <div className="flex flex-col px-5 py-6 gap-3">

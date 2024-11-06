@@ -21,8 +21,12 @@ const PersonsResponsibleForm =  () => {
   const [responseTrue, setResponseTrue] = useState(false);
   const [showTratativa, setShowTratativa] = useState(false);
   const [studentForm, setStudentForm] = useState(false);
+  const [tratativaValue, setTratativaValue] = useState()
+  const [parentValue, setParentValue] = useState()
   const [isLoading, setIsLoading] = useState(true)
   const [choices, setChoices] = useState([])
+  const [parent, setParent] = useState(true)
+
   const router = useRouter()
 
   const initialValues = {
@@ -53,7 +57,8 @@ const PersonsResponsibleForm =  () => {
     console.log("Formulário enviado da onde não era pra enviar")
   };
 
-  const handleAdvance = () => {
+  const handleAdvance = (values : any) => {
+    setParentValue(values)
     setShowTratativa(true);
   };
 
@@ -61,7 +66,8 @@ const PersonsResponsibleForm =  () => {
     setShowTratativa(false);
   };
 
-  const showStudentForm = () => {
+  const showStudentForm = (values : any) => {
+    setTratativaValue(values)
     setStudentForm(true)
   }
 
@@ -71,6 +77,45 @@ const PersonsResponsibleForm =  () => {
 
   const toggleChange = async (data : any) => {
     setIsLoading(true)
+
+    const relationship = {
+        "0": "Pai",
+        "1": "Mãe",
+        "2": "Avô",
+        "3": "Avó",
+        "4": "Tio",
+        "5": "Tia",
+        "6": "Irmão",
+        "7": "Irmã",
+        "8": "Outro"
+    };
+    
+    const aplication = await formsServices.listAplications();
+    const filteredApplications = aplication.filter((item: any) =>
+      Array.isArray(item.groups) && item.groups.length === 1 && item.groups[0] === 2
+    );
+    if (filteredApplications.length > 0) {
+      setParent(false); 
+    }
+   
+    function getRelationshipKey() {
+        for (const [key, relValue] of Object.entries(relationship)) {
+            if (relValue.toLowerCase() === parentValue?.parentesco.toLowerCase()) {  
+                return key;
+            }
+        }
+        return null; 
+    }
+
+    data = {
+      "requested_by": parent ? 0 : 1, // WARNING
+      "student_name": data.nomeAluno,  
+      "student_birth_date": data.dataNascimento.split('/').reverse().join("-"), 
+      "student_grade_year": data.serie,
+      "student_class_name": data.turma,
+      "relationship_to_student": getRelationshipKey(),
+      "issue_description": tratativaValue?.tratativa
+    }
 
     try {
       await formsServices.createForm(data)
@@ -176,7 +221,7 @@ const PersonsResponsibleForm =  () => {
 
                    <Button                    
                      type="button"
-                     onClick={(values : any) => handleAdvance()}
+                     onClick={() => handleAdvance(values)}
                      className="bg-[#5061FC] w-[389px] h-[52px] border border-gray-300 rounded-[4px] p-3 shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] mt-8 text-white"
                      disabled={!(isValid && dirty)}
                    >

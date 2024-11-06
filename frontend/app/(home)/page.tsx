@@ -38,7 +38,6 @@ export default function Home() {
     const getApllication = async () => {
       try {
         const data = await formsServices.listAplications();
-        console.log(data);
         setGroup(data);
         setIsLoading(false);
       } catch (error) {

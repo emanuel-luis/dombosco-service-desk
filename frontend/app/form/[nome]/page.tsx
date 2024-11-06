@@ -1,13 +1,14 @@
 "use client"; 
 
 import { useParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Header } from "../../_components/header";
 import formsServices from "../../services/ContactsService";
 import { Button } from "@/app/_components/ui/button";
 import { useRouter } from "next/navigation";
 import Loader from "@/app/_components/loader";
-
+import { Formik, Field, Form, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
 
 const columns = [
   { head: "Aluno", accessor: "student_name" },
@@ -21,17 +22,61 @@ const columns = [
 export default function Solicitações() {
   const router = useParams();
   const rota = useRouter()
-
+  const [user, setUser] = useState(null);
+ 
   const [data, setData] = useState([]);
   const [parent, setParent] = useState(true)
   const [isLoading, setIsLoading] = useState(true)
+  const [formStaffError, setFormStaffError] = useState(false)
+  const [showAnswers, setShowAnswers] = useState(true)
+  const [staffAnswers, setstaffAnswers] = useState()
+  const [closeStaffFields, setCloseStaffFields] = useState(false)
+  const [statusFormFinished, setStatusFormFinished] = useState(false)
 
-  const { nome } = router
-  const nomeFiltrado = decodeURIComponent(String(nome).split('%20').join(' ')); 
-  console.log("Nome filtrado:", nomeFiltrado);
+  const { nome: id } = router
 
-  const handleUserForm = () => {
-    
+  const validationSchema = Yup.object({
+    collaboratorResponse: Yup.string()
+      .required('A resposta do colaborador é obrigatória.')
+      .min(10, 'A resposta deve ter no mínimo 10 caracteres.'),
+    actionToTake: Yup.string()
+      .required('Informe o que fazer.')
+      .min(5, 'A descrição do que fazer deve ter no mínimo 5 caracteres.'),
+    measuresToTake: Yup.string()
+      .required('As medidas a tomar são obrigatórias.')
+      .min(5, 'A descrição das medidas deve ter no mínimo 5 caracteres.'),
+    status: Yup.string()
+    .required('Selecione um status')
+  });
+
+  const handleFinalize = async (status : any) => {
+    const formUpdateStatus = await formsServices.updateFormStatus(id, status)
+    if (!formUpdateStatus) {
+      console.log(formUpdateStatus)
+      return false
+    }
+  }
+
+  const handleStaffForm = async (values : any) => {
+    try {
+      const formStaffSubmited = await formsServices.createFormStaff({values, data, user})
+      const formStatus = handleFinalize(values.status)
+
+      setShowAnswers(true)
+      setCloseStaffFields(true)
+
+      if (!formStatus) {
+        console.log('erro status')
+        return null
+      }
+
+      if (!formStaffSubmited) {
+        setFormStaffError(true)
+        console.log('error', formStaffSubmited)
+      }
+    } catch (error) {
+      setFormStaffError(true)
+    }
   }
 
 
@@ -40,28 +85,44 @@ export default function Solicitações() {
       try {
         const response = await formsServices.listFormsByUser();
         const aplication = await formsServices.listAplications();
-        const filteredApplications = aplication.filter((item: any) => 
-          Array.isArray(item.groups) && item.groups.length === 1 && item.groups[0] === 1
+        const staffForm = await formsServices.listStaffForms()
+        const filteredApplications = aplication.filter((item: any) =>
+          Array.isArray(item.groups) && item.groups.length === 1 && item.groups[0] === 2
         );
-        
+
+        const responseData = await formsServices.listUser();
+        setUser(responseData); 
+
+        if (response[0].status == 2 || response[0].status == 3) {
+          setStatusFormFinished(true)
+        }
+
         if (filteredApplications.length > 0) {
-          setParent(false);
-        };
+          setParent(false); 
+        } else {
+          setParent(true)
+        }
 
-        const responseFiltered = response.filter((ele : any) => ele.student_name == nomeFiltrado)
+        if (staffForm[0]?.parent_form_id == id) {
+          setstaffAnswers(staffForm)
+        }
+
+        const responseFiltered = response.filter((ele: any) => ele.id == id);
         setData(responseFiltered);
-        setIsLoading(false)
-
-        } catch (error) {
-        console.log('ERROR:', error);
-        setData([]);
+      } catch (error) {
+        console.error('ERROR:', error);
+        setData([]); 
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     };
 
-    fetchData();
-}, []);
+    fetchData(); 
+  }, []); 
+
+  useEffect(() => {
+
+  }, [user]); 
   
 
   return (
@@ -74,14 +135,16 @@ export default function Solicitações() {
           <h2 className="text-xl font-bold">Solicitações</h2>
           <br/>
           { data.map(element => (
-            
             <>
               <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg ">
                 {/* Informações do Aluno */}
                 <header className="mb-6">
-                  <h1 className="text-2xl font-bold text-gray-800">
-                    {element?.student_name || 'Aluno não encontrado'}
-                  </h1>
+                  <p className="text-2xl font-bold text-gray-800 mb-8">
+                    Nome do Aluno: {element?.student_name || 'Aluno não encontrado'}
+                  </p>
+
+                  <p className="text-2xl font-bold text-gray-800">Nome do Responsável: {element?.responsible_party?.first_name || 'Responsável não encontrado'} </p>
+                  
                 </header>
 
                 {/* Série e Turma */}
@@ -109,57 +172,164 @@ export default function Solicitações() {
                   </p>
                 </section>
 
+                {showAnswers ? 
+                    <>
+                      <section aria-labelledby="staff-answer-1" className="bg-white p-6 rounded-lg shadow-md mb-6 border-l-4 border-blue-500">
+                        <h2 id="staff-answer-1" className="text-xl font-semibold text-gray-800 mb-3">
+                          Descrição do Problema
+                        </h2>
+                        <p className="text-gray-700 text-lg">
+                          {staffAnswers && staffAnswers?.length > 0 ? staffAnswers[0]?.school_advice : 'Nenhuma descrição disponível.'}
+                        </p>
+                      </section>
+
+                      <section aria-labelledby="staff-answer-2" className="bg-white p-6 rounded-lg shadow-md mb-6 border-l-4 border-green-500">
+                        <h2 id="staff-answer-2" className="text-xl font-semibold text-gray-800 mb-3">
+                          Ações Tomadas
+                        </h2>
+                        <p className="text-gray-700 text-lg">
+                          {staffAnswers && staffAnswers?.length > 0 ? staffAnswers[0]?.actions_taken : 'Nenhuma ação tomada até o momento.'}
+                        </p>
+                      </section>
+
+                      <section aria-labelledby="staff-answer-3" className="bg-white p-6 rounded-lg shadow-md mb-6 border-l-4 border-yellow-500">
+                        <h2 id="staff-answer-3" className="text-xl font-semibold text-gray-800 mb-3">
+                          Notas Finais
+                        </h2>
+                        <p className="text-gray-700 text-lg">
+                          {staffAnswers && staffAnswers?.length > 0 ? staffAnswers[0]?.final_notes : 'Nenhuma nota final disponível.'}
+                        </p>
+                      </section>
+                    </>
+                  : null }
+
                 {/* Resposta do Colaborador */}
-                {!parent 
+                {!parent && !closeStaffFields && !statusFormFinished
                 ? 
                 <section aria-labelledby="collaborator-response" className="bg-blue-50 p-4 rounded-lg">
-                  <h2 id="collaborator-response" className="text-lg font-semibold text-blue-800 mb-2">
-                    Resposta do Colaborador
-                  </h2>
-                  <textarea
-                    className="w-full h-32 p-3 border border-blue-200 rounded-lg focus:outline-none focus:border-blue-400"
-                    placeholder="Escreva sua resposta aqui..."
-                  ></textarea>
-                  <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700" onClick={handleUserForm}>
-                    Enviar Resposta
-                  </button>
-
-                  <h2 id="collaborator-response" className="text-lg font-semibold text-blue-800 mb-2">
-                    O que fazer
-                  </h2>
-                  <textarea
-                    className="w-full h-32 p-3 border border-blue-200 rounded-lg focus:outline-none focus:border-blue-400"
-                    placeholder="Escreva sua resposta aqui..."
-                  ></textarea>
-                  <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700" onClick={handleUserForm}>
-                    Enviar Resposta
-                  </button>
-
-
-                  <h2 id="collaborator-response" className="text-lg font-semibold text-blue-800 mb-2">
-                    Medidas a tomar
-                  </h2>
-                  <textarea
-                    className="w-full h-32 p-3 border border-blue-200 rounded-lg focus:outline-none focus:border-blue-400"
-                    placeholder="Escreva sua resposta aqui..."
-                  ></textarea>
-                  <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700" onClick={handleUserForm}>
-                    Enviar Resposta
-                  </button>
-                </section> 
-
-                
+                <Formik
+                  initialValues={{
+                    collaboratorResponse: '',
+                    actionToTake: '',
+                    measuresToTake: '',
+                    status: '',
+                  }}
+                  validationSchema={validationSchema}
+                  onSubmit={handleStaffForm}
+                >
+                  {({ handleChange, handleBlur, values, errors, touched, dirty, isValid }) => (
+                    <Form>
+                      {/* Resposta do Colaborador */}
+                      <h2 id="collaborator-response" className="text-lg font-semibold text-blue-800 mb-2">
+                        Resposta do Colaborador
+                      </h2>
+                      <Field
+                        as="textarea"
+                        name="collaboratorResponse"
+                        className={`w-full h-32 p-3 border ${touched.collaboratorResponse && errors.collaboratorResponse ? 'border-red-500' : 'border-blue-200'} rounded-lg focus:outline-none focus:border-blue-400`}
+                        placeholder="Escreva sua resposta aqui..."
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        value={values.collaboratorResponse}
+                      />
+                      <ErrorMessage
+                        name="collaboratorResponse"
+                        component="div"
+                        className="text-red-500 text-sm mt-1"
+                      />
+              
+                      {/* O que fazer */}
+                      <h2 id="what-to-do" className="text-lg font-semibold text-blue-800 mb-2">
+                        O que fazer
+                      </h2>
+                      <Field
+                        as="textarea"
+                        name="actionToTake"
+                        className={`w-full h-32 p-3 border ${touched.actionToTake && errors.actionToTake ? 'border-red-500' : 'border-blue-200'} rounded-lg focus:outline-none focus:border-blue-400`}
+                        placeholder="Escreva sua resposta aqui..."
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        value={values.actionToTake}
+                      />
+                      <ErrorMessage
+                        name="actionToTake"
+                        component="div"
+                        className="text-red-500 text-sm mt-1"
+                      />
+              
+                      {/* Medidas a tomar */}
+                      <h2 id="measures-to-take" className="text-lg font-semibold text-blue-800 mb-2">
+                        Medidas a tomar
+                      </h2>
+                      <Field
+                        as="textarea"
+                        name="measuresToTake"
+                        className={`w-full h-32 p-3 border ${touched.measuresToTake && errors.measuresToTake ? 'border-red-500' : 'border-blue-200'} rounded-lg focus:outline-none focus:border-blue-400`}
+                        placeholder="Escreva sua resposta aqui..."
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        value={values.measuresToTake}
+                      />
+                      <ErrorMessage
+                        name="measuresToTake"
+                        component="div"
+                        className="text-red-500 text-sm mt-1"
+                      />
+              
+                      {/* Status */}
+                      <div className="flex flex-col items-end mb-2">
+                        <Field 
+                          as="select" 
+                          name="status" 
+                          className="mt-3 px-4 py-2 border-gray-300 border rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="" disabled className="text-gray-500">Selecione um status</option>
+                          <option value="0">Pendente</option>
+                          <option value="2">Finalizado</option>
+                          <option value="3">Cancelado</option>
+                          <option value="1">Em andamento</option>
+                        </Field>
+                        <ErrorMessage
+                          name="status"
+                          component="div"
+                          className="text-red-500 text-sm mt-1"
+                        />
+                      </div>
+              
+                      {/* Botão de Submissão */}
+                      <div className="flex justify-between mt-4">
+                        <button
+                          type="submit"
+                          className={`px-4 py-2 rounded-lg text-white ${
+                            !(isValid && dirty)
+                              ? 'bg-gray-400 cursor-not-allowed'
+                              : 'bg-blue-600 hover:bg-blue-700'
+                          }`}
+                          disabled={!(isValid && dirty)} 
+                        >
+                          Enviar Resposta
+                        </button>
+                      </div>
+              
+                      {/* Mensagem de erro */}
+                      {formStaffError && (
+                        <h1 className="text-red-500 text-sm mt-4">
+                          JÁ EXISTE UM COLABORADOR LIDANDO COM ESTE FORMULÁRIO
+                        </h1>
+                      )}
+                    </Form>
+                  )}
+                </Formik>
+              </section>
+              
                 : 
                 null }
               </div>
             </>
-          )) 
-          
-          }
-          
+          ))}
         </div>
-        </>
+      </>
      }
-    </>
+    </> 
   );
 }
