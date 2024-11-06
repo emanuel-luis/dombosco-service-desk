@@ -145,7 +145,7 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
                     {renderCellValue(column, row)}
                   </TableCell>
                 ))}
-              {!userStaff && row.status == 0 ? (
+              {!userStaff && row.status == 0 || superUser ? (
                 <TableCell>
                   <button
                     onClick={() => onDelete(row?.id)}

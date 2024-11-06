@@ -59,33 +59,43 @@ export default function Solicitações() {
     }
   }
 
-  const handleStaffForm = async (values : any) => {
+  const handleStaffForm = async (values: any) => {
     try {
-      const formStaffSubmited = await formsServices.createFormStaff({values, data, user})
-      const formStatus = handleFinalize(values.status)
-
-      setShowAnswers(true)
-      setCloseStaffFields(true)
-
+      const formStaffSubmited = await formsServices.createFormStaff({ values, data, user });
+  
+      const formStatus = await handleFinalize(values.status);  
+  
+      setShowAnswers(true);
+      setCloseStaffFields(true);
+  
       if (!formStatus) {
-        console.log('erro status')
-        return null
+        console.log('erro status');
+        return null;
       }
-
+  
       if (!formStaffSubmited) {
-        setFormStaffError(true)
-        console.log('error', formStaffSubmited)
+        setFormStaffError(true);
+        console.log('erro no formulário', formStaffSubmited);
       }
     } catch (error) {
-      setFormStaffError(true)
+      setFormStaffError(true);
+      console.error('Erro no envio do formulário:', error);
     }
-  }
+  };
 
   const handleSuperUserForm = async (values : any) => {
-    const formsUpdateByStaff = await formsServices.updateForm(id)
-
+    
+    const payload = {
+      "school_advice": values.collaboratorResponse,
+      "actions_taken": values.actionToTake,
+      "final_notes": values.measuresToTake,
+      "status": values.status
+    }
+    console.log(values.status)
+    const formsUpdateByStaff = await formsServices.updateForm(id, payload)
+    
     if (!formsUpdateByStaff) {
-      console.log('Error update form staff')
+      console.log(formsUpdateByStaff)
     }
   }
 
