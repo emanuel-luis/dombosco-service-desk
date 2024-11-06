@@ -31,6 +31,8 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
   const [isMounted, setIsMounted] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [userStaff, setUserStaff] = useState(false);
+  const [superUser, setSuperUser] = useState(false)
+
   const itemsPerPage = 5;
   const router = useRouter();
 
@@ -46,6 +48,12 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
       const containsGroup2 = apps.some(
         (app: any) => app.groups && app.groups.length === 1 && app.groups[0] === 2
       );
+
+      const containsGroup3 = data?.some((app: any) => app.groups && app.groups.length === 1 && app.groups[0] === 3);
+
+      if (containsGroup3) {
+        setSuperUser(true)
+      }
 
       if (containsGroup2) {
         setUserStaff(true);
@@ -79,7 +87,7 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
 
   const onDelete = async (id: number) => {
     await formsServices.deleteForms(id);
-    setTableData((prevData) => prevData.filter((row) => row.id !== id)); // Filter out deleted item
+    setTableData((prevData) => prevData.filter((row) => row.id !== id)); 
   };
 
   const filteredData = userStaff
@@ -95,7 +103,6 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
     return null;
   }
 
-  console.log(userStaff);
 
   return (
     <>
@@ -112,7 +119,7 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
               ))}
             {!userStaff ? (
               <TableHead>
-                <strong>Delete</strong>
+                <strong>Apagar</strong>
               </TableHead>
             ) : (
               <TableHead>
@@ -140,7 +147,7 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
                     Delete
                   </button>
                 </TableCell>
-              ) : userStaff && row.status !== 2 && row.status !== 3 ? (
+              ) : userStaff ? (
                 <TableCell>
                   <button
                     onClick={() => {
@@ -160,7 +167,7 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
           ))}
         </TableBody>
       </Table>
-
+  
       {/* Pagination Controls */}
       <div className="flex justify-center items-center mt-4">
         <button
@@ -183,6 +190,8 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
       </div>
     </>
   );
+  
+  
 };
 
 export default TableGrid;
