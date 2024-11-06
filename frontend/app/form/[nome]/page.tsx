@@ -85,40 +85,42 @@ export default function Solicitações() {
       try {
         const response = await formsServices.listFormsByUser();
         const aplication = await formsServices.listAplications();
-        const staffForm = await formsServices.listStaffForms()
+        const staffForm = await formsServices.listStaffForms();
+        const responseData = await formsServices.listUser();
+  
+
         const filteredApplications = aplication.filter((item: any) =>
           Array.isArray(item.groups) && item.groups.length === 1 && item.groups[0] === 2
         );
-
-        const responseData = await formsServices.listUser();
+  
         setUser(responseData); 
 
-        if (response[0].status == 2 || response[0].status == 3) {
-          setStatusFormFinished(true)
-        }
-
+  
         if (filteredApplications.length > 0) {
-          setParent(false); 
+          setParent(false);
         } else {
-          setParent(true)
+          setParent(true);
         }
-
-        if (staffForm[0]?.parent_form_id == id) {
-          setstaffAnswers(staffForm)
+  
+        const matchingForms = staffForm.filter((item: any) => item.parent_form_id == id);
+        if (matchingForms.length > 0) {
+          setstaffAnswers(matchingForms); 
+          setStatusFormFinished(true); 
         }
-
+  
         const responseFiltered = response.filter((ele: any) => ele.id == id);
-        setData(responseFiltered);
+        setData(responseFiltered); 
+  
       } catch (error) {
         console.error('ERROR:', error);
         setData([]); 
       } finally {
-        setIsLoading(false);
+        setIsLoading(false); 
       }
     };
-
+  
     fetchData(); 
-  }, []); 
+  }, [id]); 
 
   useEffect(() => {
 
@@ -204,7 +206,7 @@ export default function Solicitações() {
                   : null }
 
                 {/* Resposta do Colaborador */}
-                {!parent && !closeStaffFields && !statusFormFinished
+                {!parent && !closeStaffFields && !statusFormFinished 
                 ? 
                 <section aria-labelledby="collaborator-response" className="bg-blue-50 p-4 rounded-lg">
                 <Formik
@@ -322,8 +324,7 @@ export default function Solicitações() {
                 </Formik>
               </section>
               
-                : 
-                null }
+                : null}
               </div>
             </>
           ))}
