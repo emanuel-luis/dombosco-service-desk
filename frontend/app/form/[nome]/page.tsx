@@ -28,6 +28,9 @@ export default function Solicitações() {
   const [parent, setParent] = useState(true)
   const [isLoading, setIsLoading] = useState(true)
   const [formStaffError, setFormStaffError] = useState(false)
+  const [showAnswers, setShowAnswers] = useState(true)
+  const [staffAnswers, setstaffAnswers] = useState()
+  const [closeStaffFields, setCloseStaffFields] = useState(true)
 
   const { nome: id } = router
 
@@ -46,6 +49,10 @@ export default function Solicitações() {
   const handleStaffForm = async (values : any) => {
     try {
       const formStaffSubmited = await formsServices.createFormStaff({values, data, user})
+      setShowAnswers(true)
+      setCloseStaffFields(true)
+      setstaffAnswers(values)
+
       if (!formStaffSubmited) {
         setFormStaffError(true)
         console.log('error', formStaffSubmited)
@@ -137,8 +144,43 @@ export default function Solicitações() {
                   </p>
                 </section>
 
+                {showAnswers ? 
+                <>
+                  <section aria-labelledby="staff-answer-1" className="bg-white p-6 rounded-lg shadow-md mb-6 border-l-4 border-blue-500">
+                    <h2 id="staff-answer-1" className="text-xl font-semibold text-gray-800 mb-3">
+                      Descrição do Problema
+                    </h2>
+                    <p className="text-gray-700 text-lg">
+                      {staffAnswers?.collaboratorResponse || 'Nenhuma descrição disponível.'}
+                      {console.log(staffAnswers)}
+                    </p>
+                  </section>
+
+                  <section aria-labelledby="staff-answer-2" className="bg-white p-6 rounded-lg shadow-md mb-6 border-l-4 border-green-500">
+                    <h2 id="staff-answer-2" className="text-xl font-semibold text-gray-800 mb-3">
+                      Ações Tomadas
+                    </h2>
+                    <p className="text-gray-700 text-lg">
+                      {staffAnswers?.actionToTake || 'Nenhuma ação tomada até o momento.'}
+                    </p>
+                  </section>
+
+                  <section aria-labelledby="staff-answer-3" className="bg-white p-6 rounded-lg shadow-md mb-6 border-l-4 border-yellow-500">
+                    <h2 id="staff-answer-3" className="text-xl font-semibold text-gray-800 mb-3">
+                      {}
+                    </h2>
+                    <p className="text-gray-700 text-lg">
+                      {staffAnswers?.measuresToTake || 'Nenhuma nota final disponível.'}
+                    </p>
+                  </section>
+
+                </>
+                
+                : null
+                } 
+
                 {/* Resposta do Colaborador */}
-                {!parent 
+                {!parent && !closeStaffFields
                 ? 
                 <section aria-labelledby="collaborator-response" className="bg-blue-50 p-4 rounded-lg">
                 <Formik

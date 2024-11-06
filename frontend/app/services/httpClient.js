@@ -83,7 +83,7 @@ class HttpClient {
     console.log(params, 'na req de formby staff')
     const payload = {
       "parent_form_id": params.data[0].id,
-      "parent_form": params.user.pk,  
+      "parent_form": params.data[0].id,  
       "school_advice": params.values.collaboratorResponse, 
       "actions_taken": params.values.actionToTake,
       "final_notes": params.values.measuresToTake,
