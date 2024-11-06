@@ -277,17 +277,22 @@ class StaffFormViewAPI(views.APIView):
         If the user is a parent, they can see all forms submitted by staff members assigned to their forms.
         """
         if forms_utils.is_superuser(request.user):
+            print('1')
             staff_forms = StaffForm.objects.all()
-        elif forms_utils.is_parent(request.user):
-            staff_forms = StaffForm.objects.filter(parent_form__responsible_party=request.user)
         elif forms_utils.is_dom_bosco_staff(request.user):
+            print('3')
             staff_forms = StaffForm.objects.filter(assigned_staff=request.user)
+        elif forms_utils.is_parent(request.user):
+            print('2')
+            staff_forms = StaffForm.objects.filter(parent_form__responsible_party=request.user)
         else:
+            print('4')
             return Response(
                 data={"detail": "You do not have permission to perform this action."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        print('6')
         serializer = StaffFormSerializer(staff_forms.order_by("-created_at"), many=True)
         return Response(serializer.data)
 
