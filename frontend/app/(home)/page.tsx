@@ -24,7 +24,6 @@ export default function Home() {
       try {
         const data = await formsServices.listUser()
         setUser(prevState => [...prevState, data])
-        console.log(data, 'user')
         setIsLoading(false)
       } catch(error) {
         console.log(error)
@@ -39,7 +38,6 @@ export default function Home() {
     const getApllication = async () => {
       try {
         const data = await formsServices.listAplications();
-        console.log(data, 'grupos');
         setGroup(data);
         setIsLoading(false);
       } catch (error) {
@@ -56,15 +54,15 @@ export default function Home() {
       {isLoading ? <Loader isLoading/> : 
       <> 
         <Header />
-        <div className="px-5 pt-5 max-w-screen-lg mx-auto">
+        <div className="px-5 pt-5 max-w-screen-lg mx-auto min-w-[1080px]">
           <h2 className="text-xl font-bold">{user[0]?.first_name}</h2>
           <p className="capitalize text-sm">
             {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}
           </p>
-          <div className="flex flex-wrap -m-4"> 
+          <div className="flex flex-wrap -m-4 "> 
             {/* CRIAR TRATAMENTO PARA ERROS DA API */}
             {group?.map((data) => (
-              <div key={Math.random()} className="w-1/3 p-4 my-4"> 
+              <div key={Math.random()} className="w-1/3 p-4 my-4 "> 
                 {String(data['name']).toLowerCase() == 'Solicitações'.toLowerCase() 
                   ? 
                   <Card
