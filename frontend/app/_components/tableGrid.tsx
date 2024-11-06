@@ -27,6 +27,7 @@ interface TableProps {
 }
 
 const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
+  const [tableData, setTableData] = useState(data); 
   const [isMounted, setIsMounted] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [userStaff, setUserStaff] = useState(false);
@@ -77,12 +78,13 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
   };
 
   const onDelete = async (id: number) => {
-    await formsServices.deleteForms(id)
+    await formsServices.deleteForms(id);
+    setTableData((prevData) => prevData.filter((row) => row.id !== id)); // Filter out deleted item
   };
 
   const filteredData = userStaff
-    ? data
-    : data.filter((row) => row.responsible_party?.email === email);
+    ? tableData
+    : tableData.filter((row) => row.responsible_party?.email === email);
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -92,6 +94,8 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
   if (!isMounted) {
     return null;
   }
+
+  console.log(userStaff);
 
   return (
     <>
@@ -106,15 +110,14 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
                   <strong>{column.head}</strong>
                 </TableHead>
               ))}
-            {userStaff && (
-              <>
-                <TableHead>
-                  <strong>Responder</strong>
-                </TableHead>
-                <TableHead>
-                  <strong>Delete</strong>
-                </TableHead>
-              </>
+            {!userStaff ? (
+              <TableHead>
+                <strong>Delete</strong>
+              </TableHead>
+            ) : (
+              <TableHead>
+                <strong>Responder</strong>
+              </TableHead>
             )}
           </TableRow>
         </TableHeader>
@@ -128,35 +131,30 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
                     {renderCellValue(column, row)}
                   </TableCell>
                 ))}
-              {userStaff && (
-                <>
-                  <TableCell>
-                    {row.status !== 2 && row.status !== 3 ? (
-                      <button
-                        onClick={() => {
-                          router.push(`/form/${row?.id}`);
-                        }}
-                        className="text-blue-500 underline"
-                      >
-                        Responder
-                      </button>
-                    ) : (
-                      <span>-</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {row.status === 0 ? (
-                      <button
-                        onClick={() => onDelete(row?.id)}
-                        className="text-red-500 underline"
-                      >
-                        Delete
-                      </button>
-                    ) : (
-                      <span>-</span>
-                    )}
-                  </TableCell>
-                </>
+              {!userStaff && row.status === 0 ? (
+                <TableCell>
+                  <button
+                    onClick={() => onDelete(row?.id)}
+                    className="text-red-500 underline"
+                  >
+                    Delete
+                  </button>
+                </TableCell>
+              ) : userStaff && row.status !== 2 && row.status !== 3 ? (
+                <TableCell>
+                  <button
+                    onClick={() => {
+                      router.push(`/form/${row?.id}`);
+                    }}
+                    className="text-blue-500 underline"
+                  >
+                    Responder
+                  </button>
+                </TableCell>
+              ) : (
+                <TableCell>
+                  <span>-</span>
+                </TableCell>
               )}
             </TableRow>
           ))}
