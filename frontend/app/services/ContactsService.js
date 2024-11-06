@@ -45,6 +45,10 @@ class ContactsServices {
     return this.httpClient.get('/api/v1/forms/staff/')
   }
 
+  async deleteForms(id) {
+    return this.httpClient.delete(`/api/v1/forms/parent/?id=${id}`)
+  }
+
 }
 
 const formsServices = new ContactsServices()
