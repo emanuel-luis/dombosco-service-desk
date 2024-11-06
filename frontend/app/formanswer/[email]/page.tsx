@@ -1,10 +1,9 @@
-"use client"; 
+"use client";
 
 import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { Header } from "../../_components/header";
 import formsServices from "../../services/ContactsService";
-
 
 const columns = [
   { head: "Aluno", accessor: "student_name" },
@@ -19,53 +18,59 @@ export default function Solicitações() {
   const router = useParams();
   const [data, setData] = useState([]);
 
-  const { id } = router
+  const { id } = router;
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await formsServices.listFormsByUser();
-        console.log('Resposta da API:', response);
-        if (response && typeof response === 'object') {
-          const dataArray = Array.isArray(response.data) ? response.data : [response];
+        if (response && typeof response === "object") {
+          const dataArray = Array.isArray(response.data)
+            ? response.data
+            : [response];
           setData(dataArray);
         } else {
-          console.error('A resposta da API não contém dados válidos:', response);
+          console.error(
+            "A resposta da API não contém dados válidos:",
+            response
+          );
           setData([]);
         }
       } catch (error) {
-        console.log('ERROR:', error);
+        console.log("ERROR:", error);
         setData([]);
       }
     };
     fetchData();
-}, [id]);
-  
-
+  }, [id]);
 
   return (
     <>
       <Header />
       <div className="max-w-2xl px-5 pt-5 bg-white min-h-[480px] mt-[72px] mx-auto rounded-[20px] shadow-[0_10px_60px_0_rgba(226,236,249,0.5)]">
         <h2 className="text-xl font-bold">Solicitações</h2>
-        <br/>
-        { data.map(element => (
+        <br />
+        {data.map((element: any) => (
           <>
             <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg ">
               {/* Informações do Aluno */}
               <header className="mb-6">
                 <h1 className="text-2xl font-bold text-gray-800">
-                  {element?.student_name || 'Aluno não encontrado'}
+                  {element?.student_name || "Aluno não encontrado"}
                 </h1>
               </header>
 
               {/* Série e Turma */}
               <section aria-labelledby="student-info" className="mb-6">
-                <h2 id="student-info" className="sr-only">Informações do Aluno</h2>
+                <h2 id="student-info" className="sr-only">
+                  Informações do Aluno
+                </h2>
                 <dl className="text-gray-600">
                   <div className="flex items-center mb-2">
                     <dt className="font-semibold w-24">Série:</dt>
-                    <dd className="text-lg">{element?.student_grade_year}ª Série</dd>
+                    <dd className="text-lg">
+                      {element?.student_grade_year}ª Série
+                    </dd>
                   </div>
                   <div className="flex items-center">
                     <dt className="font-semibold w-24">Turma:</dt>
@@ -75,19 +80,32 @@ export default function Solicitações() {
               </section>
 
               {/* Descrição do Problema */}
-              <section aria-labelledby="issue-description" className="bg-gray-100 p-4 rounded-lg mb-6">
-                <h2 id="issue-description" className="text-lg font-semibold text-gray-800 mb-2">
+              <section
+                aria-labelledby="issue-description"
+                className="bg-gray-100 p-4 rounded-lg mb-6"
+              >
+                <h2
+                  id="issue-description"
+                  className="text-lg font-semibold text-gray-800 mb-2"
+                >
                   Descrição do Problema
                 </h2>
                 <p className="text-gray-700">
-                  {element?.issue_description || 'Nenhuma descrição disponível.'}
+                  {element?.issue_description ||
+                    "Nenhuma descrição disponível."}
                 </p>
               </section>
 
               {/* Resposta do Colaborador */}
-              <section aria-labelledby="collaborator-response" className="bg-blue-50 p-4 rounded-lg">
-                <h2 id="collaborator-response" className="text-lg font-semibold text-blue-800 mb-2">
-                  <Re></Re>sposta do Colaborador
+              <section
+                aria-labelledby="collaborator-response"
+                className="bg-blue-50 p-4 rounded-lg"
+              >
+                <h2
+                  id="collaborator-response"
+                  className="text-lg font-semibold text-blue-800 mb-2"
+                >
+                  Resposta do Colaborador
                 </h2>
                 <textarea
                   className="w-full h-32 p-3 border border-blue-200 rounded-lg focus:outline-none focus:border-blue-400"
@@ -99,7 +117,7 @@ export default function Solicitações() {
               </section>
             </div>
           </>
-        )) }
+        ))}
       </div>
     </>
   );
