@@ -9,12 +9,19 @@ class ContactsServices {
     return this.httpClient.postGetToken('/api/v1/auth/login/', email, password)
   }
 
+  async updateFormStatus(id, status) {
+    return this.httpClient.put(`/api/v1/forms/parent/update-status/?id=${id}`, status)
+  }
+
   async createForm(params) {
     return this.httpClient.post('/api/v1/forms/parent/', params)
   }
 
+  async createFormStaff(params) {
+    return this.httpClient.postFormByStaff('/api/v1/forms/staff/', params)
+  }
+
   async listFormsByUser() {
-    const { pk } = await this.listUser()
     return this.httpClient.get(`/api/v1/forms/parent/`);
   }
 
@@ -30,10 +37,18 @@ class ContactsServices {
     return this.httpClient.get('/api/v1/admin/applications/')
   }
 
-  async uptadeFormByStaff() {
-    return this.httpClient.put('')
+  async listChoices() {
+    return this.httpClient.get('/api/v1/forms/parent/choices/')
   }
   
+  async listStaffForms() {
+    return this.httpClient.get('/api/v1/forms/staff/')
+  }
+
+  async deleteForms(id) {
+    return this.httpClient.delete(`/api/v1/forms/parent/?id=${id}`)
+  }
+
 }
 
 const formsServices = new ContactsServices()
