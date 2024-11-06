@@ -26,6 +26,8 @@ export default function Solicitações() {
   const [email, setEmail] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [userStaff, setUserStaff] = useState(false)
+  const [superUser, setSuperUser] = useState(false)
+
 
 
   useEffect(() => {
@@ -34,6 +36,13 @@ export default function Solicitações() {
       setApplication(data)
 
       const containsGroup2 = data?.some((app: any) => app.groups && app.groups.length === 1 && app.groups[0] === 2);
+
+      const containsGroup3 = data?.some((app: any) => app.groups && app.groups.length === 1 && app.groups[0] === 3);
+
+      if (containsGroup3) {
+        setSuperUser(true)
+        setUserStaff(false)
+      }
 
       if (containsGroup2) {
         setUserStaff(true);

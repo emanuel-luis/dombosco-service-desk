@@ -32,6 +32,7 @@ export default function Solicitações() {
   const [staffAnswers, setstaffAnswers] = useState()
   const [closeStaffFields, setCloseStaffFields] = useState(false)
   const [statusFormFinished, setStatusFormFinished] = useState(false)
+  const [superUser, setSuperUser] = useState(false)
 
   const { nome: id } = router
 
@@ -92,10 +93,20 @@ export default function Solicitações() {
         const filteredApplications = aplication.filter((item: any) =>
           Array.isArray(item.groups) && item.groups.length === 1 && item.groups[0] === 2
         );
+
+        const filteredApplicationsSuper = aplication.filter((item: any) =>
+          Array.isArray(item.groups) && item.groups.length === 1 && item.groups[0] === 4
+        );
   
         setUser(responseData); 
 
-  
+        if (filteredApplicationsSuper.length > 0) {
+          console.log(filteredApplicationsSuper, 'aqui no superUser')
+          setSuperUser(true)
+        } else {
+          setSuperUser(false)
+        }
+
         if (filteredApplications.length > 0) {
           setParent(false);
         } else {
@@ -206,8 +217,8 @@ export default function Solicitações() {
                   : null }
 
                 {/* Resposta do Colaborador */}
-                {!parent && !closeStaffFields && !statusFormFinished 
-                ? 
+                {(!parent && !closeStaffFields && !statusFormFinished) || superUser ? 
+
                 <section aria-labelledby="collaborator-response" className="bg-blue-50 p-4 rounded-lg">
                 <Formik
                   initialValues={{
