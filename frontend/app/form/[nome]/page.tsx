@@ -25,7 +25,7 @@ export default function Solicitações() {
   const [user, setUser] = useState(null);
  
   const [data, setData] = useState([]);
-  const [parent, setParent] = useState(false)
+  const [parent, setParent] = useState(true)
   const [isLoading, setIsLoading] = useState(true)
   const [formStaffError, setFormStaffError] = useState(false)
 
@@ -62,7 +62,7 @@ export default function Solicitações() {
         const response = await formsServices.listFormsByUser();
         const aplication = await formsServices.listAplications();
         const filteredApplications = aplication.filter((item: any) =>
-          Array.isArray(item.groups) && item.groups.length === 1 && item.groups[0] === 1
+          Array.isArray(item.groups) && item.groups.length === 1 && item.groups[0] === 2
         );
 
         const responseData = await formsServices.listUser();
@@ -74,7 +74,6 @@ export default function Solicitações() {
 
         const responseFiltered = response.filter((ele: any) => ele.id == id);
         setData(responseFiltered);
-        console.log(responseFiltered)
       } catch (error) {
         console.error('ERROR:', error);
         setData([]); 
@@ -101,7 +100,6 @@ export default function Solicitações() {
           <h2 className="text-xl font-bold">Solicitações</h2>
           <br/>
           { data.map(element => (
-            
             <>
               <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg ">
                 {/* Informações do Aluno */}

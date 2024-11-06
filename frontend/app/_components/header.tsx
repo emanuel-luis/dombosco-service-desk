@@ -23,9 +23,12 @@ import {
 } from "./ui/sheet";
 import { useContext } from "react";
 import { AuthContext, AuthContextType } from "../context/authContext";
+import { useRouter } from "next/navigation";
 
 export const Header = ({ showMenuButton = true }) => {
   const { logout, isAuthenticated } = useContext<AuthContextType>(AuthContext);
+  const router = useRouter()
+
   return (
     <Card>
       <CardContent className="flex flex-row justify-between items-center bg-[#F6F5FC]">
@@ -57,7 +60,7 @@ export const Header = ({ showMenuButton = true }) => {
                   </Avatar> */}
                   <h2 className="font-bold "></h2>
                 </div>
-                <Button onClick={() => logout()} variant="link" size="icon">
+                <Button onClick={() => router.push('/login')} variant="link" size="icon">
                   <LogOutIcon size={25} />
                 </Button>
               </div>

@@ -48,7 +48,7 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
     setIsMounted(true);
     const getUserInfo = async () => {
       const apps = await formsServices.listAplications();
-      const containsGroup2 = apps.some((app: any) => app.groups && app.groups.includes(2));
+      const containsGroup2 = apps.some((app: any) => app.groups && app.groups.length === 1 && app.groups[0] === 2);
 
       if (containsGroup2) {
         setUserStaff(true);
