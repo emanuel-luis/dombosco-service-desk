@@ -89,14 +89,13 @@ class HttpClient {
     let body;
     
     const tokenJwt = localStorage.getItem('token')
-
-    console.log(params)
+    console.log(params, 'na req')
     const payload = {
-      "parent_form_id": params[1].pk,
-      "parent_form": params[0].nomeAluno,  
-      "school_advice": params[0].collaboratorResponse, 
-      "actions_taken": params[0].actionToTake,
-      "final_notes": params[0].measuresToTake,
+      "parent_form_id": params.data[0].id,
+      "parent_form": params.user.pk,  
+      "school_advice": params.values.collaboratorResponse, 
+      "actions_taken": params.values.actionToTake,
+      "final_notes": params.values.measuresToTake,
   };
   
     const response = await fetch(`${this.baseURL}${path}`, {
@@ -114,6 +113,7 @@ class HttpClient {
     } else {
       const errorDetails = await response.json();
       console.log("Erro de resposta:", errorDetails);
+      return false
     }
   }
 
