@@ -1,13 +1,13 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import type React from "react";
 import { useContext, useState } from "react";
-import { FaGoogle, FaSignOutAlt } from "react-icons/fa";
-import { Header } from "./header";
+import { FaSignOutAlt } from "react-icons/fa";
 import { AuthContext } from "../context/authContext";
 import formsServices from "../services/ContactsService";
-import { useRouter } from "next/navigation";
+import { Header } from "./header";
+import { Button } from "./ui/button";
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -44,8 +44,8 @@ const LoginForm: React.FC = () => {
 
   return (
     <>
-      <Header />
-      <div className="max-w-lg mx-auto p-8 min-w-[500px]">
+      <Header showMenuButton={false} />
+      <div className="max-w-lg mx-auto p-8 min-w-[500px] ">
         <h2 className="text-2xl font-semibold text-center">Login</h2>
         {error && <p className="text-red-500">{error}</p>}
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -54,7 +54,7 @@ const LoginForm: React.FC = () => {
               htmlFor="email"
               className="block text-sm font-medium text-gray-700"
             >
-              Email Aluno
+              Email
             </label>
             <input
               type="email"
@@ -93,13 +93,16 @@ const LoginForm: React.FC = () => {
             <FaSignOutAlt color="#fff" size={20} className="mr-2" /> Entrar
           </button>
         </form>
-        <button
-          type="button"
-          onClick={loginWithGoogle}
-          className="w-full mt-4 bg-red-600 text-white p-2 rounded-md flex items-center justify-center hover:bg-red-700 transition"
-        >
-          <FaGoogle color="#fff" size={20} className="mr-2" /> Entrar com Google
-        </button>
+        <div className="flex items-center justify-center mt-2">
+          <Button
+            variant="link"
+            onClick={() => {
+              router.push("/createAccount");
+            }}
+          >
+            Criar Conta
+          </Button>
+        </div>
       </div>
     </>
   );

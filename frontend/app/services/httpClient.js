@@ -56,19 +56,37 @@ class HttpClient {
     let body;
     
     const tokenJwt = localStorage.getItem('token')
+  
+    const response = await fetch(`${this.baseURL}${path}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${tokenJwt}`
+      },
+      body: JSON.stringify(params)
+    })
 
-    const user = await formsServices.listUsers()
+    if (response.ok) {
+      body = await response.json();
+      return true
+    } else {
+      const errorDetails = await response.json();
+      console.log("Erro de resposta:", errorDetails);
+      return false
+    }
+  }
 
-    console.log(user)
-
+  async postFormByStaff(path, params) {
+    let body;
+    
+    const tokenJwt = localStorage.getItem('token')
+    console.log(params, 'na req de formby staff')
     const payload = {
-      "requested_by": user.pk,
-      "student_name": params.nomeAluno,  
-      "student_birth_date": params.dataNascimento, 
-      "student_grade_year": params.serie,
-      "student_class_name": params.turma,
-      "relationship_to_student": params.parentesco,
-      "issue_description": params.tratativa
+      "parent_form_id": params.data[0].id,
+      "parent_form": params.data[0].id,  
+      "school_advice": params.values.collaboratorResponse, 
+      "actions_taken": params.values.actionToTake,
+      "final_notes": params.values.measuresToTake,
   };
   
     const response = await fetch(`${this.baseURL}${path}`, {
@@ -86,9 +104,56 @@ class HttpClient {
     } else {
       const errorDetails = await response.json();
       console.log("Erro de resposta:", errorDetails);
+      return false
     }
   }
 
+  async put(path, status) {
+    let body;
+    
+    const tokenJwt = localStorage.getItem('token')
+    const payload = {
+      "status": Number(status)
+  };
+  
+    const response = await fetch(`${this.baseURL}${path}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${tokenJwt}`
+      },
+      body: JSON.stringify(payload)
+    })
+
+    if (response.ok) {
+      body = await response.json();
+      return true
+    } else {
+      const errorDetails = await response.json();
+      console.log("Erro de resposta:", errorDetails);
+      return false
+    }
+  }
+
+  async delete(path) {
+    let body;
+    const tokenJwt = localStorage.getItem('token')
+  
+    const response = await fetch(`${this.baseURL}${path}`, {
+      method: 'DELETE', 
+      headers: {
+        "Authorization": `Bearer ${tokenJwt}`
+      }
+    });
+
+
+    if (response.ok) {
+      return body;
+    }
+    else {
+      return false
+    }
+  }
 
 }
 
