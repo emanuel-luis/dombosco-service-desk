@@ -158,7 +158,7 @@ class HttpClient {
     } else {
       const errorDetails = await response.json();
       console.log("Erro de resposta:", errorDetails);
-      return false
+      return errorDetails
     }
   }
 
