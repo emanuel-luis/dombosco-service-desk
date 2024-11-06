@@ -57,7 +57,7 @@ class HttpClient {
     
     const tokenJwt = localStorage.getItem('token')
 
-    const user = await formsServices.listUsers()
+    const user = await formsServices.listUser()
 
     console.log(user)
 

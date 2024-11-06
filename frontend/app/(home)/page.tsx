@@ -22,7 +22,7 @@ export default function Home() {
   useEffect(() => {
     const getUser = async () => {
       try {
-        const data = await formsServices.listUsers();
+        const data = await formsServices.listUser();
         setUser((prevState) => [...prevState, data]);
         setIsLoading(false);
       } catch (error) {
@@ -66,9 +66,10 @@ export default function Home() {
               {" "}
               {/* Removi o min-w-1000px para permitir responsividade */}
               {/* CRIAR TRATAMENTO PARA ERROS DA API */}
-              {group?.map((data) => (
+              {group.map((data) => (
                 <div key={Math.random()} className="w-1/3 p-4 my-4">
-                  {data["name"] == "Solicitações" ? (
+                  {String(data["name"]).toLowerCase() ==
+                  "Solicitações".toLowerCase() ? (
                     <Card
                       title={data["name"]}
                       description={data["description"]}
