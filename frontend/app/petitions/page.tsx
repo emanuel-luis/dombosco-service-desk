@@ -6,16 +6,10 @@ import TableGrid from "../_components/tableGrid";
 import { Button } from "../_components/ui/button";
 import { useRouter } from "next/navigation";
 import formsServices from "../services/ContactsService";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationPrevious,
-  PaginationNext,
-} from "../pagination";
+import Loader from "@/app/_components/loader";
 
 const columns = [
+  { head: 'ID', accessor: "id"},
   { head: "Aluno", accessor: "student_name" },
   { head: "Data de Nascimento", accessor: "student_birth_date" },
   { head: "Série", accessor: "student_grade_year" },
@@ -27,112 +21,77 @@ const columns = [
 export default function Solicitações() {
   const router = useRouter();
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5); 
   const [data, setData] = useState([]);
-  const [totalItems, setTotalItems] = useState(0); 
   const [application, setApplication] = useState([]);
+  const [email, setEmail] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [userStaff, setUserStaff] = useState(false)
 
 
   useEffect(() => {
     const applications = async () => {
       const data = await formsServices.listAplications()
       setApplication(data)
+
+      const containsGroup2 = data.some((app: any) => app.groups && app.groups.length === 1 && app.groups[0] === 2);
+
+      if (containsGroup2) {
+        setUserStaff(true);
+      }
     }
 
     applications()
   }, [])
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await formsServices.listFormsByUser();
-        const { email } = await formsServices.listUser()
+    useEffect(() => {
+      const fetchData = async () => {
+        try {
+          const response = await formsServices.listFormsByUser();
+          const { email } = await formsServices.listUser()
 
-        if (response && typeof response === 'object') {
-          const dataArray = Array.isArray(response.data) ? response.data : [response];
-          response["dataEmail"] = email
-          console.log(response, 'já era pra ter email')
+          setEmail(email)
           setData(response);
-          setTotalItems(dataArray.length);
+          setIsLoading(false)
 
-          } else {
-          console.error('A resposta da API não contém dados válidos:', response);
+        } catch (error) {
           setData([]);
-          setTotalItems(0);
+        } finally {
+          setIsLoading(false)
         }
-      } catch (error) {
-        setData([]);
-        setTotalItems(0);
-      }
-    };
+      };
 
-    fetchData();
-}, []);
-  
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-
-  const currentData = Array.isArray(data) && data.length > 0 
-    ? data.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-    : []; 
-
-  const handlePageChange = (page:any) => {
-    if (page > 0 && page <= totalPages) { 
-      setCurrentPage(page);
-    }
-  };
+      fetchData();
+  }, []);
+    
+  const currentData = Array.isArray(data) && data.length > 0 ? data : []; 
 
   return (
     <>
-      <Header />
-      <div className="px-5 pt-5 bg-[white] mh-[480px] mt-[72px] mr-[115px] ml-[115px] rounded-[20px] shadow-[0_10px_60px_0_rgba(226,236,249,0.5)]">
-        <h2 className="text-xl font-bold">Solicitações</h2>
-        <br/>
-        {application.map(element => {
-          console.log(element?.description)
-          if (element?.description == "ATENDIMENTOS") {
-            return <button onClick={() => router.push('/persons-responsible')}>
-              Nova Solicitação
-            </button>
-          }
-        })}
-        <TableGrid columns={columns} data={currentData} />
-
-        <div>
-          <Pagination>
-            <PaginationContent>
-              <PaginationPrevious disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)}>
-                <span>Previous</span>
-              </PaginationPrevious>
-
-              {[...Array(totalPages)].map((_, index) => {
-                const pageNumber = index + 1;
-                return (
-                  <PaginationItem key={pageNumber}>
-                    <PaginationLink
-                      isActive={currentPage === pageNumber}
-                      onClick={() => handlePageChange(pageNumber)}
-                    >
-                      {pageNumber}
-                    </PaginationLink>
-                  </PaginationItem>
-                );
-              })}
-
-              <PaginationNext disabled={currentPage === totalPages} onClick={() => handlePageChange(currentPage + 1)}>
-                <span>Next</span>
-              </PaginationNext>
-            </PaginationContent>
-          </Pagination>
-        </div>
-
+     {isLoading ? <Loader isLoading={isLoading}/> : 
+     <>
+     <Header />
+     <div className="flex flex-col px-5 pt-5 bg-[white] min-h-[550px] mt-[72px] mx-[115px] rounded-[20px] shadow-[0_10px_60px_0_rgba(226,236,249,0.5)] ">
         <Button
           variant="link"
-          className="mt-4"
+          className="self-start"
+          onClick={() => router.back()}
         >
-          Voltar
+          <img className="-rotate-90" src="/arrow.svg" />
         </Button>
+        <h2 className="text-xl font-bold">Solicitações</h2>
+        {application?.map(element => {
+          if (String(element?.description).toLowerCase() == "ATENDIMENTOS".toLowerCase() && !userStaff) {
+            return (
+            <button onClick={() => router.push('/persons-responsible')} type="button" className="self-end text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+              Criar Solicitação
+            </button>
+            )}
+        })}
+        <TableGrid columns={columns} data={currentData} email={email}/>
+
       </div>
+      </>
+     }
     </>
   );
 }
