@@ -13,6 +13,10 @@ class ContactsServices {
     return this.httpClient.post('/api/v1/forms/parent/', params)
   }
 
+  async createFormStaff(params) {
+    return this.httpClient.postFormByStaff('/api/v1/forms/staff/', params)
+  }
+
   async listFormsByUser() {
     return this.httpClient.get(`/api/v1/forms/parent/`);
   }

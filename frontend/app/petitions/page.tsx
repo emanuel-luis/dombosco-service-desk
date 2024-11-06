@@ -9,6 +9,7 @@ import formsServices from "../services/ContactsService";
 import Loader from "@/app/_components/loader";
 
 const columns = [
+  { head: 'ID', accessor: "id"},
   { head: "Aluno", accessor: "student_name" },
   { head: "Data de Nascimento", accessor: "student_birth_date" },
   { head: "Série", accessor: "student_grade_year" },

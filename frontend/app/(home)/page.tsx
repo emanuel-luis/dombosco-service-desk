@@ -24,6 +24,7 @@ export default function Home() {
       try {
         const data = await formsServices.listUser()
         setUser(prevState => [...prevState, data])
+        console.log(data, 'user')
         setIsLoading(false)
       } catch(error) {
         console.log(error)
@@ -38,7 +39,7 @@ export default function Home() {
     const getApllication = async () => {
       try {
         const data = await formsServices.listAplications();
-        console.log(data);
+        console.log(data, 'grupos');
         setGroup(data);
         setIsLoading(false);
       } catch (error) {
@@ -65,13 +66,20 @@ export default function Home() {
             {group?.map((data) => (
               <div key={Math.random()} className="w-1/3 p-4 my-4"> 
                 {String(data['name']).toLowerCase() == 'Solicitações'.toLowerCase() 
-                ? 
-                <Card
+                  ? 
+                  <Card
+                    title={data['name']}
+                    description={data['description']}
+                    icon={data['mdm_id']}
+                    link={`/petitions`}
+                  /> : 
+                  <Card
                   title={data['name']}
                   description={data['description']}
                   icon={data['mdm_id']}
                   link={`/petitions`}
-                /> : null } 
+                /> 
+              } 
               </div>
             ))}
           </div>
