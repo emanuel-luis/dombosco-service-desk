@@ -56,16 +56,6 @@ class HttpClient {
     let body;
     
     const tokenJwt = localStorage.getItem('token')
-
-    const payload = {
-      "requested_by": 0, // WARNING
-      "student_name": params.nomeAluno,  
-      "student_birth_date": params.dataNascimento, 
-      "student_grade_year": params.serie,
-      "student_class_name": params.turma,
-      "relationship_to_student": params.parentesco,
-      "issue_description": params.tratativa
-  };
   
     const response = await fetch(`${this.baseURL}${path}`, {
       method: "POST",
@@ -73,7 +63,7 @@ class HttpClient {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${tokenJwt}`
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(params)
     })
 
     if (response.ok) {
@@ -82,6 +72,7 @@ class HttpClient {
     } else {
       const errorDetails = await response.json();
       console.log("Erro de resposta:", errorDetails);
+      return false
     }
   }
 
@@ -89,7 +80,7 @@ class HttpClient {
     let body;
     
     const tokenJwt = localStorage.getItem('token')
-    console.log(params, 'na req')
+    console.log(params, 'na req de formby staff')
     const payload = {
       "parent_form_id": params.data[0].id,
       "parent_form": params.user.pk,  

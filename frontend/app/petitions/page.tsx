@@ -33,7 +33,7 @@ export default function Solicitações() {
       const data = await formsServices.listAplications()
       setApplication(data)
 
-      const containsGroup2 = data.some((app: any) => app.groups && app.groups.includes(2));
+      const containsGroup2 = data.some((app: any) => app.groups && app.groups.length === 1 && app.groups[0] === 2);
 
       if (containsGroup2) {
         setUserStaff(true);
@@ -80,7 +80,6 @@ export default function Solicitações() {
         </Button>
         <h2 className="text-xl font-bold">Solicitações</h2>
         {application?.map(element => {
-          console.log(element?.description)
           if (String(element?.description).toLowerCase() == "ATENDIMENTOS".toLowerCase() && !userStaff) {
             return (
             <button onClick={() => router.push('/persons-responsible')} type="button" className="self-end text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
