@@ -8,13 +8,13 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instalar dependências
-RUN npm install --production
+RUN npm install
 
 # Copiar todo o código do projeto
 COPY . .
 
 # Construir o projeto Next.js
-RUN npm run build
+# RUN npm run build
 
 # Expor a porta em que o Next.js vai rodar
 EXPOSE 3000

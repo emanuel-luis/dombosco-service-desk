@@ -23,14 +23,15 @@ load_dotenv(BASE_DIR / ".env")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
+FRONTEND_URL = f'http://{os.getenv("FRONTEND_HOST")}:{os.getenv("FRONTEND_PORT")}'
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-fp^f!4nrb=yufiazd8voz@)s-rwl6%ac_pdou_$%x2z0aen=^2"
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEPLOYMENT", "development") == "development"
-DOM_BOSCO_EMAIL_DOMAIN = os.getenv("DOM_BOSCO_EMAIL_DOMAIN", "aluno.undb.edu.br")
-
+DEBUG = os.getenv("DEPLOYMENT", "development") != "prod"
+# ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(" ")
+DOM_BOSCO_EMAIL_DOMAIN = os.getenv("DOM_BOSCO_EMAIL_DOMAIN")
 
 
 # Application definition
@@ -61,17 +62,12 @@ INSTALLED_APPS = [
 
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://0.0.0.0:3000",
 ]
 
-CORS_ALLOW_METHODS = (
-    "DELETE",
-    "GET",
-    "OPTIONS",
-    "PATCH",
-    "POST",
-    "PUT",
-)
+CORS_ALLOW_METHODS = ("DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT")
 
 CORS_ALLOW_HEADERS = (
     "accept",
@@ -89,7 +85,9 @@ AUTH_USER_MODEL = "core.User"
 
 REST_FRAMEWORK = {
     # "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
-    "DEFAULT_AUTHENTICATION_CLASSES": ("dj_rest_auth.jwt_auth.JWTCookieAuthentication",),
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "dj_rest_auth.jwt_auth.JWTCookieAuthentication",
+    ),
 }
 
 # Django SMTP
@@ -119,12 +117,12 @@ ACCOUNT_AUTHENTICATION_METHOD = "email"  # Use Email / Password authentication
 ACCOUNT_USERNAME_REQUIRED = False
 UNIQUE_EMAIL = True
 ACCOUNT_EMAIL_REQUIRED = True
-# ACCOUNT_EMAIL_VERIFICATION = "mandatory"  # Require email confirmation
-ACCOUNT_EMAIL_VERIFICATION = "none" if DEBUG else "mandatory"
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"  # Require email confirmation
+# ACCOUNT_EMAIL_VERIFICATION = "none" if DEBUG else "mandatory"
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
-ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = os.getenv("LOGIN_URL", "http://localhost:8001/home")
-ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = os.getenv("LOGIN_URL", "http://localhost:8001/home")
-LOGIN_URL = os.getenv("LOGIN_URL", "http://localhost:8001/home")
+ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = os.getenv("LOGIN_URL")
+ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = os.getenv("LOGIN_URL")
+LOGIN_URL = os.getenv("LOGIN_URL")
 
 # Google OAuth
 GOOGLE_OAUTH_CLIENT_ID = os.getenv("GOOGLE_OAUTH_CLIENT_ID")
@@ -197,10 +195,11 @@ WSGI_APPLICATION = "dombosco_atendimento.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("POSTGRES_DB"),
-        "USER": os.getenv("POSTGRES_USER"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
-        "HOST": "db",
+        "NAME": os.getenv("DATABASE_DB"),
+        "USER": os.getenv("DATABASE_USER"),
+        "PASSWORD": os.getenv("DATABASE_PASSWORD"),
+        "HOST": os.getenv("DATABASE_HOST"),
+        "PORT": os.getenv("DATABASE_PORT"),
     }
 }
 
