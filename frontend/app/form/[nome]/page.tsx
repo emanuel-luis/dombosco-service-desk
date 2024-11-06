@@ -27,6 +27,7 @@ export default function Solicitações() {
   const [data, setData] = useState([]);
   const [parent, setParent] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [formStaffError, setFormStaffError] = useState(false)
 
   const { nome: id } = router
 
@@ -42,8 +43,16 @@ export default function Solicitações() {
       .min(5, 'A descrição das medidas deve ter no mínimo 5 caracteres.'),
   });
 
-  const handleStaffForm = (values : any) => {
-    formsServices.createFormStaff({values, data})
+  const handleStaffForm = async (values : any) => {
+    try {
+      const formStaffSubmited = await formsServices.createFormStaff({values, data, user})
+      if (!formStaffSubmited) {
+        setFormStaffError(true)
+        console.log('error', formStaffSubmited)
+      }
+    } catch (error) {
+      setFormStaffError(true)
+    }
   }
 
 
@@ -208,6 +217,8 @@ export default function Solicitações() {
                       >
                         Enviar Resposta
                       </button>
+
+                      {formStaffError ? <h1>JÁ EXISTE UM COLABORADOR COM LIDANDO COM ESTE FORMULÁRIO</h1> : null}
                     </Form>
                   )}
                 </Formik>
