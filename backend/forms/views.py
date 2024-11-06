@@ -279,7 +279,7 @@ class StaffFormViewAPI(views.APIView):
         if forms_utils.is_superuser(request.user):
             staff_forms = StaffForm.objects.all()
         elif forms_utils.is_parent(request.user):
-            staff_forms = StaffForm.objects.filter(parentform__responsible_party=request.user)
+            staff_forms = StaffForm.objects.filter(parent_form__responsible_party=request.user)
         elif forms_utils.is_dom_bosco_staff(request.user):
             staff_forms = StaffForm.objects.filter(assigned_staff=request.user)
         else:
@@ -287,6 +287,7 @@ class StaffFormViewAPI(views.APIView):
                 data={"detail": "You do not have permission to perform this action."},
                 status=status.HTTP_403_FORBIDDEN,
             )
+
         serializer = StaffFormSerializer(staff_forms.order_by("-created_at"), many=True)
         return Response(serializer.data)
 
