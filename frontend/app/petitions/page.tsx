@@ -35,16 +35,20 @@ export default function Solicitações() {
       const data = await formsServices.listAplications()
       setApplication(data)
 
-      const containsGroup2 = data?.some((app: any) => app.groups && app.groups.length === 1 && app.groups[0] === 2);
+      const filteredApplications = data.filter((item: any) =>
+        Array.isArray(item.groups) && item.groups.length === 1 && item.groups[0] === 2
+      );
 
-      const containsGroup3 = data?.some((app: any) => app.groups && app.groups.length === 1 && app.groups[0] === 3);
+      const filteredApplicationsSuper = data.filter((item: any) =>
+        Array.isArray(item.groups) && item.groups.length === 1 && item.groups[0] === 4
+      );
 
-      if (containsGroup3) {
+      if (filteredApplicationsSuper.length > 0) {
         setSuperUser(true)
         setUserStaff(false)
       }
 
-      if (containsGroup2) {
+      if (filteredApplications.length > 0) {
         setUserStaff(true);
       }
     }

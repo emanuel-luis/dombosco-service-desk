@@ -13,6 +13,10 @@ class ContactsServices {
     return this.httpClient.put(`/api/v1/forms/parent/update-status/?id=${id}`, status)
   }
 
+  async updateForm(id, params) {
+    return this.httpClient.put(`/api/v1/forms/parent/update-status/?id=${id}`, params)
+  }
+
   async createForm(params) {
     return this.httpClient.post('/api/v1/forms/parent/', params)
   }

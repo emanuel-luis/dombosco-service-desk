@@ -52,6 +52,7 @@ export default function Solicitações() {
 
   const handleFinalize = async (status : any) => {
     const formUpdateStatus = await formsServices.updateFormStatus(id, status)
+
     if (!formUpdateStatus) {
       console.log(formUpdateStatus)
       return false
@@ -80,6 +81,13 @@ export default function Solicitações() {
     }
   }
 
+  const handleSuperUserForm = async (values : any) => {
+    const formsUpdateByStaff = await formsServices.updateForm(id)
+
+    if (!formsUpdateByStaff) {
+      console.log('Error update form staff')
+    }
+  }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -88,7 +96,15 @@ export default function Solicitações() {
         const aplication = await formsServices.listAplications();
         const staffForm = await formsServices.listStaffForms();
         const responseData = await formsServices.listUser();
+
+        const matchingForms = staffForm.filter((item: any) => item.parent_form_id == id);
+        if (matchingForms.length > 0) {
+          setstaffAnswers(matchingForms); 
+          setStatusFormFinished(true); 
+        }
   
+        const responseFiltered = response.filter((ele: any) => ele.id == id);
+        setData(responseFiltered); 
 
         const filteredApplications = aplication.filter((item: any) =>
           Array.isArray(item.groups) && item.groups.length === 1 && item.groups[0] === 2
@@ -101,7 +117,6 @@ export default function Solicitações() {
         setUser(responseData); 
 
         if (filteredApplicationsSuper.length > 0) {
-          console.log(filteredApplicationsSuper, 'aqui no superUser')
           setSuperUser(true)
         } else {
           setSuperUser(false)
@@ -112,16 +127,7 @@ export default function Solicitações() {
         } else {
           setParent(true);
         }
-  
-        const matchingForms = staffForm.filter((item: any) => item.parent_form_id == id);
-        if (matchingForms.length > 0) {
-          setstaffAnswers(matchingForms); 
-          setStatusFormFinished(true); 
-        }
-  
-        const responseFiltered = response.filter((ele: any) => ele.id == id);
-        setData(responseFiltered); 
-  
+
       } catch (error) {
         console.error('ERROR:', error);
         setData([]); 
@@ -228,7 +234,7 @@ export default function Solicitações() {
                     status: '',
                   }}
                   validationSchema={validationSchema}
-                  onSubmit={handleStaffForm}
+                  onSubmit={superUser && statusFormFinished? handleSuperUserForm : handleStaffForm}
                 >
                   {({ handleChange, handleBlur, values, errors, touched, dirty, isValid }) => (
                     <Form>

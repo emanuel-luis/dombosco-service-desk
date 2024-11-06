@@ -45,23 +45,30 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
     setIsMounted(true);
     const getUserInfo = async () => {
       const apps = await formsServices.listAplications();
-      const containsGroup2 = apps.some(
-        (app: any) => app.groups && app.groups.length === 1 && app.groups[0] === 2
+
+      const filteredApplications = apps.filter((item: any) =>
+        Array.isArray(item.groups) && item.groups.length === 1 && item.groups[0] === 2
       );
 
-      const containsGroup3 = data?.some((app: any) => app.groups && app.groups.length === 1 && app.groups[0] === 3);
+      const filteredApplicationsSuper = apps.filter((item: any) =>
+        Array.isArray(item.groups) && item.groups.length === 1 && item.groups[0] === 4
+      );
 
-      if (containsGroup3) {
+      if (filteredApplicationsSuper.length > 0) {
         setSuperUser(true)
+        setUserStaff(false)
       }
 
-      if (containsGroup2) {
+      if (filteredApplications.length > 0) {
         setUserStaff(true);
       }
+      
     };
 
     getUserInfo();
   }, []);
+
+  console.log(superUser)
 
   const renderCellValue = (column: Column, row: Row) => {
     const statusText = ["Pendente", "Em andamento", "Finalizado", "Cancelado"];
@@ -138,7 +145,7 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
                     {renderCellValue(column, row)}
                   </TableCell>
                 ))}
-              {!userStaff && row.status === 0 ? (
+              {!userStaff && row.status == 0 ? (
                 <TableCell>
                   <button
                     onClick={() => onDelete(row?.id)}
@@ -147,7 +154,7 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
                     Delete
                   </button>
                 </TableCell>
-              ) : userStaff ? (
+              ) : userStaff && row.status != 2 && userStaff && row.status != 3 || superUser ? (
                 <TableCell>
                   <button
                     onClick={() => {
