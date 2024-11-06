@@ -1,4 +1,3 @@
-"use client";
 import React, { useEffect, useState } from "react";
 import formsServices from "../services/ContactsService";
 import {
@@ -21,10 +20,6 @@ interface Row {
   [key: string]: any;
 }
 
-interface Status {
-  [key: string]: any;
-}
-
 interface TableProps {
   data: any[];
   columns: any[];
@@ -33,10 +28,9 @@ interface TableProps {
 
 const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
   const [isMounted, setIsMounted] = useState(false);
-  const [status, setStatus] = useState<Status[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [userStaff, setUserStaff] = useState(false);
-  const itemsPerPage = 5; 
+  const itemsPerPage = 5;
   const router = useRouter();
 
   const formatDate = (dateString: any) => {
@@ -48,7 +42,9 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
     setIsMounted(true);
     const getUserInfo = async () => {
       const apps = await formsServices.listAplications();
-      const containsGroup2 = apps.some((app: any) => app.groups && app.groups.length === 1 && app.groups[0] === 2);
+      const containsGroup2 = apps.some(
+        (app: any) => app.groups && app.groups.length === 1 && app.groups[0] === 2
+      );
 
       if (containsGroup2) {
         setUserStaff(true);
@@ -62,12 +58,12 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
     const statusText = ["Pendente", "Em andamento", "Finalizado", "Cancelado"];
     const renderMap: Record<string, () => any> = {
       created_at: () => formatDate(row[column.accessor]),
-      status: () => statusText[row['status']] || 'N/A',
+      status: () => statusText[row["status"]] || "N/A",
       student_name: () => (
         <button
           onClick={() => {
             router.push(`/form/${row?.id}`);
-          }} 
+          }}
           className="text-blue-500 underline"
         >
           {row[column.accessor]}
@@ -75,10 +71,18 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
       ),
     };
 
-    return renderMap[column.accessor] ? renderMap[column.accessor]() : row[column.accessor];
+    return renderMap[column.accessor]
+      ? renderMap[column.accessor]()
+      : row[column.accessor];
   };
 
-  const filteredData = userStaff ? data : data.filter(row => row.responsible_party?.email === email);
+  const onDelete = async (id: number) => {
+    await formsServices.deleteForms(id)
+  };
+
+  const filteredData = userStaff
+    ? data
+    : data.filter((row) => row.responsible_party?.email === email);
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -95,59 +99,84 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
         <TableCaption></TableCaption>
         <TableHeader>
           <TableRow>
-            {columns.filter(column => column.accessor != "id").map((column) => (
-              <TableHead key={column.accessor}>
-                <strong>{column.head}</strong>
-              </TableHead>
-            ))}
+            {columns
+              .filter((column) => column.accessor !== "id")
+              .map((column) => (
+                <TableHead key={column.accessor}>
+                  <strong>{column.head}</strong>
+                </TableHead>
+              ))}
             {userStaff && (
-              <TableHead>
-                <strong>Responder</strong>
-              </TableHead>
+              <>
+                <TableHead>
+                  <strong>Responder</strong>
+                </TableHead>
+                <TableHead>
+                  <strong>Delete</strong>
+                </TableHead>
+              </>
             )}
           </TableRow>
         </TableHeader>
         <TableBody>
           {paginatedData.map((row, rowIndex) => (
             <TableRow key={rowIndex}>
-              {columns.filter(column => column.accessor !== "id").map((column) => (
-                <TableCell key={column.accessor}>
-                  {renderCellValue(column, row)}
-                </TableCell>
-              ))}
+              {columns
+                .filter((column) => column.accessor !== "id")
+                .map((column) => (
+                  <TableCell key={column.accessor}>
+                    {renderCellValue(column, row)}
+                  </TableCell>
+                ))}
               {userStaff && (
-                <TableCell>
-                  {row.status !== 2 ? ( 
-                    <button
-                      onClick={() => {
-                        router.push(`/form/${row?.id}`);
-                      }}
-                      className="text-blue-500 underline"
-                    >
-                      Responder
-                    </button>
-                  ) : (
-                    <span>-</span> 
-                  )}
-                </TableCell>
+                <>
+                  <TableCell>
+                    {row.status !== 2 && row.status !== 3 ? (
+                      <button
+                        onClick={() => {
+                          router.push(`/form/${row?.id}`);
+                        }}
+                        className="text-blue-500 underline"
+                      >
+                        Responder
+                      </button>
+                    ) : (
+                      <span>-</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {row.status === 0 ? (
+                      <button
+                        onClick={() => onDelete(row?.id)}
+                        className="text-red-500 underline"
+                      >
+                        Delete
+                      </button>
+                    ) : (
+                      <span>-</span>
+                    )}
+                  </TableCell>
+                </>
               )}
             </TableRow>
           ))}
         </TableBody>
       </Table>
 
-      {/* Controles de Paginação */}
+      {/* Pagination Controls */}
       <div className="flex justify-center items-center mt-4">
         <button
-          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
           disabled={currentPage === 1}
           className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg mr-2"
         >
           Anterior
         </button>
-        <span>Página {currentPage} de {totalPages}</span>
+        <span>
+          Página {currentPage} de {totalPages}
+        </span>
         <button
-          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
           disabled={currentPage === totalPages}
           className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg ml-2"
         >
