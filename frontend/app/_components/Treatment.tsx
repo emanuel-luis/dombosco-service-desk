@@ -43,8 +43,8 @@ const Treatment = ({handleUserSubmit, handleBack} : any) => {
                     <Textarea
                       {...field}
                       className={`w-[389px] h-[52px] border ${
-                        errors.tratativa && touched.tratativa ? 'border-red-600' : 'border-gray-300'
-                      } rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-blue-500 outline-none`}
+                        errors.tratativa && touched.tratativa ? 'border-destructive' : 'border-input'
+                      } rounded-[4px] p-3 bg-card shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-primary outline-none`}
                       placeholder="Digite sua tratativa aqui..."
                     />
                   )}
@@ -52,13 +52,13 @@ const Treatment = ({handleUserSubmit, handleBack} : any) => {
                 <ErrorMessage
                   name="tratativa"
                   component="div"
-                  className="text-red-600 text-sm"
+                  className="text-destructive text-sm"
                 />
               </div>
 
               <Button
                 type="button"
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full"
+                className="bg-primary hover:bg-primary/90 text-white font-bold py-2 px-4 rounded w-full"
                 onClick={() => handleUserSubmit(values)}
                 disabled={!(isValid && dirty)}
               >
