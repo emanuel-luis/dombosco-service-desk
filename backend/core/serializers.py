@@ -3,7 +3,6 @@ from allauth.account.adapter import get_adapter
 from allauth.account.utils import setup_user_email
 from allauth.socialaccount.models import EmailAddress
 from allauth.utils import get_username_max_length
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -12,6 +11,7 @@ from rest_framework import serializers
 from core.models import Application
 
 User = get_user_model()
+_signup_fields = allauth_account_settings.SIGNUP_FIELDS
 
 
 class UserProfileSerializer(serializers.Serializer):
@@ -30,9 +30,9 @@ class RegisterSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=get_username_max_length(),
         min_length=allauth_account_settings.USERNAME_MIN_LENGTH,
-        required=allauth_account_settings.USERNAME_REQUIRED,
+        required=_signup_fields.get("username", {}).get("required", False),
     )
-    email = serializers.EmailField(required=allauth_account_settings.EMAIL_REQUIRED)
+    email = serializers.EmailField(required=_signup_fields["email"]["required"])
     first_name = serializers.CharField(required=False)
     last_name = serializers.CharField(required=False)
     password1 = serializers.CharField(write_only=True)
@@ -94,7 +94,7 @@ class RegisterSerializer(serializers.Serializer):
         user.last_name = self.cleaned_data.get("last_name")
         user.save()
 
-        if user.email.endswith(settings.DOM_BOSCO_EMAIL_DOMAIN):
+        if user.has_staff_email:
             group, _ = Group.objects.get_or_create(name="Colaborador")
         else:
             group, _ = Group.objects.get_or_create(name="Responsável")
