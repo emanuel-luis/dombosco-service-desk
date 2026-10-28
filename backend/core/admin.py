@@ -50,5 +50,7 @@ class ApplicationAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
     ordering = ("name",)
 
 
+# Deleting a user here cascades to their requests and comments without writing request_events
+# (the log covers app/API writes only).
 admin.site.register(User, UserAdmin)
 admin.site.register(Application, ApplicationAdmin)
