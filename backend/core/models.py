@@ -57,9 +57,15 @@ class User(AbstractUser):
 
     @property
     def has_staff_email(self):
-        """True when the email is in DOM_BOSCO_EMAIL_DOMAIN (never when it is unset)."""
-        domain = settings.DOM_BOSCO_EMAIL_DOMAIN
-        return bool(domain) and self.email.endswith(domain)
+        """True when the email's domain is DOM_BOSCO_EMAIL_DOMAIN or one of its subdomains.
+
+        Never true when the setting is unset. The setting may carry a leading "@".
+        """
+        domain = (settings.DOM_BOSCO_EMAIL_DOMAIN or "").strip().lower().lstrip("@")
+        if not domain or "@" not in self.email:
+            return False
+        email_domain = self.email.rsplit("@", 1)[1].lower()
+        return email_domain == domain or email_domain.endswith("." + domain)
 
     @property
     def full_name(self):
