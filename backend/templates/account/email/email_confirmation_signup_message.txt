@@ -1,16 +1,16 @@
 Olá {{ user.full_name }},
 
-Seja bem-vindo ao Portal de Pais da instituição Dom Bosco!
+Você recebeu esta mensagem porque este e-mail foi usado para criar uma conta no Dom Bosco Service Desk, um canal de atendimento para pais e responsáveis.
 
-Para garantir a segurança de suas informações e concluir o seu cadastro, por favor, confirme seu e-mail clicando no link abaixo:
+Para concluir o cadastro, confirme seu e-mail no link abaixo:
 
-[Confirm Email: {{ activate_url }}]
+{{ activate_url }}
 
-Caso você não tenha solicitado este cadastro, por favor, desconsidere esta mensagem.
-
-Agradecemos por fazer parte da nossa comunidade educacional. Caso tenha dúvidas ou precise de suporte, entre em contato conosco pelo e-mail [e-mail de suporte] ou telefone [telefone de suporte].
+Se você não solicitou este cadastro, desconsidere esta mensagem.
 
 Atenciosamente,
-Equipe Dom Bosco
-[Site da instituição]
-[Telefone de contato]
+Equipe Dom Bosco Service Desk (projeto acadêmico)
+
+--
+Projeto acadêmico não oficial, sem vínculo com o Colégio Dom Bosco ou com o Grupo Dom Bosco e sem endosso dessas instituições.
+Desenvolvido por Emanuel Luis, Felipe (felipeoak1) e Tarcísio (tarcisio) como projeto de faculdade.
