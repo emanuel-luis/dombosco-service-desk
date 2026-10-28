@@ -5,7 +5,7 @@ help: ## Show this help
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "%-12s %s\n", $$1, $$2}'
 
 install: ## Install backend dependencies from the lockfile
-	cd backend && uv sync --locked
+	cd backend && uv sync --locked --extra export
 
 fmt: ## Format and autofix the backend
 	cd backend && uv run ruff check --fix . && uv run ruff format .
