@@ -14,7 +14,7 @@ const CreateAccount = () => {
       .min(6, "A senha deve ter pelo menos 6 caracteres")
       .required("Senha é obrigatória"),
     password2: Yup.string()
-      .oneOf([Yup.ref("password1"), null], "As senhas devem corresponder")
+      .oneOf([Yup.ref("password1")], "As senhas devem corresponder")
       .required("Confirmação de senha é obrigatória"),
     first_name: Yup.string().required("Primeiro nome é obrigatório"),
     last_name: Yup.string().required("Sobrenome é obrigatório"),

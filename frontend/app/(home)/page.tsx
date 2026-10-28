@@ -64,7 +64,7 @@ export default function Home() {
             <div className="flex flex-wrap -m-4">
               {/* CRIAR TRATAMENTO PARA ERROS DA API */}
               {group?.map((data) => (
-                <div key={Math.random()} className="w-1/3 p-4 my-4">
+                <div key={data["name"]} className="w-1/3 p-4 my-4">
                   <Card
                     title={data["name"]}
                     description={data["description"]}
