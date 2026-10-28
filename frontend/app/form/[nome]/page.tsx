@@ -197,7 +197,7 @@ export default function Solicitações() {
                         </p>
                       </section>
 
-                      <section aria-labelledby="staff-answer-3" className="bg-card p-6 rounded-lg shadow-md mb-6 border-l-4 border-accent">
+                      <section aria-labelledby="staff-answer-3" className="bg-card p-6 rounded-lg shadow-md mb-6 border-l-4 border-primary">
                         <h2 id="staff-answer-3" className="text-xl font-semibold text-foreground mb-3">
                           Notas Finais
                         </h2>

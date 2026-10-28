@@ -1,0 +1,8 @@
+{% load i18n %}{% autoescape off %}Olá! Esta mensagem vem do Dom Bosco Service Desk.
+
+{% block content %}{% endblock content %}
+
+Equipe Dom Bosco Service Desk (projeto acadêmico)
+
+Projeto acadêmico não oficial, sem vínculo com o Colégio Dom Bosco ou com o Grupo Dom Bosco e sem endosso dessas instituições.
+{% endautoescape %}
