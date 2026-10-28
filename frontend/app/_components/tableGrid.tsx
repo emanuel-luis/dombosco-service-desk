@@ -112,7 +112,7 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
               ))}
             {!userStaff ? (
               <TableHead>
-                <strong>Delete</strong>
+                <strong>Apagar</strong>
               </TableHead>
             ) : (
               <TableHead>
