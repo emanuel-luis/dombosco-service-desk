@@ -2,6 +2,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 from django.core.management import call_command
+from django.db import connection
 
 from forms import services
 from forms.models import ParentForm, RequestEvent
@@ -17,6 +18,15 @@ def at(hours):
     return lambda: T0 + timedelta(hours=hours)
 
 
+def wipe_event_log():
+    """Start from "no log". The append-only trigger blocks DELETE on Postgres but allows TRUNCATE."""
+    with connection.cursor() as cursor:
+        if connection.vendor == "postgresql":
+            cursor.execute("TRUNCATE request_events")
+        else:
+            cursor.execute("DELETE FROM request_events")
+
+
 @pytest.fixture
 def legacy(world):
     """Three requests built through the services, then the event log is wiped."""
@@ -27,7 +37,7 @@ def legacy(world):
     cancelled = services.create_request(world.parent, dict(REQUEST_DATA), now=at(4))
     services.change_status(world.admin, cancelled.pk, S.CANCELADO, now=at(5))
     open_ = services.create_request(world.parent, dict(REQUEST_DATA), now=at(6))
-    RequestEvent._base_manager.all().delete()  # bypasses the append-only guard
+    wipe_event_log()
     return done, cancelled, open_
 
 
