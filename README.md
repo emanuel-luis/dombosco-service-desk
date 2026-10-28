@@ -130,4 +130,4 @@ Built in 2024 as a college team project by Emanuel Luis, Felipe (felipeoak1) and
 
 ## License
 
-No license yet: the code was co-written by the team and the license is pending the co-authors' agreement.
+[MIT](LICENSE), copyright held by the three authors: Emanuel Luis, Felipe (felipeoak1) and Tarcísio (tarcisio).

@@ -6,7 +6,7 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
-The 2026 refactor of the 2024 college project into a maintained portfolio repo.
+The 2026 refactor of the 2024 college project into a maintained portfolio repo, now under the MIT license.
 
 ### Added
 

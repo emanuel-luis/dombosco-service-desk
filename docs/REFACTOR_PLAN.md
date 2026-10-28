@@ -19,7 +19,7 @@ in [DECISIONS.md](DECISIONS.md).
 | 9 | `feat/frontend-wiring` | Pages wired to the API, roles from `/auth/user/`, API URL and Google client ID from env, comment thread | — | done locally |
 | 10 | `refactor/docker` | Multi-stage non-root images, one `compose.yaml` (db, migrate, seed, api, web), synthetic demo seed, `make up/down/demo` | `compose-smoke` | done locally |
 | 11 | `ci/security` | `security.yml` (pip-audit, npm audit, zizmor), Dependabot | — | done locally |
-| 12 | `docs/readme` | README (with branded screenshots), CLAUDE.md, CHANGELOG, LICENSE, D2 diagrams | `diagrams` | in progress: README, CLAUDE.md, CHANGELOG and D2 diagrams done; LICENSE pending the co-authors' agreement |
+| 12 | `docs/readme` | README (with branded screenshots), CLAUDE.md, CHANGELOG, LICENSE, D2 diagrams | `diagrams` | done locally (LICENSE: MIT, three authors) |
 | 13 | `chore/next-upgrade` | Next 16, React 19, Node 24 LTS, eslint 9 flat config | — | done locally |
 
 ## Data flow (layers)
