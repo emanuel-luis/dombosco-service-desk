@@ -36,7 +36,7 @@ TOPICS = [
 USERS = [
     (ADMIN_EMAIL, "Administrador", "Admin"),
     (f"staff1@{DOMAIN}", "Colaborador", "Clara"),
-    (f"staff2@{DOMAIN}", "Colaborador", "Mateus"),
+    (f"staff2@{DOMAIN}", "Colaborador", "Rafael"),
     (f"parent1@{DOMAIN}", "Responsável", "Paula"),
     (f"parent2@{DOMAIN}", "Responsável", "Renato"),
     (f"parent3@{DOMAIN}", "Responsável", "Sonia"),
