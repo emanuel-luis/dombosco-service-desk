@@ -13,8 +13,7 @@ const Treatment = ({handleUserSubmit, handleBack} : any) => {
   };
 
   const handleSubmit = (values : any) => {
-    console.log("Formulário enviado:", values);
-
+    handleUserSubmit(values);
   };
 
   const validationSchema = Yup.object({
