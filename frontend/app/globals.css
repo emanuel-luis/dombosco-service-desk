@@ -2,59 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Brand tokens, see docs/BRAND.md. Values are HSL channels (one decimal, so they
+ * render the exact hex) and Tailwind can add an alpha (bg-primary/90). Source palette: https://www.dbosco.com.br main.css.
+ * The Tailwind `brand.*` group in tailwind.config.ts holds the raw hex values.
+ */
 @layer base {
-	:root {
-		--background: red; /* Cor de fundo */
-		--foreground: red; /* Pode manter ou alterar */
-		--card: red; /* Cor do card */
-		--card-foreground: red; /* Pode manter ou alterar */
-		--popover: red; /* Cor do popover */
-		--popover-foreground: red; /* Pode manter ou alterar */
-		--primary: red; /* Cor primária */
-		--primary-foreground: red; /* Pode manter ou alterar */
-		--secondary: red; /* Cor secundária */
-		--secondary-foreground: red; /* Pode manter ou alterar */
-		--muted: red; /* Cor atenuada */
-		--muted-foreground: red; /* Pode manter ou alterar */
-		--accent: red; /* Acento */
-		--accent-foreground: red; /* Pode manter ou alterar */
-		--destructive: red; /* Cor destrutiva */
-		--destructive-foreground: red; /* Pode manter ou alterar */
-		--border: red; /* Cor da borda */
-		--input: red; /* Cor do input */
-		--ring: red; /* Cor do anel */
-		--radius: 0.5rem; /* Raio */
-		--chart-1: red; /* Cor do gráfico 1 */
-		--chart-2: red; /* Cor do gráfico 2 */
-		--chart-3: red; /* Cor do gráfico 3 */
-		--chart-4: red; /* Cor do gráfico 4 */
-		--chart-5: red; /* Cor do gráfico 5 */
-	}
+  :root {
+    --background: 270 37.5% 96.9%; /* #f7f4fa page tint of the primary */
+    --foreground: 0 0% 13.3%; /* #222222 site body ink */
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 13.3%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 13.3%;
+    --primary: 267.9 32.1% 43.3%; /* #6c4b92 purple */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 323.7 57.2% 47.6%; /* #bf3488 magenta, call to action */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 94.1%; /* #f0f0f0 */
+    --muted-foreground: 0 0% 42%; /* #6b6b6b, darker than the site's #898989 for AA */
+    --accent: 54.5 97.2% 58.4%; /* #fce92e yellow, highlight only */
+    --accent-foreground: 0 0% 13.3%;
+    --destructive: 3.2 71.3% 41%; /* #b3261e functional error red, not a brand color */
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 85.1%; /* #d9d9d9 decorative dividers and cards */
+    --input: 0 0% 53.7%; /* #898989 input border, 3.5:1 on white */
+    --ring: 267.9 32.1% 43.3%;
+    --radius: 0.5rem;
+  }
 
-	.dark {
-		--background: red; /* Cor de fundo escura */
-		--foreground: red; /* Pode manter ou alterar */
-		--card: red; /* Pode manter ou alterar */
-		--card-foreground: red; /* Pode manter ou alterar */
-		--popover: red; /* Pode manter ou alterar */
-		--popover-foreground: red; /* Pode manter ou alterar */
-		--primary: red; /* Cor primária escura */
-		--primary-foreground: red; /* Pode manter ou alterar */
-		--secondary: red; /* Cor secundária escura */
-		--secondary-foreground: red; /* Pode manter ou alterar */
-		--muted: red; /* Cor atenuada escura */
-		--muted-foreground: red; /* Pode manter ou alterar */
-		--accent: red; /* Acento escuro */
-		--accent-foreground: red; /* Pode manter ou alterar */
-		--destructive: red; /* Cor destrutiva escura */
-		--destructive-foreground: red; /* Pode manter ou alterar */
-		--border: red; /* Cor da borda escura */
-		--input: red; /* Cor do input escuro */
-		--ring: red; /* Cor do anel escuro */
-		--chart-1: red; /* Cor do gráfico 1 escura */
-		--chart-2: red; /* Cor do gráfico 2 escura */
-		--chart-3: red; /* Cor do gráfico 3 escura */
-		--chart-4: red; /* Cor do gráfico 4 escura */
-		--chart-5: red; /* Cor do gráfico 5 escura */
-	}
+  body {
+    @apply bg-background font-body text-foreground;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading;
+  }
 }

@@ -1,51 +1,53 @@
-// pages/auth/callback.tsx
-"use client"; // Certifique-se de que este componente é um Client Component
+"use client";
 
-import { useSearchParams } from "next/navigation"; // Importação correta para App Router
-import { useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useContext, useEffect, useState } from "react";
+import { AuthContext } from "../../../context/authContext";
+import { request } from "../../../lib/client";
+import { toMessage } from "../../../lib/errors";
 
 const GoogleCallback = () => {
-  const searchParams = useSearchParams(); // Obtém os parâmetros de busca
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { login } = useContext(AuthContext);
   const code = searchParams.get("code");
-  const access_token = searchParams.get("access_token");
-  const id_token = searchParams.get("id_token");
+  const [error, setError] = useState("");
 
-  console.log(code, "code");
-  console.log(access_token, "access_token");
-
-  console.log(id_token, "id_token");
   useEffect(() => {
-    const fetchToken = async () => {
-      if (code) {
-        console.log();
-        try {
-          const response = await fetch(
-            "http://localhost:8000/api/v1/auth/google/",
-            {
-              method: "POST",
-              body: JSON.stringify({ code }),
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
-          );
-          console.log("aqui", response);
-          const jwtData = await response.json();
-          if (jwtData.token) {
-            searchParams.push("/"); // Redireciona para a página inicial
-          } else {
-            console.error("No token received");
-          }
-        } catch (error) {
-          console.error("Error fetching token:", error);
+    if (!code) return;
+    // Exchanges the Google code for the API's JWT.
+    request<{ access?: string }>("POST", "/auth/google/", {
+      auth: false,
+      body: { code },
+      messages: { 400: "Não foi possível entrar com o Google." },
+    })
+      .then((data) => {
+        if (!data?.access) {
+          setError("Não foi possível entrar com o Google.");
+          return;
         }
-      }
-    };
+        login(data.access);
+        router.push("/");
+      })
+      .catch((e) => setError(toMessage(e)));
+    // login is recreated on every render; the code is what triggers the exchange
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code, router]);
 
-    fetchToken();
-  }, [searchParams]);
-
-  return <div>Loading...</div>; // Exibe uma mensagem enquanto aguarda
+  if (error) {
+    return (
+      <p role="alert" className="p-8 text-center text-destructive">
+        {error}
+      </p>
+    );
+  }
+  return <div className="p-8 text-center">Entrando...</div>;
 };
 
-export default GoogleCallback;
+export default function CallbackPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center">Entrando...</div>}>
+      <GoogleCallback />
+    </Suspense>
+  );
+}
