@@ -1,0 +1,54 @@
+# Data layers from source to serving, and where each quality check and the run metadata sit.
+# Grounded in backend/forms/services.py (_record), forms/models.py (RequestEvent), migrations
+# forms/0004 and 0005, analytics/migrations/0001, analytics/lifecycle.py, contracts.py, export.py
+# and tests/test_analytics_views.py. Flat on purpose: ELK lays out a flat graph better than one
+# container per layer, so each node label starts with its layer.
+...@_style
+
+title: "Data flow: source to serving" {
+  shape: text
+  near: top-center
+  style: {font-size: 24; bold: true}
+}
+
+direction: down
+
+services: "SOURCE · forms/services.py\nthe only writer,\none transaction per write" {class: process}
+oltp: "SOURCE · OLTP tables\nforms_parentform, forms_staffform,\nforms_comment, core_user" {class: store}
+backfill: "RAW · backfill\nidempotent, from the tables" {class: process}
+events: "RAW · request_events\nappend-only log, one row per event" {class: store}
+guard: "model guard + Postgres trigger\nreject UPDATE and DELETE" {class: check}
+view: "PROCESSED · v_request_lifecycle\none row per request" {class: serving}
+py: "PROCESSED · analytics/lifecycle.py\nsame rules in Python" {class: process}
+recon: "reconciliation test\nview equals Python (Postgres)" {class: check}
+views: "SERVING · v_daily_throughput,\nv_backlog_by_status, v_sla_summary" {class: serving}
+api: "SERVING · /api/v1/analytics/*\nadmin only" {class: process}
+export: "SERVING · export_analytics\nParquet as_of=date/" {class: serving}
+contracts: "contract checks: schema, nulls,\nunique keys, row counts" {class: check}
+run: "_run.json: run_id, UTC times,\nrow counts, check results" {class: source}
+
+services -> oltp
+services -> events
+oltp -> backfill {class: meta}
+backfill -> events
+guard -> events {class: meta}
+events -> view
+events -> py
+recon -> view {class: layer}
+recon -> py {class: meta}
+view -> views
+views -> api
+py -> export
+contracts -> export {class: meta}
+export -> run {class: meta}
+
+legend: Legend {
+  class: legend
+  grid-columns: 3
+  store: stored data {class: [store; legend-store]}
+  process: code {class: [process; legend-item]}
+  serving: view or file {class: [serving; legend-item]}
+  check: guard or check {class: [check; legend-item]}
+  meta: run metadata {class: [source; legend-item]}
+  edges: "solid arrow: data\ndashed: check or control" {shape: text; style.font-size: 13}
+}
