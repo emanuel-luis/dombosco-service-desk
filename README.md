@@ -88,7 +88,7 @@ Frontend (Node 24):
 make frontend-install frontend-lint frontend-test frontend-build
 ```
 
-Diagrams: `make diagrams` renders the D2 sources in `docs/diagrams/` and `make diagrams-check` verifies they are current (these targets arrive with the diagrams change).
+Diagrams: `make d2-install` installs the pinned D2 (Linux, checksum verified), `make diagrams` renders the sources in `docs/diagrams/`, `make diagrams-check` fails when a committed SVG is stale (CI runs it), and `make diagrams-watch NAME=<diagram>` previews one live. See [docs/diagrams/README.md](docs/diagrams/README.md).
 
 API docs: the OpenAPI schema is at `/swagger.json` and the Swagger UI at `/swagger/`. CI validates the schema.
 
