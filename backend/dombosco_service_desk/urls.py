@@ -40,6 +40,7 @@ urlpatterns = [
     path("api/v1/", include(api_routers.urls)),
     path("api/v1/forms/", include("forms.urls")),
     path("api/v1/core/", include("core.urls")),
+    path("api/v1/analytics/", include("analytics.urls")),
     path("api/v1/auth/", include("dj_rest_auth.urls")),
     re_path(
         r"^api/v1/auth/registration/account-confirm-email/(?P<key>[-:\w]+)/$",
