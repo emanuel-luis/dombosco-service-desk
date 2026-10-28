@@ -26,8 +26,8 @@ const CreateAccount = () => {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+    <div className="flex items-center justify-center min-h-[80vh] bg-muted">
+      <div className="bg-card p-8 rounded-lg shadow-md w-full max-w-md">
         <h1 className="text-2xl font-bold mb-6 text-center">Criar Conta</h1>
         <Formik
           initialValues={{
@@ -46,120 +46,120 @@ const CreateAccount = () => {
               <div className="mb-4">
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-brand-text"
                 >
                   Email:
                 </label>
                 <Field
                   type="email"
                   name="email"
-                  className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                  className="mt-1 block w-full border border-input rounded-md p-2"
                 />
                 <ErrorMessage
                   name="email"
                   component="div"
-                  className="text-red-600 text-sm"
+                  className="text-destructive text-sm"
                 />
               </div>
 
               <div className="mb-4">
                 <label
                   htmlFor="password1"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-brand-text"
                 >
                   Senha:
                 </label>
                 <Field
                   type="password"
                   name="password1"
-                  className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                  className="mt-1 block w-full border border-input rounded-md p-2"
                 />
                 <ErrorMessage
                   name="password1"
                   component="div"
-                  className="text-red-600 text-sm"
+                  className="text-destructive text-sm"
                 />
               </div>
 
               <div className="mb-4">
                 <label
                   htmlFor="password2"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-brand-text"
                 >
                   Confirme a Senha:
                 </label>
                 <Field
                   type="password"
                   name="password2"
-                  className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                  className="mt-1 block w-full border border-input rounded-md p-2"
                 />
                 <ErrorMessage
                   name="password2"
                   component="div"
-                  className="text-red-600 text-sm"
+                  className="text-destructive text-sm"
                 />
               </div>
 
               <div className="mb-4">
                 <label
                   htmlFor="first_name"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-brand-text"
                 >
                   Primeiro Nome:
                 </label>
                 <Field
                   type="text"
                   name="first_name"
-                  className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                  className="mt-1 block w-full border border-input rounded-md p-2"
                 />
                 <ErrorMessage
                   name="first_name"
                   component="div"
-                  className="text-red-600 text-sm"
+                  className="text-destructive text-sm"
                 />
               </div>
 
               <div className="mb-4">
                 <label
                   htmlFor="last_name"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-brand-text"
                 >
                   Sobrenome:
                 </label>
                 <Field
                   type="text"
                   name="last_name"
-                  className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                  className="mt-1 block w-full border border-input rounded-md p-2"
                 />
                 <ErrorMessage
                   name="last_name"
                   component="div"
-                  className="text-red-600 text-sm"
+                  className="text-destructive text-sm"
                 />
               </div>
 
               <div className="mb-4">
                 <label
                   htmlFor="mobile_phone"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-brand-text"
                 >
                   Telefone Móvel:
                 </label>
                 <Field
                   type="text"
                   name="mobile_phone"
-                  className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                  className="mt-1 block w-full border border-input rounded-md p-2"
                 />
                 <ErrorMessage
                   name="mobile_phone"
                   component="div"
-                  className="text-red-600 text-sm"
+                  className="text-destructive text-sm"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded transition duration-200"
+                className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-2 px-4 rounded transition duration-200"
               >
                 Criar Conta
               </button>

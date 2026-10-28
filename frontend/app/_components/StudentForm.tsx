@@ -80,13 +80,13 @@ const AlunoForm = ({toggleChange, formValues} : any) => {
                   <Field
                     name="nomeAluno"
                     type="text"
-                    className={`w-[389px] h-[52px] border ${errors.nomeAluno && touched.nomeAluno ? 'border-red-600' : 'border-gray-300'} rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-blue-500 outline-none`}
+                    className={`w-[389px] h-[52px] border ${errors.nomeAluno && touched.nomeAluno ? 'border-destructive' : 'border-input'} rounded-[4px] p-3 bg-card shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-primary outline-none`}
                     placeholder="Nome do Aluno"
                   />
                   <ErrorMessage
                     name="nomeAluno"
                     component="div"
-                    className="text-red-600 text-sm"
+                    className="text-destructive text-sm"
                   />
                 </div>
 
@@ -101,7 +101,7 @@ const AlunoForm = ({toggleChange, formValues} : any) => {
                         {...field}
                         mask="99/99/9999" // Define a máscara para data no formato DD/MM/YYYY
                         type="text"
-                        className={`w-[389px] h-[52px] border ${errors.dataNascimento && touched.dataNascimento ? 'border-red-600' : 'border-gray-300'} rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-blue-500 outline-none`}
+                        className={`w-[389px] h-[52px] border ${errors.dataNascimento && touched.dataNascimento ? 'border-destructive' : 'border-input'} rounded-[4px] p-3 bg-card shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-primary outline-none`}
                         placeholder="Data de Nascimento"
                       />
                     )}
@@ -109,7 +109,7 @@ const AlunoForm = ({toggleChange, formValues} : any) => {
                   <ErrorMessage
                     name="dataNascimento"
                     component="div"
-                    className="text-red-600 text-sm"
+                    className="text-destructive text-sm"
                   />
                 </div>
 
@@ -120,13 +120,13 @@ const AlunoForm = ({toggleChange, formValues} : any) => {
                   <Field
                     name="serie"
                     type="text"
-                    className={`w-[389px] h-[52px] border ${errors.serie && touched.serie ? 'border-red-600' : 'border-gray-300'} rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-blue-500 outline-none`}
+                    className={`w-[389px] h-[52px] border ${errors.serie && touched.serie ? 'border-destructive' : 'border-input'} rounded-[4px] p-3 bg-card shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-primary outline-none`}
                     placeholder="Ano/Série"
                   />
                   <ErrorMessage
                     name="serie"
                     component="div"
-                    className="text-red-600 text-sm"
+                    className="text-destructive text-sm"
                   />
                 </div>
 
@@ -137,20 +137,20 @@ const AlunoForm = ({toggleChange, formValues} : any) => {
                   <Field
                     name="turma"
                     type="text"
-                    className={`w-[389px] h-[52px] border ${errors.turma && touched.turma ? 'border-red-600' : 'border-gray-300'} rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-blue-500 outline-none`}
+                    className={`w-[389px] h-[52px] border ${errors.turma && touched.turma ? 'border-destructive' : 'border-input'} rounded-[4px] p-3 bg-card shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-primary outline-none`}
                     placeholder="Turma"
                     maxLength={2}
                   />
                   <ErrorMessage
                     name="turma"
                     component="div"
-                    className="text-red-600 text-sm"
+                    className="text-destructive text-sm"
                   />
                 </div>
 
                 <Button
                   type="button"
-                  className={`${isDisable ? "bg-[#BCBCBC]" : "bg-[#5061FC]"} w-[389px] h-[52px] border border-gray-300 rounded-[4px] p-3 shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] mt-8 text-white`}
+                  className={`${isDisable ? "bg-muted-foreground" : "bg-primary"} w-[389px] h-[52px] border border-input rounded-[4px] p-3 shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] mt-8 text-white`}
                   disabled={!(isValid && dirty)}
                   onClick={() => handleFormSubmit(values)}
                 >

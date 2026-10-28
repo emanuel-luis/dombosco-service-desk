@@ -27,7 +27,7 @@ export const Header = ({ showMenuButton = true }) => {
 
   return (
     <Card>
-      <CardContent className="flex flex-row justify-between items-center bg-[#F6F5FC]">
+      <CardContent className="flex flex-row justify-between items-center bg-card">
         <Sheet>
           <SheetTrigger asChild>
             <Button
@@ -37,11 +37,11 @@ export const Header = ({ showMenuButton = true }) => {
                 showMenuButton ? "" : "invisible"
               }`} // Torna o botão invisível
             >
-              <MenuIcon size={18} color="black" />
+              <MenuIcon size={18}  />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="p-0 bg-white">
-            <SheetHeader className="p-5 text-left border-b border-solid border-link">
+          <SheetContent side="left" className="p-0 bg-card">
+            <SheetHeader className="p-5 text-left border-b border-solid border-border">
               <SheetTitle>Menu</SheetTitle>
             </SheetHeader>
 
@@ -89,7 +89,7 @@ export const Header = ({ showMenuButton = true }) => {
             </div>
           </SheetContent>
         </Sheet>
-        <Image src="/Logo.png" alt="logo" height={22} width={120} />
+        <Image src="/dom-bosco-logo.png" alt="Colégio Dom Bosco (logotipo)" height={64} width={64} priority />
         <div></div>
       </CardContent>
     </Card>

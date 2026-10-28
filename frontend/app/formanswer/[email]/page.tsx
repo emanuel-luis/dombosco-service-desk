@@ -47,15 +47,15 @@ export default function Solicitações() {
   return (
     <>
       <Header />
-      <div className="max-w-2xl px-5 pt-5 bg-white min-h-[480px] mt-[72px] mx-auto rounded-[20px] shadow-[0_10px_60px_0_rgba(226,236,249,0.5)]">
+      <div className="max-w-2xl px-5 pt-5 bg-card min-h-[480px] mt-[72px] mx-auto rounded-[20px] shadow-[0_10px_60px_0_rgba(226,236,249,0.5)]">
         <h2 className="text-xl font-bold">Solicitações</h2>
         <br />
         {data.map((element: any) => (
           <>
-            <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg ">
+            <div className="max-w-2xl mx-auto p-6 bg-card rounded-lg ">
               {/* Informações do Aluno */}
               <header className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-800">
+                <h1 className="text-2xl font-bold text-foreground">
                   {element?.student_name || "Aluno não encontrado"}
                 </h1>
               </header>
@@ -65,7 +65,7 @@ export default function Solicitações() {
                 <h2 id="student-info" className="sr-only">
                   Informações do Aluno
                 </h2>
-                <dl className="text-gray-600">
+                <dl className="text-muted-foreground">
                   <div className="flex items-center mb-2">
                     <dt className="font-semibold w-24">Série:</dt>
                     <dd className="text-lg">
@@ -82,15 +82,15 @@ export default function Solicitações() {
               {/* Descrição do Problema */}
               <section
                 aria-labelledby="issue-description"
-                className="bg-gray-100 p-4 rounded-lg mb-6"
+                className="bg-muted p-4 rounded-lg mb-6"
               >
                 <h2
                   id="issue-description"
-                  className="text-lg font-semibold text-gray-800 mb-2"
+                  className="text-lg font-semibold text-foreground mb-2"
                 >
                   Descrição do Problema
                 </h2>
-                <p className="text-gray-700">
+                <p className="text-brand-text">
                   {element?.issue_description ||
                     "Nenhuma descrição disponível."}
                 </p>
@@ -99,19 +99,19 @@ export default function Solicitações() {
               {/* Resposta do Colaborador */}
               <section
                 aria-labelledby="collaborator-response"
-                className="bg-blue-50 p-4 rounded-lg"
+                className="bg-muted p-4 rounded-lg"
               >
                 <h2
                   id="collaborator-response"
-                  className="text-lg font-semibold text-blue-800 mb-2"
+                  className="text-lg font-semibold text-primary mb-2"
                 >
                   Resposta do Colaborador
                 </h2>
                 <textarea
-                  className="w-full h-32 p-3 border border-blue-200 rounded-lg focus:outline-none focus:border-blue-400"
+                  className="w-full h-32 p-3 border border-primary rounded-lg focus:outline-none focus:border-primary"
                   placeholder="Escreva sua resposta aqui..."
                 ></textarea>
-                <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <button className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90">
                   Enviar Resposta
                 </button>
               </section>
