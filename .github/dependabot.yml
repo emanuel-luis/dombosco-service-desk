@@ -1,0 +1,71 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: uv
+    directory: /backend
+    schedule:
+      interval: weekly
+    groups:
+      python:
+        patterns: ["*"]
+        # Majors arrive as their own PRs so breaking upgrades get a separate review.
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: npm
+    directory: /frontend
+    ignore:
+      # @types/node tracks the Node LTS major, which moves by hand with the Dockerfile and CI.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+    schedule:
+      interval: weekly
+    groups:
+      npm:
+        patterns: ["*"]
+        # Majors arrive as their own PRs so breaking upgrades get a separate review.
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: docker
+    directory: /backend
+    ignore:
+      # The runtime stays on Python 3.12; only digest and patch updates of that tag.
+      - dependency-name: "python"
+        versions: [">=3.13"]
+    schedule:
+      interval: weekly
+    groups:
+      docker-backend:
+        patterns: ["*"]
+
+  - package-ecosystem: docker
+    directory: /frontend
+    ignore:
+      # Node majors move by hand, to an LTS line only, together with CI's setup-node.
+      - dependency-name: "node"
+        update-types: ["version-update:semver-major"]
+    schedule:
+      interval: weekly
+    groups:
+      docker-frontend:
+        patterns: ["*"]
+
+  - package-ecosystem: docker-compose
+    directory: /
+    ignore:
+      # Postgres majors need a data migration; they move by hand.
+      - dependency-name: "postgres"
+        update-types: ["version-update:semver-major"]
+      # Built locally by compose (migrate and web services); not in any registry.
+      - dependency-name: "dombosco-service-desk-*"
+    schedule:
+      interval: weekly
+    groups:
+      docker-compose:
+        patterns: ["*"]
