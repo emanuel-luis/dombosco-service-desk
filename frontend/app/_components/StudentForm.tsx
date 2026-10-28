@@ -85,6 +85,7 @@ const AlunoForm = ({toggleChange, formValues} : any) => {
                     name="dataNascimento"
                     render={({ field } : any) => (
                       <MaskedInput
+                        id="dataNascimento"
                         {...field}
                         mask="99/99/9999" // Define a máscara para data no formato DD/MM/YYYY
                         type="text"
