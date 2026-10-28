@@ -10,10 +10,10 @@ def test_create_user_works_when_domain_is_unset(settings):
     assert not user.groups.exists()
 
 
-def test_staff_domain_user_joins_colaborador_group(settings):
+def test_create_user_never_grants_colaborador_from_the_typed_email(settings):
     settings.DOM_BOSCO_EMAIL_DOMAIN = "@dombosco.test"
     user = get_user_model().objects.create_user(email="a@dombosco.test", password="pw-123456")
-    assert list(user.groups.values_list("name", flat=True)) == ["Colaborador"]
+    assert not user.groups.exists()
 
 
 def test_other_domain_user_gets_no_group(settings):

@@ -16,7 +16,7 @@ def is_parent(user: User, include_superuser: bool = False) -> bool:
 def is_dom_bosco_staff(user: User, include_superuser: bool = False) -> bool:
     if include_superuser:
         return user.groups.filter(name="Colaborador").exists() or user.is_superuser
-    return user.groups.filter(name="Colaborador").exists() or user.has_staff_email
+    return user.groups.filter(name="Colaborador").exists()
 
 
 def has_comment_permission(user: User, parent_form: ParentForm):
