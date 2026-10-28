@@ -103,7 +103,7 @@ export default function Comments({ formId, status, user }: CommentsProps) {
                 ) : (
                   <>
                     <p className="text-brand-text whitespace-pre-wrap">{c.comment}</p>
-                    {canEditComment(c.user, status, user) && (
+                    {canEditComment(c.user_id, status, user) && (
                       <div className="flex gap-4 mt-2 text-sm">
                         <button
                           type="button"

@@ -59,8 +59,7 @@ export interface StaffForm {
   school_advice: string | null;
   actions_taken: string | null;
   final_notes: string | null;
-  // Not in the published schema; used to match an answer to its request when present.
-  parent_form_id?: number;
+  parent_form_id: number;
   created_at: string;
   updated_at: string;
 }
@@ -75,6 +74,8 @@ export interface StaffFormInput {
 export interface Comment {
   id: number;
   user: string;
+  user_id: number;
+  parent_form_id: number;
   comment: string;
   created_at: string;
   updated_at: string;

@@ -40,17 +40,8 @@ export function allowedStatuses(
 }
 
 // Comments can be edited or deleted by their author while the request is EM ANDAMENTO.
-// The API exposes the author as a string, so match on e-mail or full name.
-export function canEditComment(
-  author: string,
+export const canEditComment = (
+  authorId: number,
   status: FormStatus,
   user: UserInfo | null,
-): boolean {
-  if (!user || status !== STATUS.EM_ANDAMENTO) return false;
-  const fullName = `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim();
-  const norm = (s: string) => s.trim().toLowerCase();
-  return (
-    norm(author) === norm(user.email) ||
-    (fullName !== "" && norm(author) === norm(fullName))
-  );
-}
+) => !!user && status === STATUS.EM_ANDAMENTO && authorId === user.pk;
