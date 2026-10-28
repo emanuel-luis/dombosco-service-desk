@@ -3,7 +3,8 @@ from django.contrib import admin
 import forms.models
 
 
-class ParentsFormAdmin(admin.ModelAdmin):
+# ModelAdmin[...] is generic only in the stubs, not at runtime.
+class ParentsFormAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
     list_display = [
         "responsible_party",
         "student",
