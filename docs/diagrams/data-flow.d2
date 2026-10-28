@@ -19,9 +19,10 @@ backfill: "RAW · backfill\nidempotent, from the tables" {class: process}
 events: "RAW · request_events\nappend-only log, one row per event" {class: store}
 guard: "model guard + Postgres trigger\nreject UPDATE and DELETE" {class: check}
 view: "PROCESSED · v_request_lifecycle\none row per request" {class: serving}
-py: "PROCESSED · analytics/lifecycle.py\nsame rules in Python" {class: process}
+py: "PROCESSED · analytics/lifecycle.py\n+ throughput.py, same rules in Python" {class: process}
 recon: "reconciliation test\nview equals Python (Postgres)" {class: check}
-views: "SERVING · v_daily_throughput,\nv_backlog_by_status, v_sla_summary" {class: serving}
+daily: "SERVING · v_daily_throughput\ncounts events per UTC day" {class: serving}
+views: "SERVING · v_backlog_by_status,\nv_sla_summary" {class: serving}
 api: "SERVING · /api/v1/analytics/*\nadmin only" {class: process}
 export: "SERVING · export_analytics\nParquet as_of=date/" {class: serving}
 contracts: "contract checks: schema, nulls,\nunique keys, row counts" {class: check}
@@ -36,9 +37,13 @@ events -> view
 events -> py
 recon -> view {class: layer}
 recon -> py {class: meta}
+events -> daily
+daily -> api
 view -> views
+view -> api
 views -> api
 py -> export
+events -> export
 contracts -> export {class: meta}
 export -> run {class: meta}
 
