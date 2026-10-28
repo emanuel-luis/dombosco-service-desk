@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { applyMask, caretAfterDigits, digitsBefore } from "./mask";
+import {
+  applyMask,
+  caretAfterDigits,
+  digitsBefore,
+  maskSlots,
+  overflowsFullMask,
+} from "./mask";
 
 describe("applyMask", () => {
   it("formats a phone number", () => {
@@ -40,5 +46,18 @@ describe("caretAfterDigits", () => {
     const raw = "1x2/34"; // user typed x... digits before caret(2) = 1
     const n = digitsBefore(raw, 2);
     expect(caretAfterDigits(applyMask(raw, "99/99/9999"), n, false)).toBe(1);
+  });
+});
+
+describe("overflowsFullMask", () => {
+  it("counts the digit slots of a mask", () => {
+    expect(maskSlots("99/99/9999")).toBe(8);
+    expect(maskSlots("(99) 99999-9999")).toBe(11);
+  });
+  it("flags only an insert into a field that was already full", () => {
+    expect(overflowsFullMask("01/02/2000", "01/092/2000", "99/99/9999")).toBe(true);
+    expect(overflowsFullMask("01/02/200", "01/02/2000", "99/99/9999")).toBe(false);
+    expect(overflowsFullMask("", "123456789", "99/99/9999")).toBe(false);
+    expect(overflowsFullMask("01/02/2000", "01/0/2000", "99/99/9999")).toBe(false);
   });
 });
