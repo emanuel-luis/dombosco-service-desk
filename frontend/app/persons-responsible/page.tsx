@@ -4,14 +4,14 @@ import React, { useEffect, useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { Button } from "../_components/ui/button";
 import { Header } from "../_components/header";
-import AlunoForm from "../studentform/page";
+import AlunoForm from "../_components/StudentForm";
 import formsServices from "../services/ContactsService";
 import Confirm from "../_components/Success";
 import Loader from "../_components/loader";
 import { useRouter } from "next/navigation";
 import InputMask from 'react-input-mask';
 import * as Yup from 'yup';
-import Treatment from "../treatment/page";
+import Treatment from "../_components/Treatment";
 import useLoginValidation from "../utils/loginValidation"
 
 
@@ -21,8 +21,8 @@ const PersonsResponsibleForm =  () => {
   const [responseTrue, setResponseTrue] = useState(false);
   const [showTratativa, setShowTratativa] = useState(false);
   const [studentForm, setStudentForm] = useState(false);
-  const [tratativaValue, setTratativaValue] = useState()
-  const [parentValue, setParentValue] = useState()
+  const [tratativaValue, setTratativaValue] = useState<{ tratativa?: string }>()
+  const [parentValue, setParentValue] = useState<{ parentesco: string }>()
   const [isLoading, setIsLoading] = useState(true)
   const [choices, setChoices] = useState([])
   const [parent, setParent] = useState(true)
@@ -193,7 +193,7 @@ const PersonsResponsibleForm =  () => {
                        >
                          <option value="" label="Selecione uma opção" />
                          {Object.values(choices).map(element => {
-                           return <option value={element} label={element} />
+                           return <option key={element} value={element} label={element} />
                          })}
                          
                        </Field>

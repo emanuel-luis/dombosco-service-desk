@@ -1,10 +1,10 @@
 "use client"; 
 import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import { Button } from "../_components/ui/button";
+import { Button } from "./ui/button";
 import useLoginValidation from "../utils/loginValidation"
 import InputMask from 'react-input-mask'
-import Loader from "../_components/loader";
+import Loader from "./loader";
 import * as Yup from "yup"
 
 const AlunoForm = ({toggleChange, formValues} : any) => {
