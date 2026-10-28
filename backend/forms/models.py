@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.db import models
@@ -147,3 +149,86 @@ class Comment(models.Model):
     updated_at = models.DateTimeField(
         auto_now=True, editable=False, verbose_name="Data de atualização"
     )
+
+
+class EventLogImmutable(Exception):
+    """request_events is append-only: rows are never updated or deleted."""
+
+
+class RequestEventQuerySet(models.QuerySet["RequestEvent"]):
+    def update(self, **kwargs: Any) -> int:
+        raise EventLogImmutable("request_events rows cannot be updated.")
+
+    def delete(self) -> tuple[int, dict[str, int]]:
+        raise EventLogImmutable("request_events rows cannot be deleted.")
+
+
+class EventType(models.TextChoices):
+    REQUEST_CREATED = "request_created"
+    REQUEST_UPDATED = "request_updated"
+    REQUEST_DELETED = "request_deleted"
+    STAFF_ANSWERED = "staff_answered"
+    STAFF_ANSWER_UPDATED = "staff_answer_updated"
+    STATUS_CHANGED = "status_changed"
+    COMMENT_ADDED = "comment_added"
+    COMMENT_EDITED = "comment_edited"
+    COMMENT_DELETED = "comment_deleted"
+
+
+class EventSource(models.TextChoices):
+    API = "api"
+    BACKFILL = "backfill"
+    SEED = "seed"
+
+
+class ActorRole(models.TextChoices):
+    ADMIN = "admin"
+    STAFF = "staff"
+    PARENT = "parent"
+    SYSTEM = "system"
+
+
+class RequestEvent(models.Model):
+    """Append-only log of what happened to a request.
+
+    No foreign keys (the log outlives deleted requests and users) and no free text or
+    student data. Postgres also rejects UPDATE and DELETE with a trigger (migration 0005).
+    """
+
+    event_id = models.UUIDField(unique=True)
+    request_id = models.BigIntegerField(db_index=True)
+    event_type = models.CharField(max_length=32, choices=EventType)
+    actor_id = models.BigIntegerField(null=True)
+    actor_role = models.CharField(max_length=16, choices=ActorRole)
+    from_status = models.SmallIntegerField(null=True)
+    to_status = models.SmallIntegerField(null=True)
+    comment_id = models.BigIntegerField(null=True)
+    occurred_at = models.DateTimeField()
+    recorded_at = models.DateTimeField(auto_now_add=True)
+    source = models.CharField(max_length=16, choices=EventSource, default=EventSource.API)
+
+    objects = RequestEventQuerySet.as_manager()
+
+    class Meta:
+        db_table = "request_events"
+        indexes = [
+            models.Index(fields=["request_id", "occurred_at"], name="reqevent_req_time_idx"),
+            models.Index(fields=["event_type", "occurred_at"], name="reqevent_type_time_idx"),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(event_type__in=[c.value for c in EventType]),
+                name="reqevent_event_type_valid",
+            )
+        ]
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        if not self._state.adding:
+            raise EventLogImmutable("request_events rows cannot be updated.")
+        # Always insert: a new instance with an existing pk must fail, not take Django's
+        # update-first path and overwrite the row.
+        kwargs["force_insert"] = True
+        super().save(*args, **kwargs)
+
+    def delete(self, *args: Any, **kwargs: Any) -> tuple[int, dict[str, int]]:
+        raise EventLogImmutable("request_events rows cannot be deleted.")

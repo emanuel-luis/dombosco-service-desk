@@ -4,8 +4,12 @@ Each write is atomic, locks the request row with select_for_update() and enforce
 lifecycle rules, so views only parse input, call a service and serialize the result.
 `now` is injectable so tests can pin the clock. auto_now and auto_now_add always read the
 real clock, so timestamps are written through `_stamp` instead.
+
+Every write also appends its events to the request_events log (`_record`) in the same
+transaction, after the domain change, so a rolled-back write leaves no event behind.
 """
 
+import uuid
 from collections.abc import Callable
 from datetime import datetime
 from typing import Any
@@ -17,10 +21,19 @@ from django.utils import timezone
 from core.models import User
 from core.utils import get_role, has_comment_permission, is_dom_bosco_staff, is_parent
 from forms.exceptions import RequestConflict, RequestForbidden, RequestInvalid, RequestNotFound
-from forms.models import Comment, ParentForm, StaffForm
+from forms.models import (
+    ActorRole,
+    Comment,
+    EventSource,
+    EventType,
+    ParentForm,
+    RequestEvent,
+    StaffForm,
+)
 
 Status = ParentForm.StatusChoices
 Now = Callable[[], datetime]
+Source = EventSource | str
 
 ALLOWED: dict[int, set[int]] = {
     Status.PENDENTE: {Status.ANDAMENTO, Status.CANCELADO},
@@ -34,6 +47,32 @@ def _stamp(obj: models.Model, ts: datetime, **fields: Any) -> None:
     type(obj)._default_manager.filter(pk=obj.pk).update(updated_at=ts, **fields)
     for name, value in {"updated_at": ts, **fields}.items():
         setattr(obj, name, value)
+
+
+def _record(
+    event_type: EventType,
+    request_id: int,
+    user: User,
+    ts: datetime,
+    *,
+    source: EventSource | str = EventSource.API,
+    from_status: int | None = None,
+    to_status: int | None = None,
+    comment_id: int | None = None,
+) -> None:
+    role = get_role(user)
+    RequestEvent.objects.create(
+        event_id=uuid.uuid4(),
+        request_id=request_id,
+        event_type=event_type,
+        actor_id=user.pk,
+        actor_role=role if role in ActorRole.values else ActorRole.SYSTEM,
+        from_status=from_status,
+        to_status=to_status,
+        comment_id=comment_id,
+        occurred_at=ts,
+        source=source,
+    )
 
 
 def _is_assigned(user: User, form: ParentForm) -> bool:
@@ -107,18 +146,26 @@ def list_comments(user: User, request_id: int) -> QuerySet[Comment]:
 
 
 @transaction.atomic
-def create_request(user: User, data: dict[str, Any], *, now: Now = timezone.now) -> ParentForm:
+def create_request(
+    user: User, data: dict[str, Any], *, now: Now = timezone.now, source: Source = EventSource.API
+) -> ParentForm:
     if not is_parent(user, include_superuser=True):
         raise RequestForbidden()
     ts = now()
     form = ParentForm.objects.create(**data, responsible_party=user, status=Status.PENDENTE)
     _stamp(form, ts, created_at=ts)
+    _record(EventType.REQUEST_CREATED, form.pk, user, ts, source=source)
     return form
 
 
 @transaction.atomic
 def update_request(
-    user: User, request_id: int, data: dict[str, Any], *, now: Now = timezone.now
+    user: User,
+    request_id: int,
+    data: dict[str, Any],
+    *,
+    now: Now = timezone.now,
+    source: Source = EventSource.API,
 ) -> ParentForm:
     form = get_request(user, request_id, lock=True)
     role = get_role(user)
@@ -129,12 +176,16 @@ def update_request(
         raise RequestForbidden()
     elif form.status in TERMINAL:
         raise RequestConflict("Finished or cancelled requests cannot be changed.")
-    _stamp(form, now(), **data)
+    ts = now()
+    _stamp(form, ts, **data)
+    _record(EventType.REQUEST_UPDATED, form.pk, user, ts, source=source)
     return form
 
 
 @transaction.atomic
-def delete_request(user: User, request_id: int, *, now: Now = timezone.now) -> None:
+def delete_request(
+    user: User, request_id: int, *, now: Now = timezone.now, source: Source = EventSource.API
+) -> None:
     form = get_request(user, request_id, lock=True)
     role = get_role(user)
     if role == "parent":
@@ -142,12 +193,18 @@ def delete_request(user: User, request_id: int, *, now: Now = timezone.now) -> N
             raise RequestConflict("Only pending requests can be deleted.")
     elif role != "admin":
         raise RequestForbidden()
+    _record(EventType.REQUEST_DELETED, form.pk, user, now(), source=source)
     form.delete()
 
 
 @transaction.atomic
 def change_status(
-    user: User, request_id: int, new_status: int, *, now: Now = timezone.now
+    user: User,
+    request_id: int,
+    new_status: int,
+    *,
+    now: Now = timezone.now,
+    source: Source = EventSource.API,
 ) -> ParentForm:
     if isinstance(new_status, bool) or new_status not in Status.values:
         raise RequestInvalid("Invalid status.")
@@ -173,7 +230,18 @@ def change_status(
             )
         if new_status == Status.PENDENTE and answered:
             raise RequestConflict("An answered request cannot go back to pending.")
-    _stamp(form, now(), status=new_status)
+    ts = now()
+    old_status = form.status
+    _stamp(form, ts, status=new_status)
+    _record(
+        EventType.STATUS_CHANGED,
+        form.pk,
+        user,
+        ts,
+        source=source,
+        from_status=old_status,
+        to_status=new_status,
+    )
     return form
 
 
@@ -182,7 +250,12 @@ def change_status(
 
 @transaction.atomic
 def answer_request(
-    user: User, request_id: int, data: dict[str, Any], *, now: Now = timezone.now
+    user: User,
+    request_id: int,
+    data: dict[str, Any],
+    *,
+    now: Now = timezone.now,
+    source: Source = EventSource.API,
 ) -> StaffForm:
     if not is_dom_bosco_staff(user, include_superuser=True):
         raise RequestForbidden()
@@ -195,12 +268,27 @@ def answer_request(
     answer = StaffForm.objects.create(parent_form=form, assigned_staff=user, **data)
     _stamp(answer, ts, created_at=ts)
     _stamp(form, ts, status=Status.ANDAMENTO)
+    _record(EventType.STAFF_ANSWERED, form.pk, user, ts, source=source)
+    _record(
+        EventType.STATUS_CHANGED,
+        form.pk,
+        user,
+        ts,
+        source=source,
+        from_status=Status.PENDENTE,
+        to_status=Status.ANDAMENTO,
+    )
     return answer
 
 
 @transaction.atomic
 def update_answer(
-    user: User, staff_form_id: int, data: dict[str, Any], *, now: Now = timezone.now
+    user: User,
+    staff_form_id: int,
+    data: dict[str, Any],
+    *,
+    now: Now = timezone.now,
+    source: Source = EventSource.API,
 ) -> StaffForm:
     answer = StaffForm.objects.filter(pk=staff_form_id).first()
     if answer is None:
@@ -211,7 +299,9 @@ def update_answer(
         raise RequestForbidden()
     if form.status in TERMINAL:
         raise RequestConflict("Finished or cancelled requests cannot be changed.")
-    _stamp(answer, now(), **data)
+    ts = now()
+    _stamp(answer, ts, **data)
+    _record(EventType.STAFF_ANSWER_UPDATED, form.pk, user, ts, source=source)
     return answer
 
 
@@ -219,7 +309,14 @@ def update_answer(
 
 
 @transaction.atomic
-def add_comment(user: User, request_id: int, text: str, *, now: Now = timezone.now) -> Comment:
+def add_comment(
+    user: User,
+    request_id: int,
+    text: str,
+    *,
+    now: Now = timezone.now,
+    source: Source = EventSource.API,
+) -> Comment:
     form = get_request(user, request_id, lock=True)
     if not has_comment_permission(user, form):
         raise RequestForbidden()
@@ -228,6 +325,7 @@ def add_comment(user: User, request_id: int, text: str, *, now: Now = timezone.n
     ts = now()
     comment = Comment.objects.create(user=user, parent_form=form, comment=text)
     _stamp(comment, ts, created_at=ts)
+    _record(EventType.COMMENT_ADDED, form.pk, user, ts, source=source, comment_id=comment.pk)
     return comment
 
 
@@ -245,12 +343,39 @@ def _own_comment_in_progress(user: User, comment_id: int) -> Comment:
 
 
 @transaction.atomic
-def edit_comment(user: User, comment_id: int, text: str, *, now: Now = timezone.now) -> Comment:
+def edit_comment(
+    user: User,
+    comment_id: int,
+    text: str,
+    *,
+    now: Now = timezone.now,
+    source: Source = EventSource.API,
+) -> Comment:
     comment = _own_comment_in_progress(user, comment_id)
-    _stamp(comment, now(), comment=text)
+    ts = now()
+    _stamp(comment, ts, comment=text)
+    _record(
+        EventType.COMMENT_EDITED,
+        comment.parent_form_id,
+        user,
+        ts,
+        source=source,
+        comment_id=comment.pk,
+    )
     return comment
 
 
 @transaction.atomic
-def delete_comment(user: User, comment_id: int, *, now: Now = timezone.now) -> None:
-    _own_comment_in_progress(user, comment_id).delete()
+def delete_comment(
+    user: User, comment_id: int, *, now: Now = timezone.now, source: Source = EventSource.API
+) -> None:
+    comment = _own_comment_in_progress(user, comment_id)
+    _record(
+        EventType.COMMENT_DELETED,
+        comment.parent_form_id,
+        user,
+        now(),
+        source=source,
+        comment_id=comment.pk,
+    )
+    comment.delete()
