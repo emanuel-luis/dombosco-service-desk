@@ -127,3 +127,19 @@ def test_views_are_empty_on_an_empty_log(db):
     assert (sla.responded_count, sla.closed_count) == (0, 0)
     assert sla.first_response_p50_hours is None
     assert sla.close_p90_hours is None
+
+
+def test_daily_throughput_counts_events_including_reopens_and_deleted_requests(world):
+    """Throughput counts events: a finish after a reopen counts again and deleted requests count."""
+    r = services.create_request(world.parent, dict(REQUEST_DATA), now=at(0)).pk
+    services.answer_request(world.staff, r, {}, now=at(1))
+    services.change_status(world.staff, r, S.FINALIZADO, now=at(2))
+    services.change_status(world.admin, r, S.ANDAMENTO, now=at(3))
+    services.change_status(world.admin, r, S.FINALIZADO, now=at(4))
+    gone = services.create_request(world.parent, dict(REQUEST_DATA), now=at(5)).pk
+    services.delete_request(world.parent, gone, now=at(6))
+    rows = [
+        (row.day, row.opened, row.answered, row.finished, row.cancelled)
+        for row in DailyThroughput.objects.all()
+    ]
+    assert rows == [(date(2030, 1, 1), 2, 1, 2, 0)]
