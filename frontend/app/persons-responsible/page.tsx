@@ -171,6 +171,7 @@ const PersonsResponsibleForm =  () => {
                      <Field name="phone">
                        {({ field } : any) => (
                          <MaskedInput
+                           id="phone"
                            {...field}
                            mask="(99) 99999-9999" // Máscara para telefone celular
                            className={`w-[389px] h-[52px] border ${
