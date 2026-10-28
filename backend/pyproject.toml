@@ -47,6 +47,6 @@ timeout = 60
 filterwarnings = ["ignore:No directory at.*staticfiles:UserWarning"]
 testpaths = ["tests"]
 env = [
-    "D:SECRET_KEY=test-only-not-secret",
+    "D:SECRET_KEY=test-only-not-secret-0123456789abcdef",
     "D:DATABASE_URL=sqlite://:memory:",
 ]
