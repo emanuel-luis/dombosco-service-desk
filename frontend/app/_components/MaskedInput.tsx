@@ -42,7 +42,9 @@ export function MaskedInput({ mask, onChange, onKeyDown, ...props }: Props) {
       onChange={(e) => {
         const el = e.target;
         const previous = String(props.value ?? "");
-        const deleting = ((e.nativeEvent as InputEvent).inputType ?? "").startsWith("delete");
+        const inputType = (e.nativeEvent as InputEvent).inputType ?? "";
+        const deleting = inputType.startsWith("delete");
+        const deletingBackward = deleting && !inputType.endsWith("Forward");
         if (!deleting && overflowsFullMask(previous, el.value, mask)) {
           // Full field: refuse the extra digit instead of pushing the last one out.
           const kept = Math.max(0, (el.selectionStart ?? 1) - 1);
@@ -52,9 +54,9 @@ export function MaskedInput({ mask, onChange, onKeyDown, ...props }: Props) {
         }
         const n = digitsBefore(el.value, el.selectionStart ?? el.value.length);
         el.value = applyMask(el.value, mask);
-        // Deleting keeps the caret before a separator. Some mobile keyboards report no usable
-        // key on keydown, so this is the reliable place to decide it.
-        const caret = caretAfterDigits(el.value, n, !deleting);
+        // Deleting backward keeps the caret before a separator; deleting forward keeps it where
+        // it was. Some mobile keyboards report no usable key on keydown, so decide it here.
+        const caret = caretAfterDigits(el.value, n, !deletingBackward);
         el.setSelectionRange(caret, caret);
         pendingCaret.current = caret;
         onChange?.(e);
