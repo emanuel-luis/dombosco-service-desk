@@ -90,3 +90,22 @@ jobs:
       - run: npx tsc --noEmit
       - run: npm test
       - run: npm run build
+
+  compose-smoke:
+    needs: [test, frontend]
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Create .env
+        run: sh scripts/make-env.sh
+      - run: docker compose up -d --wait --build
+      - run: sh scripts/smoke.sh
+      - name: Compose logs
+        if: failure()
+        run: docker compose logs --no-color
+      - name: Tear down
+        if: always()
+        run: docker compose down -v

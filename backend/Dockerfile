@@ -1,42 +1,23 @@
-FROM python:3.11-slim
-USER root
-
-# Set the working directory environment variable
-ENV WORK_DIR=/app
-ENV BACKEND_HOST=0.0.0.0
-ENV BACKEND_PORT=8000
-ENV DEPLOYMENT=prod
-
-SHELL ["/bin/bash", "-c"]
-
-# set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
-# Install system dependencies
-RUN echo "deb http://deb.debian.org/debian bullseye main" >> /etc/apt/sources.list && \
-    apt-get update && \
-    apt-get install -y netcat --no-install-recommends && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# Set up working directory
-RUN mkdir -p /app
+# syntax=docker/dockerfile:1
+FROM python:3.12-slim-bookworm AS builder
+COPY --from=ghcr.io/astral-sh/uv:0.13.5 /uv /usr/local/bin/uv
+ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=never UV_PROJECT_ENVIRONMENT=/opt/venv
 WORKDIR /app
-
-# Install dependencies
-COPY requirements.txt ./
-RUN pip install -r requirements.txt --no-cache-dir
-
-# Copy the project files to the working directory
+COPY pyproject.toml uv.lock ./
+RUN uv sync --locked --no-dev --extra export
 COPY . .
+# collectstatic only needs settings to load; this key never reaches the runtime image.
+RUN SECRET_KEY=build-only-not-secret-0123456789abcdef /opt/venv/bin/python manage.py collectstatic --noinput
 
-# Copy the entrypoint script
-RUN sed -i 's/\r$//g' ./entrypoint.sh
-RUN chmod +x ./entrypoint.sh
-
-# Expose the port the app runs on
+FROM python:3.12-slim-bookworm
+ENV PATH=/opt/venv/bin:$PATH PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
+RUN useradd --uid 10001 --no-create-home --shell /usr/sbin/nologin app \
+    && mkdir /app && chown app:app /app
+WORKDIR /app
+COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder --chown=app:app /app /app
+USER 10001
 EXPOSE 8000
-
-# Run the app entrypoint
-ENTRYPOINT ["./entrypoint.sh"]
+HEALTHCHECK --interval=10s --timeout=5s --start-period=15s --retries=5 \
+    CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=3)"]
+CMD ["gunicorn", "dombosco_service_desk.wsgi", "--bind", "0.0.0.0:8000", "--workers", "2", "--access-logfile", "-"]
