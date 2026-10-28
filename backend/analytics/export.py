@@ -52,7 +52,7 @@ def cutoff_for(as_of: date) -> datetime:
 
 
 def snapshot(as_of: date) -> list[RequestEvent]:
-    # ponytail: the whole snapshot is held in memory; stream by batches if the log outgrows it.
+    # Known limit: the whole snapshot is held in memory; stream by batches if the log outgrows it.
     return list(
         RequestEvent.objects.filter(occurred_at__lt=cutoff_for(as_of)).order_by("occurred_at", "id")
     )
@@ -105,7 +105,7 @@ def _swap(tmp: Path, target: Path) -> None:
         if old.exists():
             os.replace(old, target)
         raise
-    # ponytail: two renames, not one atomic swap; a crash between them leaves .old-* behind
+    # Known limit: two renames, not one atomic swap; a crash between them leaves .old-* behind
     # with the previous data. Switch to a pointer file if readers must never see a gap.
     shutil.rmtree(old, ignore_errors=True)
 
