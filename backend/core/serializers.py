@@ -94,10 +94,8 @@ class RegisterSerializer(serializers.Serializer):
         user.last_name = self.cleaned_data.get("last_name")
         user.save()
 
-        if user.has_staff_email:
-            group, _ = Group.objects.get_or_create(name="Colaborador")
-        else:
-            group, _ = Group.objects.get_or_create(name="Responsável")
+        # Colaborador is granted only after the email is confirmed (see core.signals).
+        group, _ = Group.objects.get_or_create(name="Responsável")
         user.groups.add(group)
         user.save()
 
