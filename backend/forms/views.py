@@ -1,13 +1,45 @@
-from django.db.models import Q
+"""Thin views: parse input, call forms.services, serialize the result.
+
+Visibility, permissions and lifecycle rules live in forms.services; domain errors are
+APIExceptions and become 403, 404, 409 or 400 responses on their own.
+"""
+
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, status, views
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-import core.utils as forms_utils
-from core.permissions import *
-from forms.models import *
-from forms.serializers import *
+from core.permissions import IsDomBoscoAdmin, IsDomBoscoParent, IsDomBoscoStaff
+from forms import services
+from forms.exceptions import RequestInvalid
+from forms.models import ParentForm
+from forms.serializers import (
+    CommentCreateSerializer,
+    CommentSerializer,
+    CommentUpdateSerializer,
+    IdQuerySerializer,
+    ParentQuerySerializer,
+    ParentsFormSerializer,
+    StaffFormCreateSerializer,
+    StaffFormSerializer,
+    StaffFormUpdateSerializer,
+    StatusChangeResponseSerializer,
+    StatusChangeSerializer,
+)
+
+
+def _id_param(request: Request) -> int:
+    query = IdQuerySerializer(data=request.query_params)
+    if not query.is_valid():
+        raise RequestInvalid("You must provide a valid id parameter.")
+    return query.validated_data["id"]
+
+
+def _valid(serializer_class, data):
+    serializer = serializer_class(data=data)
+    serializer.is_valid(raise_exception=True)
+    return serializer.validated_data
 
 
 # ParentForm API
@@ -24,162 +56,53 @@ class ParentFormViewAPI(views.APIView):
     ]
 
     @extend_schema(
-        responses={200: ParentsFormSerializer(many=True)}, parameters=[ParentQuerySerializer]
+        parameters=[ParentQuerySerializer],
+        responses={200: ParentsFormSerializer(many=True)},
+        description=(
+            "Lists the requests the user can see: a parent sees their own, staff see pending "
+            "requests plus the ones assigned to them, admins see all. With `id`, returns that "
+            "single request instead of a list (404 when the user cannot see it)."
+        ),
     )
     def get(self, request: Request):
-        """
-        Returns a list of all forms submitted by parents.
-
-        If the user is a staff member, they can see all forms assigned to them and all forms that are unassigned (PENDING).
-        If the user is a parent, they can only see the forms they have submitted.
-        """
-
-        if forms_utils.is_superuser(request.user):
-            # If the user is a superuser, they can see all forms
-            parents_forms = ParentForm.objects.all()
-        elif forms_utils.is_dom_bosco_staff(request.user, include_superuser=True):
-            # If the user is a staff member, they can see all forms assigned to them
-            # and all forms that are unassigned (PENDING)
-            unassigned = Q(status=ParentForm.StatusChoices.PENDENTE)
-            assigned_to_current_user = Q(staffform__assigned_staff=request.user)
-            parents_forms = ParentForm.objects.filter(unassigned | assigned_to_current_user)
-        elif forms_utils.is_parent(request.user):
-            # If the user is a parent, they can only see the forms they submitted
-            parents_forms = ParentForm.objects.filter(responsible_party=request.user)
-        else:
-            # If the user is not a parent or a staff member, they cannot see any forms
+        # Empty query values count as absent, as they always did.
+        params = {key: value for key, value in request.query_params.items() if value}
+        query = _valid(ParentQuerySerializer, params)
+        if "id" in query:
             return Response(
-                data={"detail": "You do not have permission to perform this action."},
-                status=status.HTTP_403_FORBIDDEN,
+                ParentsFormSerializer(services.get_request(request.user, query["id"])).data
             )
-
-        if request.query_params.get("id"):
-            try:
-                parent_form = ParentForm.objects.get(id=request.query_params["id"])
-            except ParentForm.DoesNotExist:
-                return Response(
-                    data={"detail": "Parent form not found."},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-            serializer = ParentsFormSerializer(parent_form)
-            return Response(serializer.data)
-
-        if request.query_params.get("status"):
-            parents_forms = parents_forms.filter(status=request.query_params["status"])
-
-        if request.query_params.get("assigned_staff"):
-            parents_forms = parents_forms.filter(
-                staffform__assigned_staff__email=request.query_params["assigned_staff"]
-            )
-
-        if request.query_params.get("responsible_party"):
-            parents_forms = parents_forms.filter(
-                responsible_party__email=request.query_params["responsible_party"]
-            )
-
-        serializer = ParentsFormSerializer(
-            parents_forms.order_by("status", "created_at"), many=True
+        forms = services.list_requests(
+            request.user,
+            status=query.get("status"),
+            assigned_staff=query.get("assigned_staff"),
+            responsible_party=query.get("responsible_party"),
         )
-        return Response(serializer.data)
+        return Response(ParentsFormSerializer(forms, many=True).data)
 
-    @extend_schema(responses={201: ParentsFormSerializer()}, request=ParentsFormSerializer)
+    @extend_schema(request=ParentsFormSerializer, responses={201: ParentsFormSerializer})
     def post(self, request: Request):
-        """
-        Allows a parent to submit a form with their information and their child's information.
+        """Creates a PENDENTE request owned by the current user (parents only)."""
+        data = _valid(ParentsFormSerializer, request.data)
+        form = services.create_request(request.user, data)
+        return Response(ParentsFormSerializer(form).data, status=status.HTTP_201_CREATED)
 
-        The form is saved with the parent's email, so that the staff can contact them.
-        A staff cannot submit a form on behalf of a parent, unless they are a parent themselves.
-        """
-
-        if not forms_utils.is_parent(request.user, include_superuser=True):
-            return Response(
-                data={"detail": "You do not have permission to perform this action."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        serializer = ParentsFormSerializer(data=request.data, context={"request": request})
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    @extend_schema(responses={200: ParentsFormSerializer()}, parameters=[ParentQuerySerializer])
-    def delete(self, request: Request):
-        """
-        Allows a parent to delete a form they submitted.
-
-        A parent cannot delete a form that has been already assigned to a staff member,
-        unless they are a superuser.
-        """
-        _id = request.query_params.get("id")
-        if not _id:
-            return Response(
-                data={"detail": "You must provide the id parameter."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            parent_form = ParentForm.objects.get(id=_id)
-        except ParentForm.DoesNotExist:
-            return Response(
-                data={"detail": "Parent form not found."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        if (
-            parent_form.status == ParentForm.StatusChoices.PENDENTE
-            and parent_form.responsible_party == request.user
-            or forms_utils.is_superuser(request.user)
-        ):
-            parent_form.delete()
-            return Response(status=status.HTTP_200_OK)
-        return Response(
-            data={"detail": "You do not have permission to perform this action."},
-            status=status.HTTP_403_FORBIDDEN,
-        )
-
-    @extend_schema(responses={200: ParentsFormSerializer()}, request=ParentsFormSerializer)
+    @extend_schema(
+        parameters=[IdQuerySerializer],
+        request=ParentsFormSerializer,
+        responses=ParentsFormSerializer,
+    )
     def put(self, request: Request):
-        """
-        Allows a parent to update a form they submitted.
+        """Updates a request. A parent can only change their own request while it is PENDENTE."""
+        data = _valid(ParentsFormSerializer, request.data)
+        form = services.update_request(request.user, _id_param(request), data)
+        return Response(ParentsFormSerializer(form).data)
 
-        A form cannot be updated if it's already finished or cancelled.
-        """
-
-        _id = request.query_params.get("id")
-        if not _id:
-            return Response(
-                data={"detail": "You must provide the id parameter."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            parent_form = ParentForm.objects.get(id=_id)
-        except ParentForm.DoesNotExist:
-            return Response(
-                data={"detail": "Parent form not found."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        if (
-            parent_form.responsible_party != request.user
-            and not forms_utils.is_superuser(request.user)
-            or parent_form.status > ParentForm.StatusChoices.ANDAMENTO
-        ):
-            return Response(
-                data={"detail": "You do not have permission to perform this action."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        serializer = ParentsFormSerializer(
-            parent_form,
-            data=request.data,
-            context={"request": request},
-        )
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    @extend_schema(parameters=[IdQuerySerializer], responses={200: None})
+    def delete(self, request: Request):
+        """Deletes a request. A parent can only delete their own request while it is PENDENTE."""
+        services.delete_request(request.user, _id_param(request))
+        return Response(status=status.HTTP_200_OK)
 
 
 class ParentFormsChoicesViewAPI(views.APIView):
@@ -190,13 +113,9 @@ class ParentFormsChoicesViewAPI(views.APIView):
 
     permission_classes = [permissions.IsAuthenticated]
 
+    @extend_schema(responses={200: OpenApiTypes.OBJECT})
     def get(self, request: Request):
-        """
-        Returns a list of all choices for the parent form.
-
-        The choices are returned as a dictionary to be handled by the frontend.
-        """
-
+        """Maps each choice field (relationship, status, required_by) to {value: label}."""
         return Response(
             {
                 "relationship": dict(ParentForm.RelationShipChoices.choices),
@@ -214,55 +133,26 @@ class UpdateStatusParentFormAPI(views.APIView):
 
     permission_classes = [permissions.IsAuthenticated & (IsDomBoscoStaff | IsDomBoscoAdmin)]
 
+    @extend_schema(
+        parameters=[IdQuerySerializer],
+        request=StatusChangeSerializer,
+        responses=StatusChangeResponseSerializer,
+    )
     def put(self, request: Request):
         """
-        Allows a staff member to update the status of a parent form.
+        Changes the status of a request.
 
-        A parent cannot update the status of a form.
-        A staff member can only update the status to a higher status.
-
-        The status can be one of the following:
-            0 - PENDENTE
-            1 - EM ANDAMENTO
-            2 - FINALIZADO
-            3 - CANCELADO
-
+        Staff can only change requests assigned to them, along 0 -> 1/3 and 1 -> 2/3.
+        Admins can set any status, including going backwards. The status can be
+        0 PENDENTE, 1 EM ANDAMENTO, 2 FINALIZADO or 3 CANCELADO. A disallowed
+        transition is a 409.
         """
-
-        if not forms_utils.is_dom_bosco_staff(request.user, include_superuser=True):
-            return Response(
-                data={"detail": "You do not have permission to perform this action."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        _id = request.query_params.get("id")
-        if not _id:
-            return Response(
-                data={"detail": "You must provide the id parameter."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            parent_form = ParentForm.objects.get(id=_id)
-        except ParentForm.DoesNotExist:
-            return Response(
-                data={"detail": "Parent form not found."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        if parent_form.status >= request.data["status"] and not forms_utils.is_superuser(
-            request.user
-        ):
-            return Response(
-                data={"detail": "You cannot change the status to a previous status."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        parent_form.status = request.data["status"]
-        parent_form.save()
+        new_status = _valid(StatusChangeSerializer, request.data)["status"]
+        form = services.change_status(request.user, _id_param(request), new_status)
         return Response(
             data={
-                "id": parent_form.id,
-                "status": parent_form.status,
+                "id": form.id,
+                "status": form.status,
                 "detail": "Status updated sucessfully.",
             },
             status=status.HTTP_200_OK,
@@ -280,236 +170,75 @@ class StaffFormViewAPI(views.APIView):
 
     permission_classes = [permissions.IsAuthenticated]
 
+    @extend_schema(responses={200: StaffFormSerializer(many=True)})
     def get(self, request: Request):
         """
-        Returns a list of all forms submitted by staff members.
-
-        If the user is a staff member, they can see all forms they submitted.
-        If the user is a parent, they can see all forms submitted by staff members assigned to their forms.
+        Lists staff answers: staff see their own, parents see the answers to their requests,
+        admins see all.
         """
-        if forms_utils.is_superuser(request.user):
-            staff_forms = StaffForm.objects.all()
-        elif forms_utils.is_dom_bosco_staff(request.user):
-            staff_forms = StaffForm.objects.filter(assigned_staff=request.user)
-        elif forms_utils.is_parent(request.user):
-            staff_forms = StaffForm.objects.filter(parent_form__responsible_party=request.user)
-        else:
-            return Response(
-                data={"detail": "You do not have permission to perform this action."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        return Response(StaffFormSerializer(services.list_answers(request.user), many=True).data)
 
-        serializer = StaffFormSerializer(staff_forms.order_by("-created_at"), many=True)
-        return Response(serializer.data)
-
+    @extend_schema(request=StaffFormCreateSerializer, responses={201: StaffFormSerializer})
     def post(self, request: Request):
         """
-        Allows a staff member to answer a form submitted by a parent.
+        Answers a pending request: assigns the staff member and moves it to EM ANDAMENTO.
 
-        The form is saved with the staff member's email, so that the parent can contact them.
-        Once a staff member submits a form, the status of the parent form is updated to "EM ANDAMENTO".
-        Only staff members can submit a form.
+        Answering a request twice, or a finished or cancelled one, is a 409.
         """
+        data = _valid(StaffFormCreateSerializer, request.data)
+        answer = services.answer_request(request.user, data.pop("parent_form_id"), data)
+        return Response(StaffFormSerializer(answer).data, status=status.HTTP_201_CREATED)
 
-        if not forms_utils.is_dom_bosco_staff(request.user, include_superuser=True):
-            return Response(
-                data={"detail": "You do not have permission to perform this action."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        serializer = StaffFormSerializer(data=request.data, context={"request": request})
-        if serializer.is_valid():
-            staff_form: StaffForm = serializer.save()
-            staff_form.parent_form.status = ParentForm.StatusChoices.ANDAMENTO
-            staff_form.parent_form.save()
-
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    # def delete(self, request: Request):
-    #     """
-    #     Allows a staff member to delete a form they submitted
-    #     """
-    #     _id = request.query_params.get("id")
-    #     if not _id:
-    #         return Response(
-    #             data={"detail": "You must provide the id parameter."},
-    #             status=status.HTTP_400_BAD_REQUEST,
-    #         )
-
-    #     try:
-    #         staff_form = StaffForm.objects.get(id=_id)
-    #     except StaffForm.DoesNotExist:
-    #         return Response(
-    #             data={"detail": "Staff form not found."},
-    #             status=status.HTTP_404_NOT_FOUND,
-    #         )
-
-    #     if staff_form.assigned_staff == request.user or forms_utils.is_superuser(request.user):
-    #         staff_form.delete()
-    #         return Response(status=status.HTTP_200_OK)
-    #     return Response(
-    #         data={"detail": "You do not have permission to perform this action."},
-    #         status=status.HTTP_403_FORBIDDEN,
-    #     )
-
+    @extend_schema(
+        parameters=[IdQuerySerializer],
+        request=StaffFormUpdateSerializer,
+        responses=StaffFormSerializer,
+    )
     def put(self, request: Request):
-        """
-        Allows a staff member to update a form they submitted.
-
-        A staff form cannot be updated if it's already finished or cancelled.
-        """
-
-        _id = request.query_params.get("id")
-        if not _id:
-            return Response(
-                data={"detail": "You must provide the id parameter."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            staff_form = StaffForm.objects.get(id=_id)
-        except StaffForm.DoesNotExist:
-            return Response(
-                data={"detail": "Staff form not found."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        if (
-            staff_form.assigned_staff != request.user
-            and not forms_utils.is_superuser(request.user)
-            or staff_form.parent_form.status > ParentForm.StatusChoices.ANDAMENTO
-        ):
-            return Response(
-                data={"detail": "You do not have permission to perform this action."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        serializer = StaffFormSerializer(
-            staff_form, data=request.data, context={"request": request}
-        )
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        """Updates a staff answer. Only its staff member or an admin, until the request closes."""
+        data = _valid(StaffFormUpdateSerializer, request.data)
+        answer = services.update_answer(request.user, _id_param(request), data)
+        return Response(StaffFormSerializer(answer).data)
 
 
 class CommentViewAPI(views.APIView):
     """
-    Allows a user to add, update, or delete a comment on a form they submitted or are assigned to.
+    Comments on a request, for its parent, its assigned staff and admins.
 
-    A user can only delete or update their own comments, unless they are a superuser.
+    Only the author can edit or delete a comment, and only while the request is in progress.
     """
 
     permission_classes = [permissions.IsAuthenticated]
 
+    @extend_schema(request=CommentCreateSerializer, responses={201: CommentSerializer})
     def post(self, request: Request):
-        """
-        Allows a user to add a comment to a form.
+        """Adds a comment. Rejected with 409 while the request is still PENDENTE."""
+        data = _valid(CommentCreateSerializer, request.data)
+        comment = services.add_comment(request.user, data["parent_form_id"], data["comment"])
+        return Response(CommentSerializer(comment).data, status=status.HTTP_201_CREATED)
 
-        A user can only add a comment to a form they submitted or are assigned to.
-        """
-        serializer = CommentSerializer(data=request.data, context={"request": request})
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+    @extend_schema(
+        parameters=[IdQuerySerializer],
+        responses={200: CommentSerializer(many=True)},
+        description="Lists the comments of the request given by `id`, oldest first.",
+    )
     def get(self, request: Request):
-        """
-        Returns a list of all comments for a form.
+        comments = services.list_comments(request.user, _id_param(request))
+        return Response(CommentSerializer(comments, many=True).data)
 
-        A user can only see comments for a form they submitted or are assigned to.
-        """
-        _id = request.query_params.get("id")
-        if not _id:
-            return Response(
-                data={"detail": "You must provide the id parameter."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            parent_form = ParentForm.objects.get(id=_id)
-            if not forms_utils.has_comment_permission(request.user, parent_form):
-                return Response(
-                    data={"detail": "You do not have permission to perform this action."},
-                    status=status.HTTP_403_FORBIDDEN,
-                )
-        except ParentForm.DoesNotExist:
-            return Response(
-                data={"detail": "Form not found."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        comments = Comment.objects.filter(parent_form_id=_id)
-        serializer = CommentSerializer(comments.order_by("created_at"), many=True)
-
-        return Response(serializer.data)
-
+    @extend_schema(parameters=[IdQuerySerializer], responses={200: None})
     def delete(self, request: Request):
-        """
-        Allows a user to delete a comment.
+        """Deletes a comment (`id` is the comment id). Author only, while EM ANDAMENTO."""
+        services.delete_comment(request.user, _id_param(request))
+        return Response(status=status.HTTP_200_OK)
 
-        A user can only delete their own comments, unless they are a superuser, and the form is still in progress.
-        """
-        _id = request.query_params.get("id")
-        if not _id:
-            return Response(
-                data={"detail": "You must provide the id parameter."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            comment = Comment.objects.get(id=_id)
-        except Comment.DoesNotExist:
-            return Response(
-                data={"detail": "Comment not found."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        if (
-            comment.user == request.user
-            and comment.parent_form.status == ParentForm.StatusChoices.ANDAMENTO
-        ) or forms_utils.is_superuser(request.user):
-            comment.delete()
-            return Response(status=status.HTTP_200_OK)
-        return Response(
-            data={"detail": "You do not have permission to perform this action."},
-            status=status.HTTP_403_FORBIDDEN,
-        )
-
+    @extend_schema(
+        parameters=[IdQuerySerializer],
+        request=CommentUpdateSerializer,
+        responses=CommentSerializer,
+    )
     def put(self, request: Request):
-        """
-        Allows a user to update a comment.
-
-        A user can only update their own comments, unless they are a superuser, and the form is still in progress.
-        """
-
-        _id = request.query_params.get("id")
-        if not _id:
-            return Response(
-                data={"detail": "You must provide the id parameter."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            comment = Comment.objects.get(id=_id)
-        except Comment.DoesNotExist:
-            return Response(
-                data={"detail": "Comment not found."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        if (
-            comment.user != request.user
-            and not forms_utils.is_superuser(request.user)
-            or comment.parent_form.status != ParentForm.StatusChoices.ANDAMENTO
-        ):
-            return Response(
-                data={"detail": "You do not have permission to perform this action."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        serializer = CommentSerializer(comment, data=request.data, context={"request": request})
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        """Edits a comment (`id` is the comment id). Author only, while EM ANDAMENTO."""
+        data = _valid(CommentUpdateSerializer, request.data)
+        comment = services.edit_comment(request.user, _id_param(request), data["comment"])
+        return Response(CommentSerializer(comment).data)
