@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { applyMask, caretAfterDigits, digitsBefore } from "../lib/mask";
+import { applyMask, caretAfterDigits, digitsBefore, overflowsFullMask } from "../lib/mask";
 
 type Props = React.InputHTMLAttributes<HTMLInputElement> & { mask: string };
 
@@ -41,9 +41,20 @@ export function MaskedInput({ mask, onChange, onKeyDown, ...props }: Props) {
       }}
       onChange={(e) => {
         const el = e.target;
+        const previous = String(props.value ?? "");
+        const deleting = ((e.nativeEvent as InputEvent).inputType ?? "").startsWith("delete");
+        if (!deleting && overflowsFullMask(previous, el.value, mask)) {
+          // Full field: refuse the extra digit instead of pushing the last one out.
+          const kept = Math.max(0, (el.selectionStart ?? 1) - 1);
+          el.value = previous;
+          el.setSelectionRange(kept, kept);
+          return;
+        }
         const n = digitsBefore(el.value, el.selectionStart ?? el.value.length);
         el.value = applyMask(el.value, mask);
-        const caret = caretAfterDigits(el.value, n);
+        // Deleting keeps the caret before a separator. Some mobile keyboards report no usable
+        // key on keydown, so this is the reliable place to decide it.
+        const caret = caretAfterDigits(el.value, n, !deleting);
         el.setSelectionRange(caret, caret);
         pendingCaret.current = caret;
         onChange?.(e);

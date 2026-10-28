@@ -32,3 +32,15 @@ export function caretAfterDigits(formatted: string, n: number, skipLiterals = tr
   if (skipLiterals) while (pos < formatted.length && /\D/.test(formatted[pos])) pos++;
   return pos;
 }
+
+// Number of digit slots in a mask ("99/99/9999" -> 8).
+export function maskSlots(mask: string): number {
+  return mask.split("").filter((ch) => ch === "9").length;
+}
+
+// True when an edit would push a digit out of a field that was already full.
+export function overflowsFullMask(previous: string, next: string, mask: string): boolean {
+  const slots = maskSlots(mask);
+  const count = (s: string) => s.replace(/\D/g, "").length;
+  return count(previous) >= slots && count(next) > slots;
+}
