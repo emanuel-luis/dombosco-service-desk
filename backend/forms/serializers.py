@@ -40,6 +40,7 @@ class StaffFormSerializer(serializers.ModelSerializer[StaffForm]):
     """Output of a staff answer."""
 
     assigned_staff = UserProfileSerializer(read_only=True)
+    parent_form_id = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = StaffForm
@@ -63,6 +64,8 @@ class CommentSerializer(serializers.ModelSerializer[Comment]):
     """Output of a comment."""
 
     user = serializers.CharField(read_only=True, source="user.full_name")
+    user_id = serializers.IntegerField(read_only=True)
+    parent_form_id = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Comment
