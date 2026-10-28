@@ -74,3 +74,19 @@ def test_backfill_derives_events_and_is_idempotent(world, legacy):
         key=lambda r: (r[0], r[4], r[1]),
     )
     assert RequestEvent.objects.filter(comment_id__isnull=False).count() == 1
+
+
+def test_backfill_leaves_requests_with_live_events_alone(world, legacy):
+    live = services.create_request(world.parent, dict(REQUEST_DATA), now=at(10))
+    services.answer_request(world.staff, live.pk, {}, now=at(11))
+    services.add_comment(world.parent, live.pk, "oi", now=at(12))
+    live_rows = RequestEvent.objects.filter(request_id=live.pk).count()
+    assert live_rows == 4
+
+    call_command("backfill_request_events")
+    call_command("backfill_request_events")
+
+    assert RequestEvent.objects.filter(request_id=live.pk).count() == live_rows
+    assert not RequestEvent.objects.filter(request_id=live.pk, source="backfill").exists()
+    done, _, _ = legacy
+    assert RequestEvent.objects.filter(request_id=done.pk, source="backfill").count() == 5

@@ -42,6 +42,12 @@ def _roles(apps: Any) -> dict[int, str]:
 
 
 def _events(apps: Any, roles: dict[int, str]) -> Iterator[dict[str, Any]]:
+    # Requests that already have live (api or seed) events keep their real history.
+    live = set(
+        apps.get_model("forms", "RequestEvent")
+        .objects.exclude(source="backfill")
+        .values_list("request_id", flat=True)
+    )
     parent_form = apps.get_model("forms", "ParentForm")
     staff_form = apps.get_model("forms", "StaffForm")
     comment = apps.get_model("forms", "Comment")
@@ -60,9 +66,13 @@ def _events(apps: Any, roles: dict[int, str]) -> Iterator[dict[str, Any]]:
         }
 
     answered = set(staff_form.objects.values_list("parent_form_id", flat=True))
-    for pk, owner, status, created, updated in parent_form.objects.values_list(
-        "pk", "responsible_party_id", "status", "created_at", "updated_at"
-    ).iterator():
+    for pk, owner, status, created, updated in (
+        parent_form.objects.values_list(
+            "pk", "responsible_party_id", "status", "created_at", "updated_at"
+        )
+        .exclude(pk__in=live)
+        .iterator()
+    ):
         yield event("request_created", "parent_form", pk, pk, owner, created)
         if status in (2, 3):  # FINALIZADO, CANCELADO
             yield {
@@ -70,18 +80,22 @@ def _events(apps: Any, roles: dict[int, str]) -> Iterator[dict[str, Any]]:
                 "from_status": 1 if pk in answered else 0,
                 "to_status": status,
             }
-    for pk, request_id, staff, created in staff_form.objects.values_list(
-        "pk", "parent_form_id", "assigned_staff_id", "created_at"
-    ).iterator():
+    for pk, request_id, staff, created in (
+        staff_form.objects.values_list("pk", "parent_form_id", "assigned_staff_id", "created_at")
+        .exclude(parent_form_id__in=live)
+        .iterator()
+    ):
         yield event("staff_answered", "staff_form", pk, request_id, staff, created)
         yield {
             **event("status_changed", "staff_form", pk, request_id, staff, created),
             "from_status": 0,
             "to_status": 1,
         }
-    for pk, request_id, user, created in comment.objects.values_list(
-        "pk", "parent_form_id", "user_id", "created_at"
-    ).iterator():
+    for pk, request_id, user, created in (
+        comment.objects.values_list("pk", "parent_form_id", "user_id", "created_at")
+        .exclude(parent_form_id__in=live)
+        .iterator()
+    ):
         yield {
             **event("comment_added", "comment", pk, request_id, user, created),
             "comment_id": pk,
