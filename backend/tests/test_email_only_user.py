@@ -33,3 +33,22 @@ def test_login_by_email_still_works(settings):
         "/api/v1/auth/login/", {"email": "a@example.com", "password": PASSWORD}, format="json"
     )
     assert response.status_code == 200, response.content
+
+
+def test_user_admin_add_and_change_pages_render(client):
+    admin = get_user_model().objects.create_superuser(email="root@example.com", password=PASSWORD)
+    client.force_login(admin)
+    assert client.get("/admin/core/user/add/").status_code == 200
+    assert client.get(f"/admin/core/user/{admin.pk}/change/").status_code == 200
+    assert client.get("/admin/core/user/").status_code == 200
+
+
+def test_user_admin_can_add_a_user(client):
+    admin = get_user_model().objects.create_superuser(email="root@example.com", password=PASSWORD)
+    client.force_login(admin)
+    response = client.post(
+        "/admin/core/user/add/",
+        {"email": "new@example.com", "password1": PASSWORD, "password2": PASSWORD},
+    )
+    assert response.status_code == 302, response.content
+    assert get_user_model().objects.filter(email="new@example.com").exists()

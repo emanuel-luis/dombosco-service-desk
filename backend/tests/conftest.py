@@ -34,9 +34,7 @@ def auth_groups(db):
 @pytest.fixture
 def make_user(auth_groups):
     def make(email, group=None, **extra):
-        user = get_user_model().objects.create_user(
-            email=email, username=email, password="pw-123456", **extra
-        )
+        user = get_user_model().objects.create_user(email=email, password="pw-123456", **extra)
         if group:
             user.groups.add(Group.objects.get(name=group))
         return user
