@@ -51,7 +51,7 @@ jobs:
           --health-retries 10
     env:
       DATABASE_URL: postgres://ci:ci@localhost:5432/ci
-      SECRET_KEY: test-only-not-secret
+      SECRET_KEY: test-only-not-secret-0123456789abcdef
     defaults:
       run:
         working-directory: backend
@@ -64,9 +64,10 @@ jobs:
           enable-cache: true
           python-version: "3.12"
           cache-dependency-glob: backend/uv.lock
-      - run: uv sync --locked
+      - run: uv sync --locked --extra export
       - run: uv run python manage.py check
       - run: uv run python manage.py makemigrations --check --dry-run
+      - run: uv run python manage.py spectacular --validate --fail-on-warn --file "$RUNNER_TEMP/schema.yml"
       - run: uv run pytest
 
   frontend:
