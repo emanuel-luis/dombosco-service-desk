@@ -39,6 +39,14 @@ class AppSettings(BaseSettings):
     google_oauth_client_secret: SecretStr | None = None
     google_oauth_callback_url: str | None = None
 
+    @field_validator("secret_key")
+    @classmethod
+    def _long_enough(cls, value: SecretStr) -> SecretStr:
+        # It also signs the JWTs (HS256), which needs at least 32 bytes of key.
+        if len(value.get_secret_value()) < 32:
+            raise ValueError("SECRET_KEY must be at least 32 characters long")
+        return value
+
     @field_validator("allowed_hosts", "csrf_trusted_origins", "cors_allowed_origins", mode="before")
     @classmethod
     def _split_commas(cls, value):
