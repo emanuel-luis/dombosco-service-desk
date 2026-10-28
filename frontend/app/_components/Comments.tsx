@@ -34,6 +34,7 @@ export default function Comments({ formId, status, user }: CommentsProps) {
   }, [formId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount
     if (enabled) load();
   }, [enabled, load]);
 

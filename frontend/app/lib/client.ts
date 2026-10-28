@@ -54,6 +54,7 @@ export function buildUrl(
 function redirectToLogin() {
   clearToken();
   if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- full reload on purpose: drops all client state
     window.location.assign("/login");
   }
 }
