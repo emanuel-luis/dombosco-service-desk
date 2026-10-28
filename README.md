@@ -9,12 +9,7 @@ A service desk for a school. Parents open requests about a student, school staff
 
 The visual identity follows the school's public site (details in [docs/BRAND.md](docs/BRAND.md)).
 
-![Login screen](docs/screenshots/login.png)
-![A parent's list of requests](docs/screenshots/parent-requests.png)
-![A request as school staff see it, with the answer and comment thread](docs/screenshots/staff-request-detail.png)
-![Login screen on a phone](docs/screenshots/login-mobile.png)
-
-All data in the screenshots is synthetic demo data.
+![A parent's list of requests (synthetic demo data)](docs/screenshots/parent-requests.png)
 
 ## What this demonstrates
 
@@ -22,7 +17,7 @@ Data engineering:
 
 - An append-only event log, `request_events`. Every service write inserts its event in the same transaction as the change. Updates and deletes are rejected twice: by the Django model and by a Postgres trigger. A backfill (migration plus management command) creates events for requests that predate the log and is safe to run again.
 - Four named layers. Source: the OLTP tables written only through `forms/services.py`. Raw: `request_events`. Processed: the `v_request_lifecycle` view, one row per request, with the same rules implemented in pure Python (`analytics/lifecycle.py`) and a Postgres test that reconciles the two. Serving: the `v_daily_throughput`, `v_backlog_by_status` and `v_sla_summary` views, admin-only endpoints over them, and a Parquet export.
-- The Parquet export has pyarrow schema contracts (exact columns, order, types, non-null keys), checks that run before anything is written, an atomic partition swap, and a `_run.json` with run id, UTC timestamps and row counts.
+- The Parquet export has pyarrow schema contracts (exact columns, order, types, non-null keys), checks that run before anything is written, a rename-based partition swap that puts the previous partition back on failure, and a `_run.json` with run id, UTC timestamps and row counts.
 
 Application engineering:
 
@@ -64,6 +59,16 @@ make smoke    # HTTP checks against the running stack
 make export   # Parquet files for today (UTC) land in exports/as_of=<date>/
 make down     # stop the stack and delete its volumes, demo data included
 ```
+
+## Screenshots
+
+All data is synthetic demo data from `make demo`.
+
+![A request as school staff see it, with the answer, the status panel and the comment thread](docs/screenshots/staff-request-detail.png)
+
+![Login screen](docs/screenshots/login.png)
+
+![Login screen on a phone](docs/screenshots/login-mobile.png)
 
 ## Development
 

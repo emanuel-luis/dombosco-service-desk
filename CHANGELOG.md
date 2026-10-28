@@ -12,7 +12,7 @@ The 2026 refactor of the 2024 college project into a maintained portfolio repo.
 
 - Append-only `request_events` log written in the same transaction as every request change, with a model guard, a Postgres trigger and an idempotent backfill.
 - Analytics: the `v_request_lifecycle`, `v_daily_throughput`, `v_backlog_by_status` and `v_sla_summary` views, a pure-Python lifecycle and throughput that a test reconciles with the SQL, and admin-only endpoints under `/api/v1/analytics/`.
-- Parquet export (`manage.py export_analytics`) with pyarrow data contracts, an atomic partition swap and `_run.json` run metadata.
+- Parquet export (`manage.py export_analytics`) with pyarrow data contracts, a rename-based partition swap that restores the previous partition on failure, and `_run.json` run metadata.
 - Service layer in `forms/services.py`, status transition rules and a permission matrix test per user group.
 - Typed TypeScript API client and frontend pages wired to the API: request list, creation, detail with answer, status change and comment thread.
 - Dom Bosco visual identity (logo, palette, fonts) and the unofficial-project notice on every screen and email; see `docs/BRAND.md`.
@@ -27,7 +27,7 @@ The 2026 refactor of the 2024 college project into a maintained portfolio repo.
 - Django project package renamed to `dombosco_service_desk`; repository named `dombosco-service-desk`.
 - Frontend upgraded to Next 16 and React 19, ESLint 9 flat config, npm only, standalone build.
 - Users are identified by email only; the unused `username` column was dropped.
-- Staff access requires a confirmed email at the staff domain and the domain match is exact.
+- Staff access requires a confirmed email at the staff domain or one of its subdomains, matched on a label boundary, so a lookalike suffix no longer counts.
 - Multi-stage non-root Docker images.
 
 ### Fixed

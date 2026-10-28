@@ -9,7 +9,7 @@ in [DECISIONS.md](DECISIONS.md).
 | # | Branch | What | CI it adds | Status |
 | --- | --- | --- | --- | --- |
 | 1 | `refactor/backend-baseline` | `backend/pyproject.toml` + `uv.lock` (current pins), ruff (line length 100, `BLE`) and `ruff format`, pytest-django smoke tests, Makefile (`help`, `install`, `lint`, `test-fast`), delete `requirements.txt`, `ruff.toml`, the manual `backend/test.py` script and dead files | `lint`, `test` (Postgres service, `manage.py check`, `makemigrations --check`) | done locally |
-| 2 | PR #3 | Teammate fixes (frontend only), rebased on 1 | — | done locally |
+| 2 | PR #3 | Teammate fixes (frontend only), rebased on 1 | — | open as PR #3 |
 | 3 | `refactor/settings-deps` | Django project package renamed to `dombosco_service_desk` (if cheap), Django 5.2 LTS, DRF 3.16, psycopg 3, drf-spectacular, pydantic-settings config (`SECRET_KEY` required, `DEBUG` off by default, hosts/CORS/CSRF/DB from env), `.env.example`, remove the DEBUG permission bypass | — | done locally |
 | 4 | `refactor/request-lifecycle` | `forms/services.py` (all writes, one transaction each), status transition rules, bug fixes, permission matrix tests per group, groups on `/auth/user/`, mypy strict in `lint` | mypy | done locally |
 | 5 | `feat/request-events` | Append-only `request_events` log, immutability guard (model + Postgres trigger), idempotent backfill | — | done locally |
