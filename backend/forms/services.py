@@ -8,11 +8,13 @@ real clock, so timestamps are written through `_stamp` instead.
 
 from collections.abc import Callable
 from datetime import datetime
+from typing import Any
 
-from django.db import transaction
+from django.db import models, transaction
 from django.db.models import Q, QuerySet
 from django.utils import timezone
 
+from core.models import User
 from core.utils import get_role, has_comment_permission, is_dom_bosco_staff, is_parent
 from forms.exceptions import RequestConflict, RequestForbidden, RequestInvalid, RequestNotFound
 from forms.models import Comment, ParentForm, StaffForm
@@ -20,28 +22,28 @@ from forms.models import Comment, ParentForm, StaffForm
 Status = ParentForm.StatusChoices
 Now = Callable[[], datetime]
 
-ALLOWED = {
+ALLOWED: dict[int, set[int]] = {
     Status.PENDENTE: {Status.ANDAMENTO, Status.CANCELADO},
     Status.ANDAMENTO: {Status.FINALIZADO, Status.CANCELADO},
 }
-TERMINAL = {Status.FINALIZADO, Status.CANCELADO}
+TERMINAL: set[int] = {Status.FINALIZADO, Status.CANCELADO}
 
 
-def _stamp(obj, ts: datetime, **fields) -> None:
+def _stamp(obj: models.Model, ts: datetime, **fields: Any) -> None:
     """Save `fields` and updated_at with the injected clock (a plain save() would overwrite it)."""
     type(obj)._default_manager.filter(pk=obj.pk).update(updated_at=ts, **fields)
     for name, value in {"updated_at": ts, **fields}.items():
         setattr(obj, name, value)
 
 
-def _is_assigned(user, form: ParentForm) -> bool:
+def _is_assigned(user: User, form: ParentForm) -> bool:
     return StaffForm.objects.filter(parent_form=form, assigned_staff=user).exists()
 
 
 # Reads
 
 
-def visible_requests(user) -> QuerySet[ParentForm]:
+def visible_requests(user: User) -> QuerySet[ParentForm]:
     """The one place that decides which requests a user can see."""
     role = get_role(user)
     forms = ParentForm.objects.all()
@@ -54,7 +56,7 @@ def visible_requests(user) -> QuerySet[ParentForm]:
     raise RequestForbidden()
 
 
-def get_request(user, request_id: int, *, lock: bool = False) -> ParentForm:
+def get_request(user: User, request_id: int, *, lock: bool = False) -> ParentForm:
     forms = visible_requests(user)
     if lock:
         # of=self: the staff filter joins staffform, whose nullable side cannot be locked.
@@ -66,7 +68,11 @@ def get_request(user, request_id: int, *, lock: bool = False) -> ParentForm:
 
 
 def list_requests(
-    user, *, status=None, assigned_staff: str | None = None, responsible_party: str | None = None
+    user: User,
+    *,
+    status: int | None = None,
+    assigned_staff: str | None = None,
+    responsible_party: str | None = None,
 ) -> QuerySet[ParentForm]:
     forms = visible_requests(user)
     if status is not None:
@@ -78,7 +84,7 @@ def list_requests(
     return forms.order_by("status", "created_at")
 
 
-def list_answers(user) -> QuerySet[StaffForm]:
+def list_answers(user: User) -> QuerySet[StaffForm]:
     role = get_role(user)
     answers = StaffForm.objects.all()
     if role == "staff":
@@ -90,7 +96,7 @@ def list_answers(user) -> QuerySet[StaffForm]:
     return answers.order_by("-created_at")
 
 
-def list_comments(user, request_id: int) -> QuerySet[Comment]:
+def list_comments(user: User, request_id: int) -> QuerySet[Comment]:
     form = get_request(user, request_id)
     if not has_comment_permission(user, form):
         raise RequestForbidden()
@@ -101,7 +107,7 @@ def list_comments(user, request_id: int) -> QuerySet[Comment]:
 
 
 @transaction.atomic
-def create_request(user, data: dict, *, now: Now = timezone.now) -> ParentForm:
+def create_request(user: User, data: dict[str, Any], *, now: Now = timezone.now) -> ParentForm:
     if not is_parent(user, include_superuser=True):
         raise RequestForbidden()
     ts = now()
@@ -111,7 +117,9 @@ def create_request(user, data: dict, *, now: Now = timezone.now) -> ParentForm:
 
 
 @transaction.atomic
-def update_request(user, request_id: int, data: dict, *, now: Now = timezone.now) -> ParentForm:
+def update_request(
+    user: User, request_id: int, data: dict[str, Any], *, now: Now = timezone.now
+) -> ParentForm:
     form = get_request(user, request_id, lock=True)
     role = get_role(user)
     if role == "parent":
@@ -126,7 +134,7 @@ def update_request(user, request_id: int, data: dict, *, now: Now = timezone.now
 
 
 @transaction.atomic
-def delete_request(user, request_id: int, *, now: Now = timezone.now) -> None:
+def delete_request(user: User, request_id: int, *, now: Now = timezone.now) -> None:
     form = get_request(user, request_id, lock=True)
     role = get_role(user)
     if role == "parent":
@@ -138,7 +146,9 @@ def delete_request(user, request_id: int, *, now: Now = timezone.now) -> None:
 
 
 @transaction.atomic
-def change_status(user, request_id: int, new_status: int, *, now: Now = timezone.now) -> ParentForm:
+def change_status(
+    user: User, request_id: int, new_status: int, *, now: Now = timezone.now
+) -> ParentForm:
     if isinstance(new_status, bool) or new_status not in Status.values:
         raise RequestInvalid("Invalid status.")
     role = get_role(user)
@@ -171,7 +181,9 @@ def change_status(user, request_id: int, new_status: int, *, now: Now = timezone
 
 
 @transaction.atomic
-def answer_request(user, request_id: int, data: dict, *, now: Now = timezone.now) -> StaffForm:
+def answer_request(
+    user: User, request_id: int, data: dict[str, Any], *, now: Now = timezone.now
+) -> StaffForm:
     if not is_dom_bosco_staff(user, include_superuser=True):
         raise RequestForbidden()
     form = get_request(user, request_id, lock=True)
@@ -187,7 +199,9 @@ def answer_request(user, request_id: int, data: dict, *, now: Now = timezone.now
 
 
 @transaction.atomic
-def update_answer(user, staff_form_id: int, data: dict, *, now: Now = timezone.now) -> StaffForm:
+def update_answer(
+    user: User, staff_form_id: int, data: dict[str, Any], *, now: Now = timezone.now
+) -> StaffForm:
     answer = StaffForm.objects.filter(pk=staff_form_id).first()
     if answer is None:
         visible_requests(user)  # roles with no access get 403 before learning an id is unused
@@ -205,7 +219,7 @@ def update_answer(user, staff_form_id: int, data: dict, *, now: Now = timezone.n
 
 
 @transaction.atomic
-def add_comment(user, request_id: int, text: str, *, now: Now = timezone.now) -> Comment:
+def add_comment(user: User, request_id: int, text: str, *, now: Now = timezone.now) -> Comment:
     form = get_request(user, request_id, lock=True)
     if not has_comment_permission(user, form):
         raise RequestForbidden()
@@ -217,7 +231,7 @@ def add_comment(user, request_id: int, text: str, *, now: Now = timezone.now) ->
     return comment
 
 
-def _own_comment_in_progress(user, comment_id: int) -> Comment:
+def _own_comment_in_progress(user: User, comment_id: int) -> Comment:
     comment = Comment.objects.filter(pk=comment_id).first()
     if comment is None:
         visible_requests(user)
@@ -231,12 +245,12 @@ def _own_comment_in_progress(user, comment_id: int) -> Comment:
 
 
 @transaction.atomic
-def edit_comment(user, comment_id: int, text: str, *, now: Now = timezone.now) -> Comment:
+def edit_comment(user: User, comment_id: int, text: str, *, now: Now = timezone.now) -> Comment:
     comment = _own_comment_in_progress(user, comment_id)
     _stamp(comment, now(), comment=text)
     return comment
 
 
 @transaction.atomic
-def delete_comment(user, comment_id: int, *, now: Now = timezone.now) -> None:
+def delete_comment(user: User, comment_id: int, *, now: Now = timezone.now) -> None:
     _own_comment_in_progress(user, comment_id).delete()

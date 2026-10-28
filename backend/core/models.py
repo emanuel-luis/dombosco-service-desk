@@ -1,3 +1,5 @@
+from typing import Any, ClassVar
+
 from django.conf import settings
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser, Group
@@ -16,13 +18,13 @@ def is_staff_email(email: str) -> bool:
     return email_domain == domain or email_domain.endswith("." + domain)
 
 
-class UserManager(BaseUserManager):
+class UserManager(BaseUserManager["User"]):
     """
     Custom user model manager where email is the unique identifiers
     for authentication instead of usernames.
     """
 
-    def create_user(self, email, password, **extra_fields):
+    def create_user(self, email: str, password: str | None, **extra_fields: Any) -> "User":
         """
         Create and save a User with the given email and password.
         """
@@ -34,7 +36,7 @@ class UserManager(BaseUserManager):
         user.save()
         return user
 
-    def create_superuser(self, email, password, **extra_fields):
+    def create_superuser(self, email: str, password: str | None, **extra_fields: Any) -> "User":
         """
         Create and save a SuperUser with the given email and password.
         """
@@ -55,20 +57,21 @@ class User(AbstractUser):
     mobile_phone = models.CharField(max_length=20, null=True, blank=True, verbose_name="Celular")
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS: ClassVar[list[str]] = []
 
-    objects = UserManager()
+    # The stubs type AbstractUser.objects as the contrib UserManager.
+    objects = UserManager()  # type: ignore[assignment,misc]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.email
 
     @property
-    def has_staff_email(self):
+    def has_staff_email(self) -> bool:
         """Typed-email check only. It proves nothing about ownership: never use it for access."""
         return is_staff_email(self.email)
 
     @property
-    def full_name(self):
+    def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
 
 
@@ -85,5 +88,5 @@ class Application(models.Model):
         verbose_name = "Aplicação"
         verbose_name_plural = "Aplicações"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
