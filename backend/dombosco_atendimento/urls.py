@@ -15,7 +15,6 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from accounts.views import *
 from allauth.account.views import ConfirmEmailView
 from django.conf import settings
 from django.contrib import admin
@@ -23,6 +22,8 @@ from django.urls import include, path, re_path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions, routers
+
+from accounts.views import *
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -50,7 +51,7 @@ urlpatterns = [
     path("api/v1/auth/", include("dj_rest_auth.urls")),
     path("api/v1/auth/google/", GoogleLogin.as_view(), name="google_login"),
     re_path(
-        "^api/v1/auth/registration/account-confirm-email/(?P<key>[-:\w]+)/$",
+        r"^api/v1/auth/registration/account-confirm-email/(?P<key>[-:\w]+)/$",
         ConfirmEmailView.as_view(),
         name="account_confirm_email",
     ),

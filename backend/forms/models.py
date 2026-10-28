@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User
 from django.db import models
 
 User = get_user_model()
@@ -59,14 +58,26 @@ class ParentForm(models.Model):
     )
 
     # Seção de Informações do Aluno
-    student_name = models.CharField(max_length=255, null=False, blank=False, verbose_name="Nome do Aluno")
-    student_birth_date = models.DateField(null=False, blank=False, verbose_name="Data de Nascimento do Aluno")
-    student_grade_year = models.PositiveSmallIntegerField(null=False, blank=False, verbose_name="Ano do Aluno")
-    student_class_name = models.CharField(max_length=2, null=False, blank=False, verbose_name="Turma do Aluno")
-    relationship_to_student = models.IntegerField(choices=RelationShipChoices, null=False, blank=False, verbose_name="Parentesco")
+    student_name = models.CharField(
+        max_length=255, null=False, blank=False, verbose_name="Nome do Aluno"
+    )
+    student_birth_date = models.DateField(
+        null=False, blank=False, verbose_name="Data de Nascimento do Aluno"
+    )
+    student_grade_year = models.PositiveSmallIntegerField(
+        null=False, blank=False, verbose_name="Ano do Aluno"
+    )
+    student_class_name = models.CharField(
+        max_length=2, null=False, blank=False, verbose_name="Turma do Aluno"
+    )
+    relationship_to_student = models.IntegerField(
+        choices=RelationShipChoices, null=False, blank=False, verbose_name="Parentesco"
+    )
 
     # Seção para descrição do problema
-    issue_description = models.TextField(null=False, blank=False, verbose_name="Descrição da solicitação")
+    issue_description = models.TextField(
+        null=False, blank=False, verbose_name="Descrição da solicitação"
+    )
 
     # Metadados de controle do sistema
     status = models.IntegerField(
@@ -76,8 +87,12 @@ class ParentForm(models.Model):
         blank=False,
         verbose_name="Status",
     )
-    created_at = models.DateTimeField(auto_now_add=True, editable=False, verbose_name="Data de criação")
-    updated_at = models.DateTimeField(auto_now=True, editable=False, verbose_name="Data de atualização")
+    created_at = models.DateTimeField(
+        auto_now_add=True, editable=False, verbose_name="Data de criação"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True, editable=False, verbose_name="Data de atualização"
+    )
 
 
 class StaffForm(models.Model):
@@ -90,7 +105,9 @@ class StaffForm(models.Model):
     )
 
     # Seção de preenchimento da escola
-    school_advice = models.TextField(null=True, blank=True, verbose_name="Aconselhamento/Observações da escola")
+    school_advice = models.TextField(
+        null=True, blank=True, verbose_name="Aconselhamento/Observações da escola"
+    )
     actions_taken = models.TextField(blank=True, null=True, verbose_name="Providências")
     final_notes = models.TextField(blank=True, null=True, verbose_name="Observações finais")
 
@@ -104,13 +121,29 @@ class StaffForm(models.Model):
     )
 
     # Metadados de controle do sistema
-    created_at = models.DateTimeField(auto_now_add=True, editable=False, verbose_name="Data de criação")
-    updated_at = models.DateTimeField(auto_now=True, editable=False, verbose_name="Data de atualização")
+    created_at = models.DateTimeField(
+        auto_now_add=True, editable=False, verbose_name="Data de criação"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True, editable=False, verbose_name="Data de atualização"
+    )
 
 
 class Comment(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False, verbose_name="Usuário")
-    parent_form = models.ForeignKey(ParentForm, on_delete=models.CASCADE, null=False, blank=False, verbose_name="Formulário de Solicitação")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, null=False, blank=False, verbose_name="Usuário"
+    )
+    parent_form = models.ForeignKey(
+        ParentForm,
+        on_delete=models.CASCADE,
+        null=False,
+        blank=False,
+        verbose_name="Formulário de Solicitação",
+    )
     comment = models.TextField(null=False, blank=False, verbose_name="Comentário")
-    created_at = models.DateTimeField(auto_now_add=True, editable=False, verbose_name="Data de criação")
-    updated_at = models.DateTimeField(auto_now=True, editable=False, verbose_name="Data de atualização")
+    created_at = models.DateTimeField(
+        auto_now_add=True, editable=False, verbose_name="Data de criação"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True, editable=False, verbose_name="Data de atualização"
+    )

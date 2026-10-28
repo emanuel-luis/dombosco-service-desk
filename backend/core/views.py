@@ -1,9 +1,10 @@
-from core.permissions import *
-from core.serializers import *
 from django.contrib.auth.models import Group
 from rest_framework import permissions, status, views
 from rest_framework.request import Request
 from rest_framework.response import Response
+
+from core.permissions import *
+from core.serializers import *
 
 
 class GroupViewAPI(views.APIView):
