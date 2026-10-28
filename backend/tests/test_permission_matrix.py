@@ -69,9 +69,9 @@ CASES = [
     ),
     ("delete", f"{FORMS}/comment/?id={{comment}}", None, expect(403, 403, 200, 403, 403, 401)),
     ("get", f"{CORE}/groups/", None, expect(200, 403, 403, 403, 403, 401)),
-    # GroupSerializer marks name read-only, so an admin POST creates a nameless group (201).
-    ("post", f"{CORE}/groups/", {}, expect(201, 403, 403, 403, 403, 401)),
-    ("put", f"{CORE}/groups/", {}, expect(404, 403, 403, 403, 403, 401)),
+    # Groups are read-only through the API (fixtures + Django admin), so writes are 405.
+    ("post", f"{CORE}/groups/", {}, expect(405, 403, 403, 403, 403, 401)),
+    ("put", f"{CORE}/groups/", {}, expect(405, 403, 403, 403, 403, 401)),
     ("get", f"{CORE}/applications/", None, expect(200, 200, 200, 200, 200, 401)),
     ("post", f"{CORE}/applications/", {}, expect(400, 403, 403, 403, 403, 401)),
     ("put", f"{CORE}/applications/", {}, expect(404, 403, 403, 403, 403, 401)),
