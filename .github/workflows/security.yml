@@ -31,7 +31,7 @@ jobs:
           python-version: "3.12"
       # Every locked runtime package, including the export extra; pip-audit resolves nothing itself.
       - run: uv export --frozen --no-dev --extra export --no-hashes --no-emit-project -o "$RUNNER_TEMP/req.txt"
-      - run: uvx pip-audit -r "$RUNNER_TEMP/req.txt" --strict --no-deps --disable-pip --progress-spinner off
+      - run: uvx pip-audit==2.10.1 -r "$RUNNER_TEMP/req.txt" --strict --no-deps --disable-pip --progress-spinner off
 
   npm-audit:
     runs-on: ubuntu-latest

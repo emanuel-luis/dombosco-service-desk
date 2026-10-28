@@ -62,6 +62,8 @@ updates:
       # Postgres majors need a data migration; they move by hand.
       - dependency-name: "postgres"
         update-types: ["version-update:semver-major"]
+      # Built locally by compose (migrate and web services); not in any registry.
+      - dependency-name: "dombosco-service-desk-*"
     schedule:
       interval: weekly
     groups:
