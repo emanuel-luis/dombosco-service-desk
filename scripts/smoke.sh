@@ -1,6 +1,8 @@
 #!/bin/sh
 # HTTP checks against a running stack (make demo / make up). Needs curl and python3.
 set -eu
+# Git Bash would rewrite container paths such as /tmp/exports into Windows paths.
+export MSYS_NO_PATHCONV=1
 
 API=${API_URL:-http://localhost:8000}
 WEB=${WEB_URL:-http://localhost:3000}
@@ -37,8 +39,8 @@ echo "ok analytics sla"
 [ "$(status "$WEB/login")" = 200 ] || fail "web /login is not 200"
 echo "ok web login"
 
-# The export runs in the container and the partition is copied out, so no bind mount (and no
-# host uid or Docker Desktop file-sharing issue) is involved.
+# The export runs in the container and the partition is copied out: no bind mount, so no
+# root-owned ./exports on Linux hosts.
 as_of=$(date -u +%F)
 docker compose exec -T api python manage.py export_analytics --as-of "$as_of" --out /tmp/exports ||
   fail "export_analytics"
