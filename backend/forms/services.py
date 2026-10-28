@@ -1,0 +1,232 @@
+"""Every write to a request, its staff answer and its comments goes through here.
+
+Each write is atomic, locks the request row with select_for_update() and enforces the
+lifecycle rules, so views only parse input, call a service and serialize the result.
+`now` is injectable so tests can pin the clock. auto_now and auto_now_add always read the
+real clock, so timestamps are written through `_stamp` instead.
+"""
+
+from collections.abc import Callable
+from datetime import datetime
+
+from django.db import transaction
+from django.db.models import Q, QuerySet
+from django.utils import timezone
+
+from core.utils import get_role, has_comment_permission, is_dom_bosco_staff, is_parent
+from forms.exceptions import RequestConflict, RequestForbidden, RequestInvalid, RequestNotFound
+from forms.models import Comment, ParentForm, StaffForm
+
+Status = ParentForm.StatusChoices
+Now = Callable[[], datetime]
+
+ALLOWED = {
+    Status.PENDENTE: {Status.ANDAMENTO, Status.CANCELADO},
+    Status.ANDAMENTO: {Status.FINALIZADO, Status.CANCELADO},
+}
+TERMINAL = {Status.FINALIZADO, Status.CANCELADO}
+
+
+def _stamp(obj, ts: datetime, **fields) -> None:
+    """Save `fields` and updated_at with the injected clock (a plain save() would overwrite it)."""
+    type(obj)._default_manager.filter(pk=obj.pk).update(updated_at=ts, **fields)
+    for name, value in {"updated_at": ts, **fields}.items():
+        setattr(obj, name, value)
+
+
+def _is_assigned(user, form: ParentForm) -> bool:
+    return StaffForm.objects.filter(parent_form=form, assigned_staff=user).exists()
+
+
+# Reads
+
+
+def visible_requests(user) -> QuerySet[ParentForm]:
+    """The one place that decides which requests a user can see."""
+    role = get_role(user)
+    forms = ParentForm.objects.all()
+    if role == "admin":
+        return forms
+    if role == "staff":
+        return forms.filter(Q(status=Status.PENDENTE) | Q(staffform__assigned_staff=user))
+    if role == "parent":
+        return forms.filter(responsible_party=user)
+    raise RequestForbidden()
+
+
+def get_request(user, request_id: int, *, lock: bool = False) -> ParentForm:
+    forms = visible_requests(user)
+    if lock:
+        # of=self: the staff filter joins staffform, whose nullable side cannot be locked.
+        forms = forms.select_for_update(of=("self",))
+    try:
+        return forms.get(pk=request_id)
+    except ParentForm.DoesNotExist:
+        raise RequestNotFound("Parent form not found.") from None
+
+
+def list_requests(
+    user, *, status=None, assigned_staff: str | None = None, responsible_party: str | None = None
+) -> QuerySet[ParentForm]:
+    forms = visible_requests(user)
+    if status is not None:
+        forms = forms.filter(status=status)
+    if assigned_staff:
+        forms = forms.filter(staffform__assigned_staff__email=assigned_staff)
+    if responsible_party:
+        forms = forms.filter(responsible_party__email=responsible_party)
+    return forms.order_by("status", "created_at")
+
+
+def list_answers(user) -> QuerySet[StaffForm]:
+    role = get_role(user)
+    answers = StaffForm.objects.all()
+    if role == "staff":
+        answers = answers.filter(assigned_staff=user)
+    elif role == "parent":
+        answers = answers.filter(parent_form__responsible_party=user)
+    elif role != "admin":
+        raise RequestForbidden()
+    return answers.order_by("-created_at")
+
+
+def list_comments(user, request_id: int) -> QuerySet[Comment]:
+    form = get_request(user, request_id)
+    if not has_comment_permission(user, form):
+        raise RequestForbidden()
+    return Comment.objects.filter(parent_form=form).order_by("created_at")
+
+
+# Writes: requests
+
+
+@transaction.atomic
+def create_request(user, data: dict, *, now: Now = timezone.now) -> ParentForm:
+    if not is_parent(user, include_superuser=True):
+        raise RequestForbidden()
+    ts = now()
+    form = ParentForm.objects.create(**data, responsible_party=user, status=Status.PENDENTE)
+    _stamp(form, ts, created_at=ts)
+    return form
+
+
+@transaction.atomic
+def update_request(user, request_id: int, data: dict, *, now: Now = timezone.now) -> ParentForm:
+    form = get_request(user, request_id, lock=True)
+    role = get_role(user)
+    if role == "parent":
+        if form.status != Status.PENDENTE:
+            raise RequestConflict("Only pending requests can be changed.")
+    elif role != "admin":
+        raise RequestForbidden()
+    elif form.status in TERMINAL:
+        raise RequestConflict("Finished or cancelled requests cannot be changed.")
+    _stamp(form, now(), **data)
+    return form
+
+
+@transaction.atomic
+def delete_request(user, request_id: int, *, now: Now = timezone.now) -> None:
+    form = get_request(user, request_id, lock=True)
+    role = get_role(user)
+    if role == "parent":
+        if form.status != Status.PENDENTE:
+            raise RequestConflict("Only pending requests can be deleted.")
+    elif role != "admin":
+        raise RequestForbidden()
+    form.delete()
+
+
+@transaction.atomic
+def change_status(user, request_id: int, new_status: int, *, now: Now = timezone.now) -> ParentForm:
+    if isinstance(new_status, bool) or new_status not in Status.values:
+        raise RequestInvalid("Invalid status.")
+    role = get_role(user)
+    if role not in ("admin", "staff"):
+        raise RequestForbidden()
+    form = get_request(user, request_id, lock=True)
+    if role == "staff":
+        if not _is_assigned(user, form):
+            raise RequestForbidden()
+        if new_status not in ALLOWED.get(form.status, ()):
+            raise RequestConflict(
+                f"Cannot change the status from {Status(form.status).label} "
+                f"to {Status(new_status).label}."
+            )
+    _stamp(form, now(), status=new_status)
+    return form
+
+
+# Writes: staff answer
+
+
+@transaction.atomic
+def answer_request(user, request_id: int, data: dict, *, now: Now = timezone.now) -> StaffForm:
+    if not is_dom_bosco_staff(user, include_superuser=True):
+        raise RequestForbidden()
+    form = get_request(user, request_id, lock=True)
+    if StaffForm.objects.filter(parent_form=form).exists():
+        raise RequestConflict("This request has already been answered.")
+    if form.status != Status.PENDENTE:
+        raise RequestConflict(f"Cannot answer a {Status(form.status).label} request.")
+    ts = now()
+    answer = StaffForm.objects.create(parent_form=form, assigned_staff=user, **data)
+    _stamp(answer, ts, created_at=ts)
+    _stamp(form, ts, status=Status.ANDAMENTO)
+    return answer
+
+
+@transaction.atomic
+def update_answer(user, staff_form_id: int, data: dict, *, now: Now = timezone.now) -> StaffForm:
+    answer = StaffForm.objects.filter(pk=staff_form_id).first()
+    if answer is None:
+        visible_requests(user)  # roles with no access get 403 before learning an id is unused
+        raise RequestNotFound("Staff form not found.")
+    form = get_request(user, answer.parent_form_id, lock=True)
+    if answer.assigned_staff_id != user.id and get_role(user) != "admin":
+        raise RequestForbidden()
+    if form.status in TERMINAL:
+        raise RequestConflict("Finished or cancelled requests cannot be changed.")
+    _stamp(answer, now(), **data)
+    return answer
+
+
+# Writes: comments
+
+
+@transaction.atomic
+def add_comment(user, request_id: int, text: str, *, now: Now = timezone.now) -> Comment:
+    form = get_request(user, request_id, lock=True)
+    if not has_comment_permission(user, form):
+        raise RequestForbidden()
+    if form.status == Status.PENDENTE:
+        raise RequestConflict("It is not possible to add comments to a form that is pending.")
+    ts = now()
+    comment = Comment.objects.create(user=user, parent_form=form, comment=text)
+    _stamp(comment, ts, created_at=ts)
+    return comment
+
+
+def _own_comment_in_progress(user, comment_id: int) -> Comment:
+    comment = Comment.objects.filter(pk=comment_id).first()
+    if comment is None:
+        visible_requests(user)
+        raise RequestNotFound("Comment not found.")
+    form = get_request(user, comment.parent_form_id, lock=True)
+    if comment.user_id != user.id:
+        raise RequestForbidden()
+    if form.status != Status.ANDAMENTO:
+        raise RequestConflict("Comments can only be changed while the request is in progress.")
+    return comment
+
+
+@transaction.atomic
+def edit_comment(user, comment_id: int, text: str, *, now: Now = timezone.now) -> Comment:
+    comment = _own_comment_in_progress(user, comment_id)
+    _stamp(comment, now(), comment=text)
+    return comment
+
+
+@transaction.atomic
+def delete_comment(user, comment_id: int, *, now: Now = timezone.now) -> None:
+    _own_comment_in_progress(user, comment_id).delete()
