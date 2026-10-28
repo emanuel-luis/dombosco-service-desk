@@ -55,12 +55,13 @@ export default function Solicitações() {
       console.log(formUpdateStatus)
       return false
     }
+    return true
   }
 
   const handleStaffForm = async (values : any) => {
     try {
       const formStaffSubmited = await formsServices.createFormStaff({values, data, user})
-      const formStatus = handleFinalize(values.status)
+      const formStatus = await handleFinalize(values.status)
 
       setShowAnswers(true)
       setCloseStaffFields(true)
@@ -76,6 +77,7 @@ export default function Solicitações() {
       }
     } catch (error) {
       setFormStaffError(true)
+      console.error('Erro no envio do formulário:', error)
     }
   }
 
