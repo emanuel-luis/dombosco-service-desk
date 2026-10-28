@@ -6,7 +6,7 @@ the query parameters are validated.
 """
 
 from django.db import connection
-from drf_spectacular.utils import OpenApiResponse, extend_schema
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import generics, permissions, status, views
 from rest_framework.exceptions import APIException
 from rest_framework.pagination import LimitOffsetPagination
@@ -44,6 +44,9 @@ class LifecyclePagination(LimitOffsetPagination):
     max_limit = 1000
 
 
+@extend_schema_view(
+    get=extend_schema(responses={200: RequestLifecycleSerializer(many=True), 501: NOT_POSTGRES})
+)
 class RequestsView(generics.ListAPIView[RequestLifecycle]):
     """One row per request seen in the event log (v_request_lifecycle), by request id."""
 
@@ -52,7 +55,6 @@ class RequestsView(generics.ListAPIView[RequestLifecycle]):
     pagination_class = LifecyclePagination
     queryset = RequestLifecycle.objects.order_by("request_id")
 
-    @extend_schema(responses={200: RequestLifecycleSerializer(many=True), 501: NOT_POSTGRES})
     def list(self, request: Request, *args: object, **kwargs: object) -> Response:
         require_postgres()
         return super().list(request, *args, **kwargs)
@@ -65,9 +67,11 @@ class ThroughputView(views.APIView):
         parameters=[ThroughputQuerySerializer],
         responses={200: DailyThroughputSerializer(many=True), 501: NOT_POSTGRES},
         description=(
-            "Requests opened, answered, finished and cancelled per UTC day, oldest first. "
-            "Days with none of those events have no row. `from` and `to` (YYYY-MM-DD) are "
-            "inclusive and optional."
+            "Lifecycle events per UTC day, oldest first: requests opened, staff answers, and "
+            "status changes into FINALIZADO and CANCELADO. These are event counts, so a request "
+            "an admin reopens and finishes again counts twice in `finished`, and deleted requests "
+            "still count (backlog and SLA leave them out). Days with none of those events have no "
+            "row. `from` and `to` (YYYY-MM-DD) are inclusive and optional."
         ),
     )
     def get(self, request: Request) -> Response:

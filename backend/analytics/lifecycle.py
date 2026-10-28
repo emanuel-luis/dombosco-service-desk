@@ -1,8 +1,7 @@
 """The portable definition of a request's lifecycle, computed from its events.
 
 Pure Python, no database access. The v_request_lifecycle view (migration 0001) implements the
-same rules in SQL and a Postgres test keeps the two equal; the Parquet export reuses this
-function. Rules, per request_id:
+same rules in SQL and a Postgres test keeps the two equal. Rules, per request_id:
 
 - opened_at: earliest request_created.
 - first_response_at: earliest staff_answered, or comment_added by a staff or admin actor,
