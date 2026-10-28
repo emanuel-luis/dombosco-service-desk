@@ -1,2 +1,19 @@
+# Python
+__pycache__/
+.venv/
+*.sqlite3
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Env files
+.env
 *.env
-__pycache__
+!.env.example
+
+# Project
+exports/
+node_modules/
+.next/
