@@ -19,6 +19,7 @@ from allauth.account.views import ConfirmEmailView
 from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path, re_path
+from django.views.generic import RedirectView
 from drf_spectacular.views import (
     SpectacularJSONAPIView,
     SpectacularRedocView,
@@ -33,6 +34,9 @@ urlpatterns = [
     path("swagger/", SpectacularSwaggerView.as_view(url_name="schema"), name="schema-swagger-ui"),
     path("redoc/", SpectacularRedocView.as_view(url_name="schema"), name="schema-redoc"),
     path("admin/", admin.site.urls),
+    # allauth reverses "account_login" after confirming an email in the signup session;
+    # login lives in the frontend, so send it there.
+    path("account/login/", RedirectView.as_view(url=settings.LOGIN_URL), name="account_login"),
     path("api/v1/", include(api_routers.urls)),
     path("api/v1/forms/", include("forms.urls")),
     path("api/v1/core/", include("core.urls")),
