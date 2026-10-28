@@ -4,6 +4,18 @@ from django.contrib.auth.models import AbstractUser, Group
 from django.db import models
 
 
+def is_staff_email(email: str) -> bool:
+    """True when the email's domain is DOM_BOSCO_EMAIL_DOMAIN or one of its subdomains.
+
+    Never true when the setting is unset. The setting may carry a leading "@".
+    """
+    domain = (settings.DOM_BOSCO_EMAIL_DOMAIN or "").strip().lower().lstrip("@")
+    if not domain or "@" not in email:
+        return False
+    email_domain = email.rsplit("@", 1)[1].lower()
+    return email_domain == domain or email_domain.endswith("." + domain)
+
+
 class UserManager(BaseUserManager):
     """
     Custom user model manager where email is the unique identifiers
@@ -20,11 +32,6 @@ class UserManager(BaseUserManager):
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save()
-
-        if user.email.endswith(settings.DOM_BOSCO_EMAIL_DOMAIN):
-            group = Group.objects.get_or_create(name="Colaborador")
-            user.groups.add(group)
-
         return user
 
     def create_superuser(self, email, password, **extra_fields):
@@ -54,6 +61,11 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+
+    @property
+    def has_staff_email(self):
+        """Typed-email check only. It proves nothing about ownership: never use it for access."""
+        return is_staff_email(self.email)
 
     @property
     def full_name(self):

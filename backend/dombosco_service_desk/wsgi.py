@@ -1,5 +1,5 @@
 """
-WSGI config for dombosco_atendimento project.
+WSGI config for dombosco_service_desk project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dombosco_atendimento.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dombosco_service_desk.settings")
 
 application = get_wsgi_application()
