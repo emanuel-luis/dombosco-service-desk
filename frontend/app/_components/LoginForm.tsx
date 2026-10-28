@@ -7,6 +7,7 @@ import { FaSignOutAlt } from "react-icons/fa";
 import { AuthContext } from "../context/authContext";
 import formsServices from "../services/ContactsService";
 import { Header } from "./header";
+import { UNOFFICIAL_NOTICE } from "./footer";
 import { Button } from "./ui/button";
 
 const LoginForm: React.FC = () => {
@@ -45,14 +46,18 @@ const LoginForm: React.FC = () => {
   return (
     <>
       <Header showMenuButton={false} />
-      <div className="max-w-lg mx-auto p-8 min-w-[500px] ">
+      <div className="max-w-lg mx-auto p-8">
         <h2 className="text-2xl font-semibold text-center">Login</h2>
-        {error && <p className="text-red-500">{error}</p>}
+        {error && (
+          <p role="alert" className="text-destructive">
+            {error}
+          </p>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-brand-text"
             >
               Email
             </label>
@@ -62,17 +67,17 @@ const LoginForm: React.FC = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:ring-blue-500"
+              className="mt-1 block w-full border border-input rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-brand-text"
             >
               <div className="flex justify-between">
                 <span>Senha</span>
-                <span className="text-blue-500 cursor-pointer">
+                <span className="text-primary cursor-pointer">
                   Esqueceu sua Senha?
                 </span>
               </div>
@@ -83,12 +88,12 @@ const LoginForm: React.FC = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:ring-blue-500"
+              className="mt-1 block w-full border border-input rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
           <button
             type="submit"
-            className="w-full mt-4 flex items-center justify-center bg-[#5061FC] text-white p-2 rounded-md hover:bg-blue-700 transition"
+            className="w-full mt-4 flex items-center justify-center bg-primary text-primary-foreground p-2 rounded-md hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition"
           >
             <FaSignOutAlt color="#fff" size={20} className="mr-2" /> Entrar
           </button>
@@ -103,6 +108,9 @@ const LoginForm: React.FC = () => {
             Criar Conta
           </Button>
         </div>
+        <p className="mt-6 rounded-md border border-border bg-card p-3 text-center text-sm text-brand-text">
+          {UNOFFICIAL_NOTICE}
+        </p>
       </div>
     </>
   );
