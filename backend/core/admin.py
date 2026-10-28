@@ -4,7 +4,8 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from core.models import Application, User
 
 
-class UserAdmin(BaseUserAdmin):
+# UserAdmin and ModelAdmin are generic only in the stubs, not at runtime.
+class UserAdmin(BaseUserAdmin):  # type: ignore[type-arg]
     model = User
     list_display = (
         "email",
@@ -38,7 +39,7 @@ class UserAdmin(BaseUserAdmin):
     ordering = ("email",)
 
 
-class ApplicationAdmin(admin.ModelAdmin):
+class ApplicationAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
     model = Application
     list_display = (
         "mdm_id",
