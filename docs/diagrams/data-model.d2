@@ -1,0 +1,98 @@
+# The OLTP tables, the append-only event log and the user-group link. Grounded in
+# forms/models.py, core/models.py and the migrations; request_events has no foreign keys on
+# purpose (the log outlives deleted requests and users). Columns shown are keys, status and the ones the
+# log or the lifecycle use; the full list is in the models.
+...@_style
+
+title: "Data model: tables, keys and the event log" {
+  shape: text
+  near: top-center
+  style: {font-size: 24; bold: true}
+}
+
+direction: right
+
+core_user: {
+  shape: sql_table
+  id: bigint {constraint: primary_key}
+  email: varchar {constraint: unique}
+}
+
+auth_group: {
+  shape: sql_table
+  id: integer {constraint: primary_key}
+  name: varchar {constraint: unique}
+}
+
+core_user_groups: {
+  shape: sql_table
+  user_id: bigint {constraint: foreign_key}
+  group_id: integer {constraint: foreign_key}
+}
+
+core_application: {
+  shape: sql_table
+  id: bigint {constraint: primary_key}
+}
+
+core_application_groups: {
+  shape: sql_table
+  application_id: bigint {constraint: foreign_key}
+  group_id: integer {constraint: foreign_key}
+}
+
+forms_parentform: {
+  shape: sql_table
+  id: bigint {constraint: primary_key}
+  responsible_party_id: bigint {constraint: foreign_key}
+  status: integer
+}
+
+forms_staffform: {
+  shape: sql_table
+  id: bigint {constraint: primary_key}
+  parent_form_id: bigint {constraint: [foreign_key; unique]}
+  assigned_staff_id: bigint {constraint: foreign_key}
+}
+
+forms_comment: {
+  shape: sql_table
+  id: bigint {constraint: primary_key}
+  parent_form_id: bigint {constraint: foreign_key}
+  user_id: bigint {constraint: foreign_key}
+}
+
+request_events: {
+  shape: sql_table
+  id: bigint {constraint: primary_key}
+  event_id: uuid {constraint: unique}
+  request_id: bigint
+  event_type: varchar
+  actor_id: bigint
+  actor_role: varchar
+  from_status: smallint
+  to_status: smallint
+  comment_id: bigint
+  occurred_at: timestamptz
+  recorded_at: timestamptz
+  source: varchar
+}
+
+core_user_groups.user_id -> core_user.id
+core_user_groups.group_id -> auth_group.id
+core_application_groups.application_id -> core_application.id
+core_application_groups.group_id -> auth_group.id
+forms_parentform.responsible_party_id -> core_user.id
+forms_staffform.parent_form_id -> forms_parentform.id: "1 : 1"
+forms_staffform.assigned_staff_id -> core_user.id
+forms_comment.parent_form_id -> forms_parentform.id
+forms_comment.user_id -> core_user.id
+request_events.request_id -> forms_parentform.id: "no foreign key\n(by value only)" {
+  style.stroke-dash: 4
+}
+
+legend: Legend {
+  class: legend
+  grid-columns: 1
+  edges: "solid arrow: foreign key\ndashed: id kept by value, no constraint\ncore_user_groups and core_application_groups are the many-to-many link tables" {shape: text; style.font-size: 13}
+}
