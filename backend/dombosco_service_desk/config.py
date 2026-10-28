@@ -1,15 +1,17 @@
 """Typed application settings, read once from the environment (and an optional `.env`)."""
 
+from pathlib import Path
 from typing import Annotated
 
 from pydantic import SecretStr, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
+ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
 CommaList = Annotated[list[str], NoDecode]
 
 
 class AppSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_ignore_empty=True)
+    model_config = SettingsConfigDict(env_file=ENV_FILE, extra="ignore", env_ignore_empty=True)
 
     secret_key: SecretStr
     debug: bool = False
