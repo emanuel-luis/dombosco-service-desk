@@ -1,14 +1,27 @@
 "use client";
-import { useParams } from "next/navigation";
-import React, { createContext, useState, ReactNode, useEffect } from "react";
-import formsServices from "../services/ContactsService";
+import React, {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { api } from "../lib/api";
+import { clearToken, getToken, setToken } from "../lib/client";
+import { GOOGLE_CLIENT_ID, GOOGLE_REDIRECT_URI } from "../lib/config";
+import { parseRole } from "../lib/roles";
+import { Role, UserInfo } from "../lib/types";
 
 export interface AuthContextType {
   isAuthenticated: boolean;
   login: (token: string) => void;
   logout: () => void;
-  loginWithGoogle: () => void; // Novo método para login com Google
-  user: any
+  loginWithGoogle: () => void;
+  user: UserInfo | null;
+  role: Role;
+  // True until the first /auth/user/ answer (or the lack of a token) is known.
+  userLoading: boolean;
 }
 
 const defaultAuthContextValue: AuthContextType = {
@@ -16,66 +29,80 @@ const defaultAuthContextValue: AuthContextType = {
   login: () => {},
   logout: () => {},
   loginWithGoogle: () => {},
-  user: {}
+  user: null,
+  role: "visitor",
+  userLoading: true,
 };
 export const AuthContext = createContext<AuthContextType>(
   defaultAuthContextValue
 );
 
+export const useAuth = () => useContext(AuthContext);
+
 export const AuthProviderJWT: React.FC<{ children: ReactNode }> = ({
-  children, 
+  children,
 }) => {
-  const router = useParams();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [user, setUser] = useState<UserInfo | null>(null);
+  const [userLoading, setUserLoading] = useState<boolean>(true);
+
+  const loadUser = useCallback(async () => {
+    if (!getToken()) {
+      setIsAuthenticated(false);
+      setUser(null);
+      setUserLoading(false);
+      return;
+    }
+    setIsAuthenticated(true);
+    setUserLoading(true);
+    try {
+      setUser(await api.getUser());
+    } catch {
+      // a 401 already sent the user to /login; other errors leave the user unknown
+      setUser(null);
+    } finally {
+      setUserLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      const token = localStorage.getItem("token");
-
-      if (token) {
-        try {
-          setIsAuthenticated(true);
-        } catch (error) {
-          console.error('Erro ao buscar dados do usuário:', error);
-        }
-      } else {
-        setIsAuthenticated(false);
-      }
-    };
-
-    fetchUserData(); // Chama a função assíncrona
-  }, []); 
+    loadUser();
+  }, [loadUser]);
 
   const login = (token: string) => {
-    localStorage.setItem("token", token);
-    setIsAuthenticated(true);
+    setToken(token);
+    loadUser();
   };
 
   const logout = () => {
-    localStorage.removeItem("token");
+    clearToken();
     setIsAuthenticated(false);
+    setUser(null);
   };
 
-  const loginWithGoogle = async () => {
-    const clientId =
-      "257773922983-1l654u5ao8b3a8kfobsktqd22ro2g6l3.apps.googleusercontent.com"; // Certifique-se de definir esta variável no .env.local
-    const redirectUri = `http://localhost:3000/api/auth/callback`;
-
-    const authUrl =
-      `https://accounts.google.com/o/oauth2/v2/auth?` +
-      `client_id=${clientId}&` +
-      `redirect_uri=${redirectUri}&` +
-      `response_type=code&` +
-      `scope=openid%20profile%20email&` +
-      "access_type=offline" +
-      "&prompt=consent";
-
-    window.location.href = authUrl; // Redireciona o usuário para o Google
+  const loginWithGoogle = () => {
+    const params = new URLSearchParams({
+      client_id: GOOGLE_CLIENT_ID,
+      redirect_uri: GOOGLE_REDIRECT_URI,
+      response_type: "code",
+      scope: "openid profile email",
+      access_type: "offline",
+      prompt: "consent",
+    });
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
   };
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, login, logout, loginWithGoogle }}
+      value={{
+        isAuthenticated,
+        login,
+        logout,
+        loginWithGoogle,
+        user,
+        role: parseRole(user?.role),
+        userLoading,
+      }}
     >
       {children}
     </AuthContext.Provider>
