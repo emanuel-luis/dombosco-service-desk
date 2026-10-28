@@ -9,6 +9,9 @@ from core.serializers import *
 
 
 class GroupViewAPI(views.APIView):
+    """Read-only list of the groups. They come from fixtures/auth.yaml and the permission checks
+    rely on their names, so they are managed in the Django admin, not through the API."""
+
     permission_classes = [permissions.IsAuthenticated & IsDomBoscoAdmin]
 
     @extend_schema(responses={200: GroupSerializer(many=True)})
@@ -17,34 +20,6 @@ class GroupViewAPI(views.APIView):
 
         serializer = GroupSerializer(groups, many=True)
         return Response(serializer.data)
-
-    @extend_schema(request=GroupSerializer, responses={201: GroupSerializer})
-    def post(self, request: Request):
-        serializer = GroupSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    @extend_schema(
-        request=GroupSerializer,
-        responses=GroupSerializer,
-        description="The target is given by `id` in the body.",
-    )
-    def put(self, request: Request):
-        try:
-            group = Group.objects.get(id=request.data.get("id"))
-        except Group.DoesNotExist:
-            return Response(
-                {"error": "Group not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        serializer = GroupSerializer(group, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ApplicationViewAPI(views.APIView):
