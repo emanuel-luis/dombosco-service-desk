@@ -21,8 +21,8 @@ class UserManager(BaseUserManager):
         user.set_password(password)
         user.save()
 
-        if user.email.endswith(settings.DOM_BOSCO_EMAIL_DOMAIN):
-            group = Group.objects.get_or_create(name="Colaborador")
+        if user.has_staff_email:
+            group, _ = Group.objects.get_or_create(name="Colaborador")
             user.groups.add(group)
 
         return user
@@ -54,6 +54,12 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+
+    @property
+    def has_staff_email(self):
+        """True when the email is in DOM_BOSCO_EMAIL_DOMAIN (never when it is unset)."""
+        domain = settings.DOM_BOSCO_EMAIL_DOMAIN
+        return bool(domain) and self.email.endswith(domain)
 
     @property
     def full_name(self):
