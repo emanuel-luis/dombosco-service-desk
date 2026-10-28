@@ -225,6 +225,9 @@ class RequestEvent(models.Model):
     def save(self, *args: Any, **kwargs: Any) -> None:
         if not self._state.adding:
             raise EventLogImmutable("request_events rows cannot be updated.")
+        # Always insert: a new instance with an existing pk must fail, not take Django's
+        # update-first path and overwrite the row.
+        kwargs["force_insert"] = True
         super().save(*args, **kwargs)
 
     def delete(self, *args: Any, **kwargs: Any) -> tuple[int, dict[str, int]]:
