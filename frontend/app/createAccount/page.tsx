@@ -1,12 +1,16 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { Button } from "../_components/ui/button";
 import { useRouter } from "next/navigation";
+import { api } from "../lib/api";
+import { toMessage } from "../lib/errors";
 
 const CreateAccount = () => {
   const router = useRouter();
+  const [error, setError] = useState("");
+  const [sentTo, setSentTo] = useState("");
 
   const validationSchema = Yup.object().shape({
     email: Yup.string().email("Email inválido").required("Email é obrigatório"),
@@ -20,10 +24,40 @@ const CreateAccount = () => {
     last_name: Yup.string().required("Sobrenome é obrigatório"),
   });
 
-  const handleSubmit = (values: any) => {
-    // Aqui você pode fazer a chamada para a API ou qualquer outra lógica
-    console.log(values);
+  const handleSubmit = async (values: {
+    email: string;
+    password1: string;
+    password2: string;
+    first_name: string;
+    last_name: string;
+    mobile_phone: string;
+  }) => {
+    setError("");
+    const { mobile_phone, ...rest } = values;
+    try {
+      await api.register(mobile_phone ? values : rest);
+      setSentTo(values.email);
+    } catch (e) {
+      setError(toMessage(e));
+    }
   };
+
+  if (sentTo) {
+    return (
+      <div className="flex items-center justify-center min-h-[80vh] bg-muted">
+        <div className="bg-card p-8 rounded-lg shadow-md w-full max-w-md text-center">
+          <h1 className="text-2xl font-bold mb-4">Confirme seu e-mail</h1>
+          <p className="text-brand-text">
+            Enviamos uma mensagem para {sentTo}. Abra o link de confirmação
+            para ativar a conta e depois entre.
+          </p>
+          <Button className="mt-6" onClick={() => router.push("/login")}>
+            Ir para o login
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center min-h-[80vh] bg-muted">
@@ -41,8 +75,13 @@ const CreateAccount = () => {
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
         >
-          {() => (
+          {({ isSubmitting }) => (
             <Form>
+              {error && (
+                <p role="alert" className="mb-4 text-destructive text-sm">
+                  {error}
+                </p>
+              )}
               <div className="mb-4">
                 <label
                   htmlFor="email"
@@ -159,6 +198,7 @@ const CreateAccount = () => {
 
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-2 px-4 rounded transition duration-200"
               >
                 Criar Conta
