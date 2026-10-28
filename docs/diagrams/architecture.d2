@@ -25,8 +25,8 @@ migrate: "migrate (one-shot)\nmigrations + fixtures" {class: process}
 seed: "seed (one-shot)\nsynthetic demo data" {class: process}
 
 db: "db (compose service)\nPostgres 17" {class: store}
-google: "Google OAuth\n(only when configured)" {class: external}
-mail: "Email\nconsole backend by default" {class: external}
+google: "Google OAuth\n(optional)" {class: external}
+mail: "Email\n(console by default)" {class: external}
 exports: "exports/as_of=date/\nParquet + _run.json\n(make export)" {class: serving}
 
 parent -> browser
