@@ -25,6 +25,9 @@ dev = [
     "pytest-django",
     "pytest-timeout",
     "pytest-env",
+    "mypy>=2.4.0",
+    "django-stubs[compatible-mypy]>=6.1.2",
+    "djangorestframework-stubs>=3.18.1",
 ]
 
 [tool.uv]
@@ -50,3 +53,27 @@ env = [
     "D:SECRET_KEY=test-only-not-secret-0123456789abcdef",
     "D:DATABASE_URL=sqlite://:memory:",
 ]
+
+[tool.mypy]
+strict = true
+python_version = "3.12"
+plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
+
+[tool.django-stubs]
+django_settings_module = "dombosco_service_desk.settings"
+
+[[tool.mypy.overrides]]
+module = "*.migrations.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+# Third-party packages that ship no type information.
+module = ["allauth.*", "dj_rest_auth.*", "corsheaders.*", "drf_spectacular.*", "dj_database_url.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# Test helpers are untyped, so calling them from typed tests would otherwise fail.
+module = "tests.*"
+disallow_untyped_calls = false
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
