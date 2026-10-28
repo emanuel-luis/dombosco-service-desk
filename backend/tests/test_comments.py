@@ -33,7 +33,15 @@ def test_only_parent_assigned_staff_and_admin_can_comment(world, make_request, a
     for user in (world.parent, world.staff, world.admin):
         response = post(api(user), form)
         assert response.status_code == 201
-        assert set(response.json()) == {"id", "user", "comment", "created_at", "updated_at"}
+        assert set(response.json()) == {
+            "id",
+            "user",
+            "user_id",
+            "parent_form_id",
+            "comment",
+            "created_at",
+            "updated_at",
+        }
     assert post(api(world.other_staff), form).status_code == 404
     assert post(api(world.other_parent), form).status_code == 404
     assert post(api(world.user), form).status_code == 403
