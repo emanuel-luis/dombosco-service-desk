@@ -18,6 +18,11 @@ dependencies = [
     "pyyaml",
 ]
 
+[project.optional-dependencies]
+export = [  # Parquet export (manage.py export_analytics)
+    "pyarrow>=18",
+]
+
 [dependency-groups]
 dev = [
     "ruff",
@@ -67,7 +72,7 @@ ignore_errors = true
 
 [[tool.mypy.overrides]]
 # Third-party packages that ship no type information.
-module = ["allauth.*", "dj_rest_auth.*", "corsheaders.*", "drf_spectacular.*", "dj_database_url.*"]
+module = ["allauth.*", "dj_rest_auth.*", "corsheaders.*", "drf_spectacular.*", "dj_database_url.*", "pyarrow.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
