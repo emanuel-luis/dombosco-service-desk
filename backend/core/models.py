@@ -52,6 +52,7 @@ class UserManager(BaseUserManager["User"]):
 
 
 class User(AbstractUser):
+    username = None  # type: ignore[assignment]
     email = models.EmailField(unique=True, verbose_name="E-mail")
     phone = models.CharField(max_length=20, null=True, blank=True, verbose_name="Telefone")
     mobile_phone = models.CharField(max_length=20, null=True, blank=True, verbose_name="Celular")
