@@ -9,6 +9,7 @@ import formsServices from "../services/ContactsService";
 import Confirm from "../_components/Success";
 import Loader from "../_components/loader";
 import { useRouter } from "next/navigation";
+import { BackArrow } from "@/app/_components/BackArrow";
 import InputMask from 'react-input-mask';
 import * as Yup from 'yup';
 import Treatment from "../_components/Treatment";
@@ -156,7 +157,7 @@ const PersonsResponsibleForm =  () => {
        ? <Loader isLoading={isLoading} /> : 
        <div className="flex justify-center items-center w-full">
        <div className="w-full max-w-md px-5 pt-5">
-         <button onClick={() => showTratativa && !studentForm ? handleBack() : !studentForm ? router.back() : hideStudentForm()} className="text-[#5061FC] mb-5"><img className="-rotate-90" src="/arrow.svg"/></button>
+         <button onClick={() => showTratativa && !studentForm ? handleBack() : !studentForm ? router.back() : hideStudentForm()} className="text-primary mb-5"><BackArrow /></button>
          <h2 className="text-xl font-bold text-left mb-8">
            {!studentForm ? "Formulário de Responsável" : "Formulário do Aluno"}
          </h2>
@@ -174,11 +175,11 @@ const PersonsResponsibleForm =  () => {
                          name="nome"
                          type="text"
                          className={`w-[389px] h-[52px] border ${
-                           errors.nome && touched.nome ? 'border-red-600' : 'border-gray-300'
-                         } rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-blue-500 outline-none`}
+                           errors.nome && touched.nome ? 'border-destructive' : 'border-input'
+                         } rounded-[4px] p-3 bg-card shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-primary outline-none`}
                          placeholder="Nome"
                        />
-                       <ErrorMessage name="nome" component="div" className="text-red-600 text-sm mt-1" />
+                       <ErrorMessage name="nome" component="div" className="text-destructive text-sm mt-1" />
                      </div>
 
                      <div className="mb-4">
@@ -188,8 +189,8 @@ const PersonsResponsibleForm =  () => {
                          as="select" 
                          name="parentesco"
                          className={`w-[389px] h-[52px] border ${
-                           errors.parentesco && touched.parentesco ? 'border-red-600' : 'border-gray-300'
-                         } rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-blue-500 outline-none`}
+                           errors.parentesco && touched.parentesco ? 'border-destructive' : 'border-input'
+                         } rounded-[4px] p-3 bg-card shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-primary outline-none`}
                        >
                          <option value="" label="Selecione uma opção" />
                          {Object.values(choices).map(element => {
@@ -197,7 +198,7 @@ const PersonsResponsibleForm =  () => {
                          })}
                          
                        </Field>
-                       <ErrorMessage name="parentesco" component="div" className="text-red-600 text-sm mt-1" />
+                       <ErrorMessage name="parentesco" component="div" className="text-destructive text-sm mt-1" />
                      </div>
 
                      <div className="mb-4">
@@ -210,19 +211,19 @@ const PersonsResponsibleForm =  () => {
                            {...field}
                            mask="(99) 99999-9999" // Máscara para telefone celular
                            className={`w-[389px] h-[52px] border ${
-                             errors.phone && touched.phone ? 'border-red-600' : 'border-gray-300'
-                           } rounded-[4px] p-3 bg-white shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-blue-500 outline-none`}
+                             errors.phone && touched.phone ? 'border-destructive' : 'border-input'
+                           } rounded-[4px] p-3 bg-card shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-primary outline-none`}
                            placeholder="Telefone"
                          />
                        )}
                      </Field>
-                     <ErrorMessage name="phone" component="div" className="text-red-600 text-sm mt-1" />
+                     <ErrorMessage name="phone" component="div" className="text-destructive text-sm mt-1" />
                    </div>
 
                    <Button                    
                      type="button"
                      onClick={() => handleAdvance(values)}
-                     className="bg-[#5061FC] w-[389px] h-[52px] border border-gray-300 rounded-[4px] p-3 shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] mt-8 text-white"
+                     className="bg-primary w-[389px] h-[52px] border border-input rounded-[4px] p-3 shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] mt-8 text-white"
                      disabled={!(isValid && dirty)}
                    >
                      Avançar

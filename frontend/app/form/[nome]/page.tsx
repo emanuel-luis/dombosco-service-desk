@@ -6,6 +6,7 @@ import { Header } from "../../_components/header";
 import formsServices from "../../services/ContactsService";
 import { Button } from "@/app/_components/ui/button";
 import { useRouter } from "next/navigation";
+import { BackArrow } from "@/app/_components/BackArrow";
 import Loader from "@/app/_components/loader";
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
@@ -134,27 +135,27 @@ export default function Solicitações() {
      {isLoading ? <Loader isLoading={isLoading}/> : 
       <>
         <Header />
-        <div className="max-w-2xl px-5 pt-5 bg-white min-h-[480px] mt-[72px] mx-auto rounded-[20px] shadow-[0_10px_60px_0_rgba(226,236,249,0.5)]">
-          <Button onClick={() => rota.back()}><img className="-rotate-90" src="/arrow.svg"/></Button>
+        <div className="max-w-2xl px-5 pt-5 bg-card min-h-[480px] mt-[72px] mx-auto rounded-[20px] shadow-[0_10px_60px_0_rgba(226,236,249,0.5)]">
+          <Button onClick={() => rota.back()}><BackArrow /></Button>
           <h2 className="text-xl font-bold">Solicitações</h2>
           <br/>
           { data.map(element => (
             <React.Fragment key={element.id}>
-              <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg ">
+              <div className="max-w-2xl mx-auto p-6 bg-card rounded-lg ">
                 {/* Informações do Aluno */}
                 <header className="mb-6">
-                  <p className="text-2xl font-bold text-gray-800 mb-8">
+                  <p className="text-2xl font-bold text-foreground mb-8">
                     Nome do Aluno: {element?.student_name || 'Aluno não encontrado'}
                   </p>
 
-                  <p className="text-2xl font-bold text-gray-800">Nome do Responsável: {element?.responsible_party?.first_name || 'Responsável não encontrado'} </p>
+                  <p className="text-2xl font-bold text-foreground">Nome do Responsável: {element?.responsible_party?.first_name || 'Responsável não encontrado'} </p>
                   
                 </header>
 
                 {/* Série e Turma */}
                 <section aria-labelledby="student-info" className="mb-6">
                   <h2 id="student-info" className="sr-only">Informações do Aluno</h2>
-                  <dl className="text-gray-600">
+                  <dl className="text-muted-foreground">
                     <div className="flex items-center mb-2">
                       <dt className="font-semibold w-24">Série:</dt>
                       <dd className="text-lg">{element?.student_grade_year}ª Série</dd>
@@ -167,40 +168,40 @@ export default function Solicitações() {
                 </section>
 
                 {/* Descrição do Problema */}
-                <section aria-labelledby="issue-description" className="bg-gray-100 p-4 rounded-lg mb-6">
-                  <h2 id="issue-description" className="text-lg font-semibold text-gray-800 mb-2">
+                <section aria-labelledby="issue-description" className="bg-muted p-4 rounded-lg mb-6">
+                  <h2 id="issue-description" className="text-lg font-semibold text-foreground mb-2">
                     Descrição do Problema
                   </h2>
-                  <p className="text-gray-700">
+                  <p className="text-brand-text">
                     {element?.issue_description || 'Nenhuma descrição disponível.'}
                   </p>
                 </section>
 
                 {showAnswers ? 
                     <>
-                      <section aria-labelledby="staff-answer-1" className="bg-white p-6 rounded-lg shadow-md mb-6 border-l-4 border-blue-500">
-                        <h2 id="staff-answer-1" className="text-xl font-semibold text-gray-800 mb-3">
+                      <section aria-labelledby="staff-answer-1" className="bg-card p-6 rounded-lg shadow-md mb-6 border-l-4 border-primary">
+                        <h2 id="staff-answer-1" className="text-xl font-semibold text-foreground mb-3">
                           Descrição do Problema
                         </h2>
-                        <p className="text-gray-700 text-lg">
+                        <p className="text-brand-text text-lg">
                           {staffAnswers && staffAnswers?.length > 0 ? staffAnswers[0]?.school_advice : 'Nenhuma descrição disponível.'}
                         </p>
                       </section>
 
-                      <section aria-labelledby="staff-answer-2" className="bg-white p-6 rounded-lg shadow-md mb-6 border-l-4 border-green-500">
-                        <h2 id="staff-answer-2" className="text-xl font-semibold text-gray-800 mb-3">
+                      <section aria-labelledby="staff-answer-2" className="bg-card p-6 rounded-lg shadow-md mb-6 border-l-4 border-secondary">
+                        <h2 id="staff-answer-2" className="text-xl font-semibold text-foreground mb-3">
                           Ações Tomadas
                         </h2>
-                        <p className="text-gray-700 text-lg">
+                        <p className="text-brand-text text-lg">
                           {staffAnswers && staffAnswers?.length > 0 ? staffAnswers[0]?.actions_taken : 'Nenhuma ação tomada até o momento.'}
                         </p>
                       </section>
 
-                      <section aria-labelledby="staff-answer-3" className="bg-white p-6 rounded-lg shadow-md mb-6 border-l-4 border-yellow-500">
-                        <h2 id="staff-answer-3" className="text-xl font-semibold text-gray-800 mb-3">
+                      <section aria-labelledby="staff-answer-3" className="bg-card p-6 rounded-lg shadow-md mb-6 border-l-4 border-primary">
+                        <h2 id="staff-answer-3" className="text-xl font-semibold text-foreground mb-3">
                           Notas Finais
                         </h2>
-                        <p className="text-gray-700 text-lg">
+                        <p className="text-brand-text text-lg">
                           {staffAnswers && staffAnswers?.length > 0 ? staffAnswers[0]?.final_notes : 'Nenhuma nota final disponível.'}
                         </p>
                       </section>
@@ -210,7 +211,7 @@ export default function Solicitações() {
                 {/* Resposta do Colaborador */}
                 {!parent && !closeStaffFields && !statusFormFinished 
                 ? 
-                <section aria-labelledby="collaborator-response" className="bg-blue-50 p-4 rounded-lg">
+                <section aria-labelledby="collaborator-response" className="bg-muted p-4 rounded-lg">
                 <Formik
                   initialValues={{
                     collaboratorResponse: '',
@@ -224,13 +225,13 @@ export default function Solicitações() {
                   {({ handleChange, handleBlur, values, errors, touched, dirty, isValid }) => (
                     <Form>
                       {/* Resposta do Colaborador */}
-                      <h2 id="collaborator-response" className="text-lg font-semibold text-blue-800 mb-2">
+                      <h2 id="collaborator-response" className="text-lg font-semibold text-primary mb-2">
                         Resposta do Colaborador
                       </h2>
                       <Field
                         as="textarea"
                         name="collaboratorResponse"
-                        className={`w-full h-32 p-3 border ${touched.collaboratorResponse && errors.collaboratorResponse ? 'border-red-500' : 'border-blue-200'} rounded-lg focus:outline-none focus:border-blue-400`}
+                        className={`w-full h-32 p-3 border ${touched.collaboratorResponse && errors.collaboratorResponse ? 'border-destructive' : 'border-primary'} rounded-lg focus:outline-none focus:border-primary`}
                         placeholder="Escreva sua resposta aqui..."
                         onChange={handleChange}
                         onBlur={handleBlur}
@@ -239,17 +240,17 @@ export default function Solicitações() {
                       <ErrorMessage
                         name="collaboratorResponse"
                         component="div"
-                        className="text-red-500 text-sm mt-1"
+                        className="text-destructive text-sm mt-1"
                       />
               
                       {/* O que fazer */}
-                      <h2 id="what-to-do" className="text-lg font-semibold text-blue-800 mb-2">
+                      <h2 id="what-to-do" className="text-lg font-semibold text-primary mb-2">
                         O que fazer
                       </h2>
                       <Field
                         as="textarea"
                         name="actionToTake"
-                        className={`w-full h-32 p-3 border ${touched.actionToTake && errors.actionToTake ? 'border-red-500' : 'border-blue-200'} rounded-lg focus:outline-none focus:border-blue-400`}
+                        className={`w-full h-32 p-3 border ${touched.actionToTake && errors.actionToTake ? 'border-destructive' : 'border-primary'} rounded-lg focus:outline-none focus:border-primary`}
                         placeholder="Escreva sua resposta aqui..."
                         onChange={handleChange}
                         onBlur={handleBlur}
@@ -258,17 +259,17 @@ export default function Solicitações() {
                       <ErrorMessage
                         name="actionToTake"
                         component="div"
-                        className="text-red-500 text-sm mt-1"
+                        className="text-destructive text-sm mt-1"
                       />
               
                       {/* Medidas a tomar */}
-                      <h2 id="measures-to-take" className="text-lg font-semibold text-blue-800 mb-2">
+                      <h2 id="measures-to-take" className="text-lg font-semibold text-primary mb-2">
                         Medidas a tomar
                       </h2>
                       <Field
                         as="textarea"
                         name="measuresToTake"
-                        className={`w-full h-32 p-3 border ${touched.measuresToTake && errors.measuresToTake ? 'border-red-500' : 'border-blue-200'} rounded-lg focus:outline-none focus:border-blue-400`}
+                        className={`w-full h-32 p-3 border ${touched.measuresToTake && errors.measuresToTake ? 'border-destructive' : 'border-primary'} rounded-lg focus:outline-none focus:border-primary`}
                         placeholder="Escreva sua resposta aqui..."
                         onChange={handleChange}
                         onBlur={handleBlur}
@@ -277,7 +278,7 @@ export default function Solicitações() {
                       <ErrorMessage
                         name="measuresToTake"
                         component="div"
-                        className="text-red-500 text-sm mt-1"
+                        className="text-destructive text-sm mt-1"
                       />
               
                       {/* Status */}
@@ -285,9 +286,9 @@ export default function Solicitações() {
                         <Field 
                           as="select" 
                           name="status" 
-                          className="mt-3 px-4 py-2 border-gray-300 border rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="mt-3 px-4 py-2 border-input border rounded-md bg-muted text-brand-text focus:outline-none focus:ring-2 focus:ring-ring"
                         >
-                          <option value="" disabled className="text-gray-500">Selecione um status</option>
+                          <option value="" disabled className="text-muted-foreground">Selecione um status</option>
                           <option value="0">Pendente</option>
                           <option value="2">Finalizado</option>
                           <option value="3">Cancelado</option>
@@ -296,7 +297,7 @@ export default function Solicitações() {
                         <ErrorMessage
                           name="status"
                           component="div"
-                          className="text-red-500 text-sm mt-1"
+                          className="text-destructive text-sm mt-1"
                         />
                       </div>
               
@@ -306,8 +307,8 @@ export default function Solicitações() {
                           type="submit"
                           className={`px-4 py-2 rounded-lg text-white ${
                             !(isValid && dirty)
-                              ? 'bg-gray-400 cursor-not-allowed'
-                              : 'bg-blue-600 hover:bg-blue-700'
+                              ? 'bg-muted-foreground cursor-not-allowed'
+                              : 'bg-primary hover:bg-primary/90'
                           }`}
                           disabled={!(isValid && dirty)} 
                         >
@@ -317,7 +318,7 @@ export default function Solicitações() {
               
                       {/* Mensagem de erro */}
                       {formStaffError && (
-                        <h1 className="text-red-500 text-sm mt-4">
+                        <h1 className="text-destructive text-sm mt-4">
                           JÁ EXISTE UM COLABORADOR LIDANDO COM ESTE FORMULÁRIO
                         </h1>
                       )}
