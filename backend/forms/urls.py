@@ -4,7 +4,13 @@ This file contains the urls for the forms app.
 
 from django.urls import path
 
-from forms.views import *
+from forms.views import (
+    CommentViewAPI,
+    ParentFormsChoicesViewAPI,
+    ParentFormViewAPI,
+    StaffFormViewAPI,
+    UpdateStatusParentFormAPI,
+)
 
 urlpatterns = [
     path("parent/", ParentFormViewAPI.as_view(), name="parent-form"),
