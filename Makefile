@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help install fmt lint test-fast
+.PHONY: help install fmt lint test-fast frontend-install frontend-lint frontend-build
 
 help: ## Show this help
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "%-12s %s\n", $$1, $$2}'
@@ -15,3 +15,12 @@ lint: ## Ruff check, format check and mypy (same as CI lint)
 
 test-fast: ## Run the backend tests on SQLite
 	cd backend && uv run pytest
+
+frontend-install: ## Install frontend dependencies from the lockfile
+	cd frontend && npm ci
+
+frontend-lint: ## ESLint and tsc (same as CI frontend)
+	cd frontend && npm run lint && npx tsc --noEmit
+
+frontend-build: ## Production build of the frontend
+	cd frontend && npm run build

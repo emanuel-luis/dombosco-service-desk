@@ -75,7 +75,7 @@ export const AuthProviderJWT: React.FC<{ children: ReactNode }> = ({
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, login, logout, loginWithGoogle }}
+      value={{ isAuthenticated, login, logout, loginWithGoogle, user: {} }}
     >
       {children}
     </AuthContext.Provider>

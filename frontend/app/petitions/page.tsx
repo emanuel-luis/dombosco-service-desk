@@ -21,8 +21,8 @@ const columns = [
 export default function Solicitações() {
   const router = useRouter();
 
-  const [data, setData] = useState([]);
-  const [application, setApplication] = useState([]);
+  const [data, setData] = useState<any[]>([])
+  const [application, setApplication] = useState<any[]>([]);
   const [email, setEmail] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [userStaff, setUserStaff] = useState(false)
@@ -82,7 +82,7 @@ export default function Solicitações() {
         {application?.map(element => {
           if (String(element?.description).toLowerCase() == "ATENDIMENTOS".toLowerCase() && !userStaff) {
             return (
-            <button onClick={() => router.push('/persons-responsible')} type="button" className="self-end text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+            <button key={element.description} onClick={() => router.push('/persons-responsible')} type="button" className="self-end text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
               Criar Solicitação
             </button>
             )}
