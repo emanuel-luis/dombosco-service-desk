@@ -48,6 +48,9 @@ demo: ## One command: create .env if missing, build, start, print URLs and login
 smoke: ## HTTP checks against the running stack
 	sh scripts/smoke.sh
 
-export: ## Export the analytics Parquet files to ./exports
-	mkdir -p exports && chmod a+rwx exports
-	docker compose exec api python manage.py export_analytics --as-of $$(date -u +%F) --out /exports
+export: ## Export the analytics Parquet files to ./exports (written in the container, then copied)
+	@as_of=$$(date -u +%F); \
+	docker compose exec -T api python manage.py export_analytics --as-of $$as_of --out /tmp/exports && \
+	rm -rf "exports/as_of=$$as_of" && mkdir -p exports && \
+	docker compose cp "api:/tmp/exports/as_of=$$as_of" exports/ && \
+	echo "Exported to exports/as_of=$$as_of"

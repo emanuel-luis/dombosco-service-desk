@@ -37,6 +37,7 @@ services:
 
   seed:
     image: dombosco-service-desk-api:local
+    pull_policy: never # built by the migrate service
     command: ["python", "manage.py", "seed_demo"]
     environment:
       <<: *api-env
@@ -49,11 +50,10 @@ services:
 
   api:
     image: dombosco-service-desk-api:local
+    pull_policy: never # built by the migrate service
     environment: *api-env
     ports:
       - "127.0.0.1:8000:8000"
-    volumes:
-      - ./exports:/exports
     depends_on:
       migrate:
         condition: service_completed_successfully
