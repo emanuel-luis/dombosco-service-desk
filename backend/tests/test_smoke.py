@@ -21,3 +21,8 @@ def test_protected_endpoint_rejects_anonymous():
 
 def test_auth_fixture_creates_five_groups(auth_groups):
     assert Group.objects.count() == 5
+
+
+@pytest.mark.parametrize("path", ["/swagger.json", "/swagger/", "/redoc/"])
+def test_api_docs_endpoints_return_200(path):
+    assert APIClient().get(path).status_code == 200

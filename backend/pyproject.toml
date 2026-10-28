@@ -3,15 +3,19 @@ name = "dombosco-service-desk-api"
 version = "0.1.0"
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    "Django==5.1.2",
-    "djangorestframework==3.15.2",
-    "psycopg2-binary==2.9.10",
-    "djangorestframework-simplejwt==5.3.1",
-    "dj-rest-auth[with_social]==6.0.0",
-    "python-dotenv==1.0.1",
-    "drf-yasg==1.21.8",
-    "django-cors-headers==4.6.0",
+    "Django~=5.2",
+    "djangorestframework~=3.16",
+    "djangorestframework-simplejwt~=5.5",
+    "dj-rest-auth[with_social]~=7.0",
+    "django-allauth~=65.0",
+    "psycopg[binary]~=3.2",
+    "drf-spectacular",
+    "django-cors-headers",
+    "whitenoise",
+    "gunicorn",
     "dj-database-url",
+    "pydantic-settings",
+    "pyyaml",
 ]
 
 [dependency-groups]
@@ -40,6 +44,7 @@ ignore = ["F403", "F405"]
 DJANGO_SETTINGS_MODULE = "dombosco_service_desk.settings"
 addopts = "-ra --strict-markers --strict-config"
 timeout = 60
+filterwarnings = ["ignore:No directory at.*staticfiles:UserWarning"]
 testpaths = ["tests"]
 env = [
     "D:SECRET_KEY=test-only-not-secret",
