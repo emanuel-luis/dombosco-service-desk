@@ -74,6 +74,7 @@ export default function Solicitações() {
   }, [id, role, user]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- loads the request once the user is known
     if (!userLoading) load();
   }, [userLoading, load]);
 
