@@ -27,6 +27,7 @@ flow: "Staff answer a request, admin reads analytics" {
   api."409: request is\nstill Pendente"
   api -> db: "INSERT forms_comment"
   api -> events: "comment_added"
+  api -> web: "201 + the comment" {class: meta}
 
   staff -> web: "finish the request"
   web -> api: "PUT .../forms/parent/\nupdate-status/"
@@ -35,7 +36,7 @@ flow: "Staff answer a request, admin reads analytics" {
   api -> events: "status_changed"
   api -> web: "200" {class: meta}
 
-  admin -> api: "GET /api/v1/\nanalytics/sla"
+  admin -> api: "GET /api/v1/\nanalytics/sla/"
   api."403 for anyone but\nadmin; 501 off Postgres"
   api -> db: "SELECT v_sla_summary\n(view over events)"
   api -> admin: "200 + percentiles" {class: meta}
