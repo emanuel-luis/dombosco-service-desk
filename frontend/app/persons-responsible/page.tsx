@@ -14,7 +14,7 @@ import Confirm from "../_components/Success";
 import Loader from "../_components/loader";
 import { useRouter } from "next/navigation";
 import { BackArrow } from "@/app/_components/BackArrow";
-import InputMask from 'react-input-mask';
+import { MaskedInput } from "../_components/MaskedInput";
 import * as Yup from 'yup';
 import Treatment from "../_components/Treatment";
 import useLoginValidation from "../utils/loginValidation"
@@ -170,7 +170,7 @@ const PersonsResponsibleForm =  () => {
                      </label>
                      <Field name="phone">
                        {({ field } : any) => (
-                         <InputMask
+                         <MaskedInput
                            {...field}
                            mask="(99) 99999-9999" // Máscara para telefone celular
                            className={`w-[389px] h-[52px] border ${
