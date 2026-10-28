@@ -1,0 +1,78 @@
+# One-command demo: `make demo`. Everything binds to 127.0.0.1; demo data only.
+name: dombosco-service-desk
+
+x-api-env: &api-env
+  SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY in .env (make demo creates it)}
+  DEBUG: "false"
+  DATABASE_URL: postgres://dombosco:dombosco@db:5432/dombosco
+  ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
+  CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+  CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+  FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: dombosco
+      POSTGRES_PASSWORD: dombosco
+      POSTGRES_DB: dombosco
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dombosco -d dombosco"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    build: ./backend
+    image: dombosco-service-desk-api:local
+    command: ["sh", "-c", "python manage.py migrate --noinput && python manage.py loaddata fixtures/auth.yaml fixtures/core.yaml"]
+    environment: *api-env
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  seed:
+    image: dombosco-service-desk-api:local
+    command: ["python", "manage.py", "seed_demo"]
+    environment:
+      <<: *api-env
+      ALLOW_DEMO_SEED: "true"
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-demo-only-change-me}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: "no"
+
+  api:
+    image: dombosco-service-desk-api:local
+    environment: *api-env
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ./exports:/exports
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+    image: dombosco-service-desk-web:local
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+      seed:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+volumes:
+  pgdata:
