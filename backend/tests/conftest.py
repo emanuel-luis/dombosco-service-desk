@@ -4,6 +4,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.management import call_command
+from django.db import connection
 from rest_framework.test import APIClient
 
 from forms import services
@@ -84,3 +85,13 @@ def api():
         return client
 
     return client
+
+
+def pytest_collection_modifyitems(config, items):
+    """Skip `postgres` tests (triggers and the like) unless the database is PostgreSQL."""
+    if connection.vendor == "postgresql":
+        return
+    skip = pytest.mark.skip(reason="needs PostgreSQL")
+    for item in items:
+        if "postgres" in item.keywords:
+            item.add_marker(skip)
