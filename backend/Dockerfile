@@ -12,7 +12,7 @@ RUN SECRET_KEY=build-only-not-secret-0123456789abcdef /opt/venv/bin/python manag
 FROM python:3.12-slim-bookworm
 ENV PATH=/opt/venv/bin:$PATH PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 RUN useradd --uid 10001 --no-create-home --shell /usr/sbin/nologin app \
-    && mkdir /app /exports && chown app:app /app /exports
+    && mkdir /app && chown app:app /app
 WORKDIR /app
 COPY --from=builder /opt/venv /opt/venv
 COPY --from=builder --chown=app:app /app /app
