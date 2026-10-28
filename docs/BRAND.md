@@ -19,7 +19,7 @@ The stylesheet was read as data only, never executed.
 
 ## Tokens
 
-Defined as CSS variables (HSL channels) in `frontend/app/globals.css`, mapped to shadcn names in `frontend/tailwind.config.ts`; the raw hex values are also under the `brand` color group.
+Defined as CSS variables (HSL channels with one decimal, so the browser renders the exact hex) in `frontend/app/globals.css`, mapped to shadcn names in `frontend/tailwind.config.ts`; the raw hex values are also under the `brand` color group.
 
 | Token | Hex | Role | Official site use |
 | --- | --- | --- | --- |
@@ -82,7 +82,7 @@ The brand purple, magenta and the neutrals pass unchanged. Not verified by a per
 
 ## Notice
 
-Shown in the shared footer of every page (root layout), next to the login form and in the confirmation emails.
+Shown in the shared footer of every page (root layout), next to the login form and in every email: the signup confirmation templates carry it, and `backend/templates/account/email/base_message.txt` overrides the allauth base template that all other allauth emails (password reset, resend confirmation and the rest) extend.
 
 - pt-BR (UI text): "Projeto acadêmico não oficial, sem vínculo com o Colégio Dom Bosco ou com o Grupo Dom Bosco e sem endosso dessas instituições."
 - English: "Unofficial academic project, not affiliated with Colégio Dom Bosco or Grupo Dom Bosco and not endorsed by either institution."
