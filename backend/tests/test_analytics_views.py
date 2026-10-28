@@ -15,6 +15,7 @@ import pytest
 
 from analytics.lifecycle import LifecycleRow, compute_lifecycle
 from analytics.models import BacklogByStatus, DailyThroughput, RequestLifecycle, SlaSummary
+from analytics.throughput import ThroughputRow, compute_throughput
 from forms import services
 from forms.models import ParentForm, RequestEvent
 from tests.conftest import REQUEST_DATA
@@ -143,3 +144,13 @@ def test_daily_throughput_counts_events_including_reopens_and_deleted_requests(w
         for row in DailyThroughput.objects.all()
     ]
     assert rows == [(date(2030, 1, 1), 2, 1, 2, 0)]
+
+
+def test_daily_throughput_view_matches_the_python_definition(scenario):
+    from_python = compute_throughput(RequestEvent.objects.order_by("id"))
+    from_view = [
+        ThroughputRow(r.day, r.opened, r.answered, r.finished, r.cancelled)
+        for r in DailyThroughput.objects.order_by("day")
+    ]
+    assert len(from_python) == 2
+    assert from_view == from_python
