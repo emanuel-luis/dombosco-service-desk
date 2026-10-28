@@ -65,7 +65,7 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
           onClick={() => {
             router.push(`/form/${row?.id}`);
           }}
-          className="text-blue-500 underline"
+          className="text-primary underline"
         >
           {row[column.accessor]}
         </button>
@@ -135,7 +135,7 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
                 <TableCell>
                   <button
                     onClick={() => onDelete(row?.id)}
-                    className="text-red-500 underline"
+                    className="text-destructive underline"
                   >
                     Delete
                   </button>
@@ -146,7 +146,7 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
                     onClick={() => {
                       router.push(`/form/${row?.id}`);
                     }}
-                    className="text-blue-500 underline"
+                    className="text-primary underline"
                   >
                     Responder
                   </button>
@@ -166,7 +166,7 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
         <button
           onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
           disabled={currentPage === 1}
-          className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg mr-2"
+          className="px-4 py-2 bg-muted text-brand-text rounded-lg mr-2"
         >
           Anterior
         </button>
@@ -176,7 +176,7 @@ const TableGrid: React.FC<TableProps> = ({ columns, data, email }) => {
         <button
           onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
           disabled={currentPage === totalPages}
-          className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg ml-2"
+          className="px-4 py-2 bg-muted text-brand-text rounded-lg ml-2"
         >
           Próxima
         </button>

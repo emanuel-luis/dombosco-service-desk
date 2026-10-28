@@ -15,8 +15,8 @@ const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        customEnabled: "bg-[#5061FC] text-white",  // cor personalizada quando habilitado
-        customDisabled: "bg-[#BCBCBC] text-white", // cor personalizada quando desabilitado
+        customEnabled: "bg-primary text-white",  // cor personalizada quando habilitado
+        customDisabled: "bg-muted-foreground text-white", // cor personalizada quando desabilitado
       },
       size: {
         default: "h-10 px-4 py-2",

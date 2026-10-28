@@ -19,22 +19,22 @@ const Card = ({
   const router = useRouter(); // Inicializa o router
 
   return (
-    <div className="w-[328px] h-[156px] rounded-[12px] shadow-[0px_6px_16px_rgba(0,0,0,0.12)] bg-[white] p-4">
+    <div className="w-[328px] h-[156px] rounded-[12px] shadow-[0px_6px_16px_rgba(0,0,0,0.12)] bg-card p-4">
         <div className="flex items-center mb-4">
-          <div className="text-blue-500 mr-2">
+          <div className="text-primary mr-2">
             {icon} {/* Renderiza o ícone passado como prop */}
           </div>
           <h2 className="font-bold text-xl">{title}</h2>
         </div>
 
-        <p className="text-gray-700 text-base mb-4"> {/* Adicionando margin-bottom de 16px aqui */}
+        <p className="text-brand-text text-base mb-4"> {/* Adicionando margin-bottom de 16px aqui */}
           {description}
         </p>
 
         <div className="mt-4">
           <Button
             onClick={() => router.push(link || "")} // Redireciona para a URL especificada
-            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+            className="text-white bg-secondary hover:bg-brand-magenta-dark focus:ring-4 focus:ring-ring font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none"
           >
             Acessar
           </Button>

@@ -5,6 +5,7 @@ import { Header } from "../_components/header";
 import TableGrid from "../_components/tableGrid";
 import { Button } from "../_components/ui/button";
 import { useRouter } from "next/navigation";
+import { BackArrow } from "@/app/_components/BackArrow";
 import formsServices from "../services/ContactsService";
 import Loader from "@/app/_components/loader";
 
@@ -70,19 +71,19 @@ export default function Solicitações() {
      {isLoading ? <Loader isLoading={isLoading}/> : 
      <>
      <Header />
-     <div className="flex flex-col px-5 pt-5 bg-[white] min-h-[550px] mt-[72px] mx-[115px] rounded-[20px] shadow-[0_10px_60px_0_rgba(226,236,249,0.5)] ">
+     <div className="flex flex-col px-5 pt-5 bg-card min-h-[550px] mt-[72px] mx-[115px] rounded-[20px] shadow-[0_10px_60px_0_rgba(226,236,249,0.5)] ">
         <Button
           variant="link"
           className="self-start"
           onClick={() => router.back()}
         >
-          <img className="-rotate-90" src="/arrow.svg" />
+          <BackArrow />
         </Button>
         <h2 className="text-xl font-bold">Solicitações</h2>
         {application?.map(element => {
           if (String(element?.description).toLowerCase() == "ATENDIMENTOS".toLowerCase() && !userStaff) {
             return (
-            <button key={element.description} onClick={() => router.push('/persons-responsible')} type="button" className="self-end text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+            <button key={element.description} onClick={() => router.push('/persons-responsible')} type="button" className="self-end text-white bg-secondary hover:bg-brand-magenta-dark focus:ring-4 focus:ring-ring font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none">
               Criar Solicitação
             </button>
             )}
