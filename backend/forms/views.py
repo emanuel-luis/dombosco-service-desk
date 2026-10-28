@@ -1,5 +1,5 @@
 from django.db.models import Q
-from drf_yasg.utils import swagger_auto_schema
+from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, status, views
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -23,8 +23,8 @@ class ParentFormViewAPI(views.APIView):
         permissions.IsAuthenticated & (IsDomBoscoStaff | IsDomBoscoParent | IsDomBoscoAdmin)
     ]
 
-    @swagger_auto_schema(
-        responses={200: ParentsFormSerializer(many=True)}, query_serializer=ParentQuerySerializer
+    @extend_schema(
+        responses={200: ParentsFormSerializer(many=True)}, parameters=[ParentQuerySerializer]
     )
     def get(self, request: Request):
         """
@@ -82,9 +82,7 @@ class ParentFormViewAPI(views.APIView):
         )
         return Response(serializer.data)
 
-    @swagger_auto_schema(
-        responses={201: ParentsFormSerializer()}, request_body=ParentsFormSerializer
-    )
+    @extend_schema(responses={201: ParentsFormSerializer()}, request=ParentsFormSerializer)
     def post(self, request: Request):
         """
         Allows a parent to submit a form with their information and their child's information.
@@ -105,9 +103,7 @@ class ParentFormViewAPI(views.APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @swagger_auto_schema(
-        responses={200: ParentsFormSerializer()}, query_serializer=ParentQuerySerializer
-    )
+    @extend_schema(responses={200: ParentsFormSerializer()}, parameters=[ParentQuerySerializer])
     def delete(self, request: Request):
         """
         Allows a parent to delete a form they submitted.
@@ -142,9 +138,7 @@ class ParentFormViewAPI(views.APIView):
             status=status.HTTP_403_FORBIDDEN,
         )
 
-    @swagger_auto_schema(
-        responses={200: ParentsFormSerializer()}, request_body=ParentsFormSerializer
-    )
+    @extend_schema(responses={200: ParentsFormSerializer()}, request=ParentsFormSerializer)
     def put(self, request: Request):
         """
         Allows a parent to update a form they submitted.

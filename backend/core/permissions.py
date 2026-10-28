@@ -1,4 +1,3 @@
-from django.conf import settings
 from rest_framework import permissions
 from rest_framework.request import Request
 
@@ -12,7 +11,7 @@ class IsDomBoscoStaff(permissions.BasePermission):
 
 class IsDomBoscoParent(permissions.BasePermission):
     def has_permission(self, request: Request, view):
-        return settings.DEBUG or is_parent(request.user, include_superuser=True)
+        return is_parent(request.user, include_superuser=True)
 
 
 class IsDomBoscoAdmin(permissions.BasePermission):

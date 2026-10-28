@@ -1,5 +1,5 @@
 """
-URL configuration for dombosco_atendimento project.
+URL configuration for dombosco_service_desk project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/5.1/topics/http/urls/
@@ -19,37 +19,28 @@ from allauth.account.views import ConfirmEmailView
 from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path, re_path
-from drf_yasg import openapi
-from drf_yasg.views import get_schema_view
-from rest_framework import permissions, routers
-
-from accounts.views import *
-
-schema_view = get_schema_view(
-    openapi.Info(
-        title="Dombosco Atendimento API",
-        default_version="v1",
-        description="API para o sistema de atendimento do Colégio Dom Bosco",
-        terms_of_service="https://www.google.com/policies/terms/",
-        contact=openapi.Contact(email=f"atendimento@{settings.DOM_BOSCO_EMAIL_DOMAIN}"),
-        license=openapi.License(name="BSD License"),
-    ),
-    public=True,
-    permission_classes=(permissions.AllowAny,),
+from django.views.generic import RedirectView
+from drf_spectacular.views import (
+    SpectacularJSONAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
 )
+from rest_framework import routers
 
 api_routers = routers.DefaultRouter()
 
 urlpatterns = [
-    path("swagger<format>/", schema_view.without_ui(cache_timeout=0), name="schema-json"),
-    path("swagger/", schema_view.with_ui("swagger", cache_timeout=0), name="schema-swagger-ui"),
-    path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
+    path("swagger.json", SpectacularJSONAPIView.as_view(), name="schema"),
+    path("swagger/", SpectacularSwaggerView.as_view(url_name="schema"), name="schema-swagger-ui"),
+    path("redoc/", SpectacularRedocView.as_view(url_name="schema"), name="schema-redoc"),
     path("admin/", admin.site.urls),
+    # allauth reverses "account_login" after confirming an email in the signup session;
+    # login lives in the frontend, so send it there.
+    path("account/login/", RedirectView.as_view(url=settings.LOGIN_URL), name="account_login"),
     path("api/v1/", include(api_routers.urls)),
     path("api/v1/forms/", include("forms.urls")),
     path("api/v1/core/", include("core.urls")),
     path("api/v1/auth/", include("dj_rest_auth.urls")),
-    path("api/v1/auth/google/", GoogleLogin.as_view(), name="google_login"),
     re_path(
         r"^api/v1/auth/registration/account-confirm-email/(?P<key>[-:\w]+)/$",
         ConfirmEmailView.as_view(),
@@ -57,3 +48,8 @@ urlpatterns = [
     ),
     path("api/v1/auth/registration/", include("dj_rest_auth.registration.urls")),
 ]
+
+if settings.GOOGLE_OAUTH_CLIENT_ID:
+    from accounts.views import GoogleLogin
+
+    urlpatterns.append(path("api/v1/auth/google/", GoogleLogin.as_view(), name="google_login"))
