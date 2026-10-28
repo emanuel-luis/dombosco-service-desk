@@ -100,10 +100,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Create .env
-        run: |
-          cp .env.example .env
-          key=$(python3 -c 'import secrets; print(secrets.token_urlsafe(50))')
-          sed -i "s|^SECRET_KEY=.*|SECRET_KEY=$key|" .env
+        run: sh scripts/make-env.sh
       - run: docker compose up -d --wait --build
       - run: sh scripts/smoke.sh
       - name: Compose logs

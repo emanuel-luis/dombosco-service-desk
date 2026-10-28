@@ -38,7 +38,7 @@ logs: ## Follow the stack logs
 	docker compose logs -f
 
 demo: ## One command: create .env if missing, build, start, print URLs and logins
-	@test -f .env || { cp .env.example .env && 		sed -i.bak "s|^SECRET_KEY=.*|SECRET_KEY=$$(python3 -c 'import secrets; print(secrets.token_urlsafe(50))' 2>/dev/null || python -c 'import secrets; print(secrets.token_urlsafe(50))')|" .env && rm -f .env.bak; }
+	@sh scripts/make-env.sh
 	docker compose up -d --wait --build
 	@echo ""
 	@echo "Web: http://localhost:3000   API: http://localhost:8000/swagger/"
