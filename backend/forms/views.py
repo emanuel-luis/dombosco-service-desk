@@ -1,12 +1,13 @@
-import core.utils as forms_utils
-from core.permissions import *
 from django.db.models import Q
 from drf_yasg.utils import swagger_auto_schema
-from forms.models import *
-from forms.serializers import *
 from rest_framework import permissions, status, views
 from rest_framework.request import Request
 from rest_framework.response import Response
+
+import core.utils as forms_utils
+from core.permissions import *
+from forms.models import *
+from forms.serializers import *
 
 
 # ParentForm API
@@ -18,9 +19,13 @@ class ParentFormViewAPI(views.APIView):
     A staff cannot submit a form on behalf of a parent, unless they are a parent themselves.
     """
 
-    permission_classes = [permissions.IsAuthenticated & (IsDomBoscoStaff | IsDomBoscoParent | IsDomBoscoAdmin)]
+    permission_classes = [
+        permissions.IsAuthenticated & (IsDomBoscoStaff | IsDomBoscoParent | IsDomBoscoAdmin)
+    ]
 
-    @swagger_auto_schema(responses={200: ParentsFormSerializer(many=True)}, query_serializer=ParentQuerySerializer)
+    @swagger_auto_schema(
+        responses={200: ParentsFormSerializer(many=True)}, query_serializer=ParentQuerySerializer
+    )
     def get(self, request: Request):
         """
         Returns a list of all forms submitted by parents.
@@ -63,15 +68,23 @@ class ParentFormViewAPI(views.APIView):
             parents_forms = parents_forms.filter(status=request.query_params["status"])
 
         if request.query_params.get("assigned_staff"):
-            parents_forms = parents_forms.filter(staffform__assigned_staff__email=request.query_params["assigned_staff"])
+            parents_forms = parents_forms.filter(
+                staffform__assigned_staff__email=request.query_params["assigned_staff"]
+            )
 
         if request.query_params.get("responsible_party"):
-            parents_forms = parents_forms.filter(responsible_party__email=request.query_params["responsible_party"])
+            parents_forms = parents_forms.filter(
+                responsible_party__email=request.query_params["responsible_party"]
+            )
 
-        serializer = ParentsFormSerializer(parents_forms.order_by("status", "created_at"), many=True)
+        serializer = ParentsFormSerializer(
+            parents_forms.order_by("status", "created_at"), many=True
+        )
         return Response(serializer.data)
 
-    @swagger_auto_schema(responses={201: ParentsFormSerializer()}, request_body=ParentsFormSerializer)
+    @swagger_auto_schema(
+        responses={201: ParentsFormSerializer()}, request_body=ParentsFormSerializer
+    )
     def post(self, request: Request):
         """
         Allows a parent to submit a form with their information and their child's information.
@@ -92,7 +105,9 @@ class ParentFormViewAPI(views.APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @swagger_auto_schema(responses={200: ParentsFormSerializer()}, query_serializer=ParentQuerySerializer)
+    @swagger_auto_schema(
+        responses={200: ParentsFormSerializer()}, query_serializer=ParentQuerySerializer
+    )
     def delete(self, request: Request):
         """
         Allows a parent to delete a form they submitted.
@@ -127,7 +142,9 @@ class ParentFormViewAPI(views.APIView):
             status=status.HTTP_403_FORBIDDEN,
         )
 
-    @swagger_auto_schema(responses={200: ParentsFormSerializer()}, request_body=ParentsFormSerializer)
+    @swagger_auto_schema(
+        responses={200: ParentsFormSerializer()}, request_body=ParentsFormSerializer
+    )
     def put(self, request: Request):
         """
         Allows a parent to update a form they submitted.
@@ -239,7 +256,9 @@ class UpdateStatusParentFormAPI(views.APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        if parent_form.status >= request.data["status"] and not forms_utils.is_superuser(request.user):
+        if parent_form.status >= request.data["status"] and not forms_utils.is_superuser(
+            request.user
+        ):
             return Response(
                 data={"detail": "You cannot change the status to a previous status."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -372,7 +391,9 @@ class StaffFormViewAPI(views.APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        serializer = StaffFormSerializer(staff_form, data=request.data, context={"request": request})
+        serializer = StaffFormSerializer(
+            staff_form, data=request.data, context={"request": request}
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -451,9 +472,10 @@ class CommentViewAPI(views.APIView):
                 data={"detail": "Comment not found."},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        if (comment.user == request.user and comment.parent_form.status == ParentForm.StatusChoices.ANDAMENTO) or forms_utils.is_superuser(
-            request.user
-        ):
+        if (
+            comment.user == request.user
+            and comment.parent_form.status == ParentForm.StatusChoices.ANDAMENTO
+        ) or forms_utils.is_superuser(request.user):
             comment.delete()
             return Response(status=status.HTTP_200_OK)
         return Response(
