@@ -66,8 +66,35 @@ def test_another_staffs_request_is_invisible_to_staff(world, make_request):
         services.change_status(world.other_staff, form.pk, S.FINALIZADO)
 
 
-def test_admin_can_move_backwards_even_from_terminal(world, make_request):
+@pytest.mark.parametrize("terminal", [S.FINALIZADO, S.CANCELADO])
+def test_admin_can_reopen_an_answered_request(world, make_request, terminal):
+    form = make_request(world.parent, terminal, world.staff)
+    services.change_status(world.admin, form.pk, S.ANDAMENTO)
+    form.refresh_from_db()
+    assert form.status == S.ANDAMENTO
+
+
+def test_admin_cannot_send_an_answered_request_back_to_pending(world, make_request):
     form = make_request(world.parent, S.FINALIZADO, world.staff)
+    with pytest.raises(RequestConflict):
+        services.change_status(world.admin, form.pk, S.PENDENTE)
+    form.refresh_from_db()
+    assert form.status == S.FINALIZADO
+    assert StaffForm.objects.filter(parent_form=form).exists()
+
+
+@pytest.mark.parametrize("target", [S.ANDAMENTO, S.FINALIZADO])
+def test_admin_cannot_move_an_unanswered_request_past_pending(world, make_request, target):
+    form = make_request(world.parent)
+    with pytest.raises(RequestConflict):
+        services.change_status(world.admin, form.pk, target)
+    form.refresh_from_db()
+    assert form.status == S.PENDENTE
+
+
+def test_admin_can_cancel_and_restore_an_unanswered_request(world, make_request):
+    form = make_request(world.parent)
+    services.change_status(world.admin, form.pk, S.CANCELADO)
     services.change_status(world.admin, form.pk, S.PENDENTE)
     form.refresh_from_db()
     assert form.status == S.PENDENTE
@@ -96,10 +123,11 @@ def test_answering_a_closed_request_conflicts_and_does_not_reopen(world, make_re
     assert form.status == terminal
 
 
-@pytest.mark.parametrize("terminal", [S.CANCELADO, S.FINALIZADO])
-def test_superuser_answering_a_closed_unanswered_request_conflicts(
-    world, make_user, make_request, terminal
+def test_superuser_answering_a_cancelled_unanswered_request_conflicts(
+    world, make_user, make_request
 ):
+    # An unanswered request can only be closed by cancelling it: finishing one needs an answer.
+    terminal = S.CANCELADO
     superuser = make_user("root@example.com", is_superuser=True)
     form = make_request(world.parent)
     services.change_status(world.admin, form.pk, terminal)
