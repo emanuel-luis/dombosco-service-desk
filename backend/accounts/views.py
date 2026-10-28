@@ -4,7 +4,7 @@ from dj_rest_auth.registration.views import SocialLoginView
 from django.conf import settings
 
 
-class GoogleLogin(SocialLoginView):
+class GoogleLogin(SocialLoginView):  # type: ignore[misc]  # dj_rest_auth ships no types
     adapter_class = GoogleOAuth2Adapter
     callback_url = settings.GOOGLE_OAUTH_CALLBACK_URL
     client_class = OAuth2Client

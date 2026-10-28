@@ -1,23 +1,24 @@
+from typing import Any
+
 from allauth.account import app_settings as allauth_account_settings
 from allauth.account.adapter import get_adapter
 from allauth.account.utils import setup_user_email
 from allauth.socialaccount.models import EmailAddress
 from allauth.utils import get_username_max_length
 from dj_rest_auth.serializers import UserDetailsSerializer
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.http import HttpRequest
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from core.models import Application
+from core.models import Application, User
 from core.utils import ROLES, get_role
 
-User = get_user_model()
 _signup_fields = allauth_account_settings.SIGNUP_FIELDS
 
 
-class UserProfileSerializer(serializers.Serializer):
+class UserProfileSerializer(serializers.Serializer[dict[str, Any]]):
     email = serializers.EmailField(read_only=True)
     first_name = serializers.CharField(read_only=True)
     last_name = serializers.CharField(read_only=True)
@@ -29,22 +30,24 @@ class UserProfileSerializer(serializers.Serializer):
         fields = ["email", "first_name", "last_name", "phone", "mobile_phone"]
 
 
-class UserWithRoleSerializer(UserDetailsSerializer):
+class UserWithRoleSerializer(UserDetailsSerializer):  # type: ignore[misc]  # dj_rest_auth is untyped
     """/auth/user/ payload plus the group names and a single role for the frontend."""
 
-    groups = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name")
+    groups: serializers.SlugRelatedField[Group] = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="name"
+    )
     role = serializers.SerializerMethodField()
 
     @extend_schema_field(serializers.ChoiceField(choices=ROLES))
-    def get_role(self, user) -> str:
+    def get_role(self, user: User) -> str:
         return get_role(user)
 
-    class Meta(UserDetailsSerializer.Meta):
+    class Meta(UserDetailsSerializer.Meta):  # type: ignore[misc]  # dj_rest_auth is untyped
         fields = (*UserDetailsSerializer.Meta.fields, "groups", "role")
         read_only_fields = (*UserDetailsSerializer.Meta.read_only_fields, "groups", "role")
 
 
-class RegisterSerializer(serializers.Serializer):
+class RegisterSerializer(serializers.Serializer[dict[str, Any]]):
     username = serializers.CharField(
         max_length=get_username_max_length(),
         min_length=allauth_account_settings.USERNAME_MIN_LENGTH,
@@ -58,11 +61,11 @@ class RegisterSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=20, required=False)
     mobile_phone = serializers.CharField(max_length=20, required=False)
 
-    def validate_username(self, username):
+    def validate_username(self, username: str) -> str:
         username = get_adapter().clean_username(username)
         return username
 
-    def validate_email(self, email):
+    def validate_email(self, email: str) -> str:
         email = get_adapter().clean_email(email)
         if (
             email
@@ -74,18 +77,19 @@ class RegisterSerializer(serializers.Serializer):
             )
         return email
 
-    def validate_password1(self, password):
-        return get_adapter().clean_password(password)
+    def validate_password1(self, password: str) -> str:
+        cleaned: str = get_adapter().clean_password(password)
+        return cleaned
 
-    def validate(self, data):
+    def validate(self, data: dict[str, Any]) -> dict[str, Any]:
         if data["password1"] != data["password2"]:
             raise serializers.ValidationError("The two password fields didn't match.")
         return data
 
-    def custom_signup(self, request, user):
+    def custom_signup(self, request: HttpRequest, user: User) -> None:
         pass
 
-    def get_cleaned_data(self):
+    def get_cleaned_data(self) -> dict[str, Any]:
         return {
             "username": self.validated_data.get("username", ""),
             "password1": self.validated_data.get("password1", ""),
@@ -96,9 +100,10 @@ class RegisterSerializer(serializers.Serializer):
             "mobile_phone": self.validated_data.get("mobile_phone", ""),
         }
 
-    def save(self, request):
+    # dj_rest_auth calls save(request), unlike the DRF save(**kwargs) it overrides.
+    def save(self, request: HttpRequest) -> User:  # type: ignore[override]
         adapter = get_adapter()
-        user = adapter.new_user(request)
+        user: User = adapter.new_user(request)
         self.cleaned_data = self.get_cleaned_data()
         user = adapter.save_user(request, user, self, commit=False)
         if "password1" in self.cleaned_data:
@@ -108,8 +113,8 @@ class RegisterSerializer(serializers.Serializer):
                 raise serializers.ValidationError(detail=serializers.as_serializer_error(exc))
         user.phone = self.cleaned_data.get("phone")
         user.mobile_phone = self.cleaned_data.get("mobile_phone")
-        user.first_name = self.cleaned_data.get("first_name")
-        user.last_name = self.cleaned_data.get("last_name")
+        user.first_name = self.cleaned_data["first_name"]
+        user.last_name = self.cleaned_data["last_name"]
         user.save()
 
         # Colaborador is granted only after the email is confirmed (see core.signals).
@@ -122,14 +127,14 @@ class RegisterSerializer(serializers.Serializer):
         return user
 
 
-class GroupSerializer(serializers.ModelSerializer):
+class GroupSerializer(serializers.ModelSerializer[Group]):
     class Meta:
         model = Group
         fields = "__all__"
         read_only_fields = ["id", "name"]
 
 
-class ApplicationSerializer(serializers.ModelSerializer):
+class ApplicationSerializer(serializers.ModelSerializer[Application]):
     groups_id = serializers.ListField(
         child=serializers.PrimaryKeyRelatedField(queryset=Group.objects.all()),
         write_only=True,
@@ -141,14 +146,14 @@ class ApplicationSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ["id", "created_at", "updated_at"]
 
-    def create(self, validated_data: dict):
+    def create(self, validated_data: dict[str, Any]) -> Application:
         groups = validated_data.pop("groups")
         application = Application.objects.create(**validated_data)
         for group in groups:
             application.groups.add(group)
         return application
 
-    def update(self, instance: Application, validated_data: dict):
+    def update(self, instance: Application, validated_data: dict[str, Any]) -> Application:
         groups = validated_data.pop("groups")
         instance = super().update(instance, validated_data)
         instance.groups.clear()
