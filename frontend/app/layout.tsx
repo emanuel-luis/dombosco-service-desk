@@ -16,6 +16,8 @@ const body = Nunito_Sans({
   subsets: ["latin"],
   variable: "--font-body",
   display: "swap",
+  // next/font has no fallback metrics for Nunito Sans; skip the adjustment instead of warning.
+  adjustFontFallback: false,
 });
 
 export const metadata: Metadata = {
