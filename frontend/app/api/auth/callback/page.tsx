@@ -1,10 +1,11 @@
 // pages/auth/callback.tsx
 "use client"; // Certifique-se de que este componente é um Client Component
 
-import { useSearchParams } from "next/navigation"; // Importação correta para App Router
-import { useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation"; // Importação correta para App Router
+import { Suspense, useEffect } from "react";
 
 const GoogleCallback = () => {
+  const router = useRouter();
   const searchParams = useSearchParams(); // Obtém os parâmetros de busca
   const code = searchParams.get("code");
   const access_token = searchParams.get("access_token");
@@ -32,7 +33,7 @@ const GoogleCallback = () => {
           console.log("aqui", response);
           const jwtData = await response.json();
           if (jwtData.token) {
-            searchParams.push("/"); // Redireciona para a página inicial
+            router.push("/"); // Redireciona para a página inicial
           } else {
             console.error("No token received");
           }
@@ -43,9 +44,15 @@ const GoogleCallback = () => {
     };
 
     fetchToken();
-  }, [searchParams]);
+  }, [code, router]);
 
   return <div>Loading...</div>; // Exibe uma mensagem enquanto aguarda
 };
 
-export default GoogleCallback;
+export default function CallbackPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <GoogleCallback />
+    </Suspense>
+  );
+}

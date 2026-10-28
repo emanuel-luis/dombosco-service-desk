@@ -1,8 +1,8 @@
 "use client";
 import React from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import { Button } from "../_components/ui/button"; 
-import { Textarea } from "../_components/ui/textarea"; 
+import { Button } from "./ui/button"; 
+import { Textarea } from "./ui/textarea"; 
 import * as Yup from 'yup';
 
 

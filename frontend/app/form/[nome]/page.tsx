@@ -24,12 +24,12 @@ export default function Solicitações() {
   const rota = useRouter()
   const [user, setUser] = useState(null);
  
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<any[]>([]);
   const [parent, setParent] = useState(true)
   const [isLoading, setIsLoading] = useState(true)
   const [formStaffError, setFormStaffError] = useState(false)
   const [showAnswers, setShowAnswers] = useState(true)
-  const [staffAnswers, setstaffAnswers] = useState()
+  const [staffAnswers, setstaffAnswers] = useState<any[]>()
   const [closeStaffFields, setCloseStaffFields] = useState(false)
   const [statusFormFinished, setStatusFormFinished] = useState(false)
 
@@ -139,7 +139,7 @@ export default function Solicitações() {
           <h2 className="text-xl font-bold">Solicitações</h2>
           <br/>
           { data.map(element => (
-            <>
+            <React.Fragment key={element.id}>
               <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg ">
                 {/* Informações do Aluno */}
                 <header className="mb-6">
@@ -328,7 +328,7 @@ export default function Solicitações() {
               
                 : null}
               </div>
-            </>
+            </React.Fragment>
           ))}
         </div>
       </>
