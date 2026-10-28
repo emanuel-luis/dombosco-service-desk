@@ -8,6 +8,7 @@ Django 5.2 + DRF backend (`backend/`), Next.js 16 frontend (`frontend/`), Postgr
 - Postgres-only tests (trigger, analytics views) run in CI or with `DATABASE_URL` pointing at a Postgres.
 - `make frontend-install frontend-lint frontend-test frontend-build`: frontend.
 - `make demo`, `make smoke`, `make export`, `make down`: Docker stack (do not run Docker unless asked).
+- `make d2-install diagrams` then `make diagrams-check`: render the D2 sources in `docs/diagrams/` (run in Linux or WSL; CI fails on a stale SVG).
 
 ## Repo map
 
