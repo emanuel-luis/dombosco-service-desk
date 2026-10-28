@@ -1,7 +1,8 @@
-from core.utils import *
 from django.conf import settings
 from rest_framework import permissions
 from rest_framework.request import Request
+
+from core.utils import *
 
 
 class IsDomBoscoStaff(permissions.BasePermission):

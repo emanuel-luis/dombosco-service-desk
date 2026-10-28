@@ -23,7 +23,7 @@ load_dotenv(BASE_DIR / ".env")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
-FRONTEND_URL = f'http://{os.getenv("FRONTEND_HOST")}:{os.getenv("FRONTEND_PORT")}'
+FRONTEND_URL = f"http://{os.getenv('FRONTEND_HOST')}:{os.getenv('FRONTEND_PORT')}"
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -85,9 +85,7 @@ AUTH_USER_MODEL = "core.User"
 
 REST_FRAMEWORK = {
     # "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "dj_rest_auth.jwt_auth.JWTCookieAuthentication",
-    ),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("dj_rest_auth.jwt_auth.JWTCookieAuthentication",),
 }
 
 # Django SMTP
@@ -202,6 +200,7 @@ DATABASES = {
         "PORT": os.getenv("DATABASE_PORT"),
     }
 }
+
 
 
 # Password validation

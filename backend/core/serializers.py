@@ -3,12 +3,13 @@ from allauth.account.adapter import get_adapter
 from allauth.account.utils import setup_user_email
 from allauth.socialaccount.models import EmailAddress
 from allauth.utils import get_username_max_length
-from core.models import Application
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
+
+from core.models import Application
 
 User = get_user_model()
 
@@ -45,8 +46,14 @@ class RegisterSerializer(serializers.Serializer):
 
     def validate_email(self, email):
         email = get_adapter().clean_email(email)
-        if email and EmailAddress.objects.is_verified(email) or User.objects.filter(email=email).exists():
-            raise serializers.ValidationError("A user is already registered with this e-mail address.")
+        if (
+            email
+            and EmailAddress.objects.is_verified(email)
+            or User.objects.filter(email=email).exists()
+        ):
+            raise serializers.ValidationError(
+                "A user is already registered with this e-mail address."
+            )
         return email
 
     def validate_password1(self, password):
@@ -107,7 +114,11 @@ class GroupSerializer(serializers.ModelSerializer):
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
-    groups_id = serializers.ListField(child=serializers.PrimaryKeyRelatedField(queryset=Group.objects.all()), write_only=True, source="groups")
+    groups_id = serializers.ListField(
+        child=serializers.PrimaryKeyRelatedField(queryset=Group.objects.all()),
+        write_only=True,
+        source="groups",
+    )
 
     class Meta:
         model = Application

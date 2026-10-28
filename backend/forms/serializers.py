@@ -1,7 +1,8 @@
+from rest_framework import serializers
+
 from core.serializers import UserProfileSerializer
 from core.utils import has_comment_permission
 from forms.models import *
-from rest_framework import serializers
 
 
 class ParentQuerySerializer(serializers.Serializer):
@@ -52,7 +53,9 @@ class ParentsFormListSerializer(serializers.ModelSerializer):
 
 class StaffFormSerializer(serializers.ModelSerializer):
     assigned_staff = UserProfileSerializer(read_only=True)
-    parent_form_id = serializers.PrimaryKeyRelatedField(queryset=ParentForm.objects.all(), write_only=True, source="parent_form")
+    parent_form_id = serializers.PrimaryKeyRelatedField(
+        queryset=ParentForm.objects.all(), write_only=True, source="parent_form"
+    )
 
     class Meta:
         model = StaffForm
@@ -65,7 +68,9 @@ class StaffFormSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     user = serializers.CharField(read_only=True, source="user.full_name")
-    parent_form_id = serializers.PrimaryKeyRelatedField(queryset=ParentForm.objects.all(), write_only=True, source="parent_form")
+    parent_form_id = serializers.PrimaryKeyRelatedField(
+        queryset=ParentForm.objects.all(), write_only=True, source="parent_form"
+    )
 
     class Meta:
         model = Comment
@@ -74,10 +79,14 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def validate_parent_form_id(self, value: ParentForm):
         if value.status == ParentForm.StatusChoices.PENDENTE:
-            raise serializers.ValidationError("It is not possible to add comments to a form that is pending.")
+            raise serializers.ValidationError(
+                "It is not possible to add comments to a form that is pending."
+            )
 
         if not has_comment_permission(self.context["request"].user, value):
-            raise serializers.ValidationError("You do not have permission to add comments to this form.")
+            raise serializers.ValidationError(
+                "You do not have permission to add comments to this form."
+            )
 
         return value
 
