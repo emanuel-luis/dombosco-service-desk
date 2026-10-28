@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help install fmt lint test-fast frontend-install frontend-lint frontend-build
+.PHONY: help install fmt lint test-fast frontend-install frontend-lint frontend-test frontend-build
 
 help: ## Show this help
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "%-12s %s\n", $$1, $$2}'
@@ -24,3 +24,6 @@ frontend-lint: ## ESLint and tsc (same as CI frontend)
 
 frontend-build: ## Production build of the frontend
 	cd frontend && npm run build
+
+frontend-test: ## Unit tests of the frontend (vitest)
+	cd frontend && npm test
