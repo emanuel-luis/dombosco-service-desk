@@ -19,6 +19,22 @@ def is_dom_bosco_staff(user: User, include_superuser: bool = False) -> bool:
     return user.groups.filter(name="Colaborador").exists()
 
 
+ROLES = ("admin", "staff", "parent", "user", "visitor")
+
+
+def get_role(user: User) -> str:
+    """Single role for a user, by precedence: admin, staff, parent, user, visitor."""
+    if is_superuser(user):
+        return "admin"
+    if is_dom_bosco_staff(user, include_superuser=True):
+        return "staff"
+    if is_parent(user):
+        return "parent"
+    if user.groups.filter(name="Usuário").exists():
+        return "user"
+    return "visitor"
+
+
 def has_comment_permission(user: User, parent_form: ParentForm):
     """
     Checks if the user is either the responsible party, the assigned staff, or a superuser.
