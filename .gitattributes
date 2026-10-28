@@ -2,3 +2,6 @@
 *.png binary
 *.ico binary
 *.svg -text
+# Rendered diagrams: keep the bytes D2 writes (no EOL conversion, so make diagrams-check compares
+# exactly what CI renders) and collapse them in PR diffs; review the .d2 source instead.
+docs/diagrams/*.svg linguist-generated=true

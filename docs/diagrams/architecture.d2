@@ -1,0 +1,55 @@
+# The system in context: actors, the browser, the five compose services, external systems and the
+# export folder. Grounded in compose.yaml, backend/dombosco_service_desk/settings.py and urls.py,
+# frontend/app/lib/client.ts and the Makefile. Layer detail is in data-flow.d2. Flat on purpose:
+# a container around the services pushed every outside node below it and made the picture twice
+# as tall.
+...@_style
+
+title: "Architecture: Dom Bosco Service Desk" {
+  shape: text
+  near: top-center
+  style: {font-size: 24; bold: true}
+}
+
+direction: down
+
+parent: "Responsável\n(parent)" {class: actor; label.near: outside-top-center}
+staff: "Colaborador\n(staff)" {class: actor; label.near: outside-top-center}
+admin: "Administrador\n(admin)" {class: actor; label.near: outside-top-center}
+
+browser: "Browser\nJWT kept in localStorage" {class: process}
+
+web: "web (compose service)\nNext.js 16, standalone\n127.0.0.1:3000" {class: process}
+api: "api (compose service)\nDjango 5.2 + DRF, gunicorn\nJWT auth, 127.0.0.1:8000" {class: process}
+migrate: "migrate (one-shot)\nmigrations + fixtures" {class: process}
+seed: "seed (one-shot)\nsynthetic demo data" {class: process}
+
+db: "db (compose service)\nPostgres 17" {class: store}
+google: "Google OAuth\n(optional)" {class: external}
+mail: "Email\n(console by default)" {class: external}
+exports: "exports/as_of=date/\nParquet + _run.json\n(make export)" {class: serving}
+
+parent -> browser
+staff -> browser
+admin -> browser
+browser -> web: "pages"
+browser -> api: "REST + JWT"
+admin -> api: "analytics"
+api -> db
+migrate -> db
+seed -> db
+migrate -> seed {class: meta}
+api -> google {class: meta}
+api -> mail {class: meta}
+api -> exports
+
+legend: Legend {
+  class: legend
+  grid-columns: 3
+  actor: actor {class: [actor; legend-actor]}
+  external: external system {class: [external; legend-item]}
+  process: process {class: [process; legend-item]}
+  store: database {class: [store; legend-store]}
+  serving: exported files {class: [serving; legend-item]}
+  edges: "solid arrow: data or a call\ndashed: optional or control" {shape: text; style.font-size: 13}
+}

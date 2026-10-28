@@ -1,0 +1,43 @@
+# Staff answer a request, comment and finish it; an admin reads the analytics. Grounded in
+# forms/views.py, forms/services.py (answer_request, add_comment, change_status, ALLOWED),
+# forms/exceptions.py, analytics/views.py and analytics/migrations/0001_initial.py.
+...@_style
+
+flow: "Staff answer a request, admin reads analytics" {
+  shape: sequence_diagram
+  style: {font-size: 24; bold: true}
+
+  staff: "Colaborador" {class: actor}
+  web: "web\n(in the browser)" {class: process}
+  api: "api\nview + services.py" {class: process}
+  db: "Postgres\ntables and views" {class: store}
+  events: "Postgres\nrequest_events" {class: store}
+  admin: "Administrador" {class: actor}
+
+  staff -> web: "answer the request"
+  web -> api: "POST /api/v1/\nforms/staff/"
+  api -> db: "BEGIN; lock the\nrequest row"
+  api."409: already answered\nor not Pendente"
+  api -> db: "INSERT forms_staffform;\nstatus Em andamento"
+  api -> events: "staff_answered and\nstatus_changed"
+  api -> web: "201 + the answer" {class: meta}
+
+  staff -> web: "add a comment"
+  web -> api: "POST /api/v1/\nforms/comment/"
+  api."409: request is\nstill Pendente"
+  api -> db: "INSERT forms_comment"
+  api -> events: "comment_added"
+  api -> web: "201 + the comment" {class: meta}
+
+  staff -> web: "finish the request"
+  web -> api: "PUT .../forms/parent/\nupdate-status/"
+  api."409: transition not\nin ALLOWED"
+  api -> db: "UPDATE status\nto Finalizado"
+  api -> events: "status_changed"
+  api -> web: "200" {class: meta}
+
+  admin -> api: "GET /api/v1/\nanalytics/sla/"
+  api."403 for anyone but\nadmin; 501 off Postgres"
+  api -> db: "SELECT v_sla_summary\n(view over events)"
+  api -> admin: "200 + percentiles" {class: meta}
+}
