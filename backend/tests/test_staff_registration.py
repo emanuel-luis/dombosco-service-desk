@@ -22,8 +22,9 @@ def register(client, email, verification="mandatory", settings=None):
 
 
 def confirm(client):
-    link = re.search(r"http\S*/account-confirm-email/[-:\w]+/", mail.outbox[-1].body).group(0)
-    return client.get(link.split("testserver", 1)[-1])
+    match = re.search(r"http\S*/account-confirm-email/[-:\w]+/", str(mail.outbox[-1].body))
+    assert match
+    return client.get(match.group(0).split("testserver", 1)[-1])
 
 
 @pytest.fixture
