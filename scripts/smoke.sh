@@ -37,7 +37,14 @@ echo "ok analytics sla"
 [ "$(status "$WEB/login")" = 200 ] || fail "web /login is not 200"
 echo "ok web login"
 
-mkdir -p exports && chmod a+rwx exports
-docker compose exec -T api python manage.py export_analytics --as-of "$(date -u +%F)" --out /exports ||
+# The export runs in the container and the partition is copied out, so no bind mount (and no
+# host uid or Docker Desktop file-sharing issue) is involved.
+as_of=$(date -u +%F)
+docker compose exec -T api python manage.py export_analytics --as-of "$as_of" --out /tmp/exports ||
   fail "export_analytics"
+rm -rf "exports/as_of=$as_of" && mkdir -p exports
+docker compose cp "api:/tmp/exports/as_of=$as_of" exports/ >/dev/null || fail "copy the export out"
+for file in request_events.parquet request_lifecycle.parquet daily_throughput.parquet _run.json; do
+  [ -s "exports/as_of=$as_of/$file" ] || fail "exports/as_of=$as_of/$file is missing on the host"
+done
 echo "ok export"
