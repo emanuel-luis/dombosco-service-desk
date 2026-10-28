@@ -1,7 +1,7 @@
 """Typed application settings, read once from the environment (and an optional `.env`)."""
 
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 
 from pydantic import SecretStr, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
@@ -49,7 +49,7 @@ class AppSettings(BaseSettings):
 
     @field_validator("allowed_hosts", "csrf_trusted_origins", "cors_allowed_origins", mode="before")
     @classmethod
-    def _split_commas(cls, value):
+    def _split_commas(cls, value: Any) -> Any:
         if isinstance(value, str):
             return [item.strip() for item in value.split(",") if item.strip()]
         return value

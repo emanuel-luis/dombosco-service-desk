@@ -17,7 +17,7 @@ def make(monkeypatch, **env):
         monkeypatch.delenv(name, raising=False)
     for name, value in env.items():
         monkeypatch.setenv(name, value)
-    return AppSettings(_env_file=None)
+    return AppSettings(_env_file=None)  # type: ignore[call-arg]  # pydantic-settings init kwarg
 
 
 def test_missing_secret_key_is_a_validation_error(monkeypatch):
