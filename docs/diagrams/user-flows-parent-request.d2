@@ -1,0 +1,31 @@
+# A parent creates a request and staff see it. Grounded in frontend/app/lib/api.ts,
+# forms/views.py (ParentFormViewAPI), forms/services.py (create_request, visible_requests, _record).
+...@_style
+
+flow: "Parent creates a request, staff see it" {
+  shape: sequence_diagram
+  style: {font-size: 24; bold: true}
+
+  parent: "Responsável" {class: actor}
+  web: "web\n(in the browser)" {class: process}
+  api: "api\nview + services.py" {class: process}
+  db: "Postgres\nforms tables" {class: store}
+  events: "Postgres\nrequest_events" {class: store}
+  staff: "Colaborador" {class: actor}
+
+  parent -> web: "fill in the\nrequest form"
+  web -> api: "POST /api/v1/forms/\nparent/ + Bearer JWT"
+  api."validate input;\nonly a parent may\ncreate (else 403)"
+  api -> db: "BEGIN; INSERT\nforms_parentform,\nstatus Pendente"
+  api -> events: "INSERT request_created\n(same transaction)"
+  api -> db: "COMMIT" {class: meta}
+  api -> web: "201 + the request" {class: meta}
+  web -> parent: "confirmation" {class: meta}
+
+  staff -> web: "open the request list"
+  web -> api: "GET /api/v1/forms/\nparent/"
+  api -> db: "SELECT pending\nor assigned to staff"
+  db -> api: "rows" {class: meta}
+  api -> web: "200 + the new\nPendente request" {class: meta}
+  web -> staff: "request shown" {class: meta}
+}
