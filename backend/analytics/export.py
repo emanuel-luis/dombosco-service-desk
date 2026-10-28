@@ -127,6 +127,7 @@ def export_partition(as_of: date, out: Path) -> dict[str, Any]:
     target = out / f"as_of={as_of.isoformat()}"
     out.mkdir(parents=True, exist_ok=True)
     tmp = Path(tempfile.mkdtemp(prefix=f".tmp-{target.name}-", dir=out))
+    swapped = False
     try:
         for name in DATASETS:
             pq.write_table(getattr(tables, name), tmp / f"{name}.parquet")
@@ -141,6 +142,12 @@ def export_partition(as_of: date, out: Path) -> dict[str, Any]:
         }
         (tmp / "_run.json").write_text(json.dumps(run, indent=2) + "\n", encoding="utf-8")
         _swap(tmp, target)
+        swapped = True
     finally:
-        shutil.rmtree(tmp, ignore_errors=True)
+        # After a successful swap the temp dir is the partition: only clean up a failed run.
+        if not swapped:
+            shutil.rmtree(tmp, ignore_errors=True)
+    expected = [f"{name}.parquet" for name in DATASETS] + ["_run.json"]
+    if missing := [name for name in expected if not (target / name).is_file()]:
+        raise OSError(f"{target} is missing {missing} after the swap")
     return run
