@@ -4,7 +4,6 @@ from allauth.account import app_settings as allauth_account_settings
 from allauth.account.adapter import get_adapter
 from allauth.account.utils import setup_user_email
 from allauth.socialaccount.models import EmailAddress
-from allauth.utils import get_username_max_length
 from dj_rest_auth.serializers import UserDetailsSerializer
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -48,11 +47,6 @@ class UserWithRoleSerializer(UserDetailsSerializer):  # type: ignore[misc]  # dj
 
 
 class RegisterSerializer(serializers.Serializer[dict[str, Any]]):
-    username = serializers.CharField(
-        max_length=get_username_max_length(),
-        min_length=allauth_account_settings.USERNAME_MIN_LENGTH,
-        required=_signup_fields.get("username", {}).get("required", False),
-    )
     email = serializers.EmailField(required=_signup_fields["email"]["required"])
     first_name = serializers.CharField(required=False)
     last_name = serializers.CharField(required=False)
@@ -60,10 +54,6 @@ class RegisterSerializer(serializers.Serializer[dict[str, Any]]):
     password2 = serializers.CharField(write_only=True)
     phone = serializers.CharField(max_length=20, required=False)
     mobile_phone = serializers.CharField(max_length=20, required=False)
-
-    def validate_username(self, username: str) -> str:
-        username = get_adapter().clean_username(username)
-        return username
 
     def validate_email(self, email: str) -> str:
         email = get_adapter().clean_email(email)
@@ -91,7 +81,6 @@ class RegisterSerializer(serializers.Serializer[dict[str, Any]]):
 
     def get_cleaned_data(self) -> dict[str, Any]:
         return {
-            "username": self.validated_data.get("username", ""),
             "password1": self.validated_data.get("password1", ""),
             "email": self.validated_data.get("email", ""),
             "first_name": self.validated_data.get("first_name", ""),
