@@ -1,23 +1,31 @@
-# Usar uma imagem base do Node.js
-FROM node:18
-
-# Definir o diretório de trabalho
+# syntax=docker/dockerfile:1
+FROM node:24-bookworm-slim AS deps
 WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
 
-# Copiar o package.json e o package-lock.json (ou yarn.lock)
-COPY package*.json ./
-
-# Instalar dependências
-RUN npm install
-
-# Copiar todo o código do projeto
+FROM node:24-bookworm-slim AS build
+WORKDIR /app
+# Next.js inlines NEXT_PUBLIC_* at build time, so they are build args.
+ARG NEXT_PUBLIC_API_URL=http://localhost:8000
+ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID=
+ARG NEXT_PUBLIC_GOOGLE_REDIRECT_URI=
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
+    NEXT_PUBLIC_GOOGLE_CLIENT_ID=$NEXT_PUBLIC_GOOGLE_CLIENT_ID \
+    NEXT_PUBLIC_GOOGLE_REDIRECT_URI=$NEXT_PUBLIC_GOOGLE_REDIRECT_URI \
+    NEXT_TELEMETRY_DISABLED=1
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN npm run build
 
-# Construir o projeto Next.js
-# RUN npm run build
-
-# Expor a porta em que o Next.js vai rodar
+FROM node:24-bookworm-slim AS runner
+WORKDIR /app
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=3000
+COPY --from=build --chown=node:node /app/.next/standalone ./
+COPY --from=build --chown=node:node /app/.next/static ./.next/static
+COPY --from=build --chown=node:node /app/public ./public
+USER node
 EXPOSE 3000
-
-# Comando para iniciar a aplicação
-CMD ["npm", "run", "dev"]
+HEALTHCHECK --interval=10s --timeout=5s --start-period=15s --retries=5 \
+    CMD ["node", "-e", "fetch('http://127.0.0.1:3000/login').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+CMD ["node", "server.js"]
