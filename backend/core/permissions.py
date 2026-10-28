@@ -1,7 +1,7 @@
 from rest_framework import permissions
 from rest_framework.request import Request
 
-from core.utils import *
+from core.utils import is_dom_bosco_staff, is_parent, is_superuser
 
 
 class IsDomBoscoStaff(permissions.BasePermission):

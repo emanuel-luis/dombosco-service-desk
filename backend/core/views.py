@@ -4,8 +4,10 @@ from rest_framework import permissions, status, views
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from core.permissions import *
-from core.serializers import *
+from core.models import Application
+from core.permissions import IsDomBoscoAdmin
+from core.serializers import ApplicationSerializer, GroupSerializer
+from core.utils import is_superuser
 
 
 class GroupViewAPI(views.APIView):
