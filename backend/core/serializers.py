@@ -3,12 +3,15 @@ from allauth.account.adapter import get_adapter
 from allauth.account.utils import setup_user_email
 from allauth.socialaccount.models import EmailAddress
 from allauth.utils import get_username_max_length
+from dj_rest_auth.serializers import UserDetailsSerializer
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError as DjangoValidationError
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from core.models import Application
+from core.utils import ROLES, get_role
 
 User = get_user_model()
 _signup_fields = allauth_account_settings.SIGNUP_FIELDS
@@ -24,6 +27,21 @@ class UserProfileSerializer(serializers.Serializer):
     class Meta:
         model = User
         fields = ["email", "first_name", "last_name", "phone", "mobile_phone"]
+
+
+class UserWithRoleSerializer(UserDetailsSerializer):
+    """/auth/user/ payload plus the group names and a single role for the frontend."""
+
+    groups = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name")
+    role = serializers.SerializerMethodField()
+
+    @extend_schema_field(serializers.ChoiceField(choices=ROLES))
+    def get_role(self, user) -> str:
+        return get_role(user)
+
+    class Meta(UserDetailsSerializer.Meta):
+        fields = (*UserDetailsSerializer.Meta.fields, "groups", "role")
+        read_only_fields = (*UserDetailsSerializer.Meta.read_only_fields, "groups", "role")
 
 
 class RegisterSerializer(serializers.Serializer):

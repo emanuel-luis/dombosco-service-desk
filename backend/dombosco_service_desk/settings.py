@@ -123,6 +123,7 @@ REST_AUTH = {
     "JWT_AUTH_HTTPONLY": False,  # Makes sure refresh token is sent
     "JWT_AUTH_SECURE": not DEBUG,  # Cookies only over HTTPS outside debug
     "REGISTER_SERIALIZER": "core.serializers.RegisterSerializer",
+    "USER_DETAILS_SERIALIZER": "core.serializers.UserWithRoleSerializer",
 }
 
 # django-allauth
