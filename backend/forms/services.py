@@ -153,6 +153,16 @@ def change_status(user, request_id: int, new_status: int, *, now: Now = timezone
                 f"Cannot change the status from {Status(form.status).label} "
                 f"to {Status(new_status).label}."
             )
+    else:
+        # Admins may move in any direction, but the status must stay consistent with the answer:
+        # in progress or finished needs a staff answer, pending must not have one.
+        answered = StaffForm.objects.filter(parent_form=form).exists()
+        if new_status in (Status.ANDAMENTO, Status.FINALIZADO) and not answered:
+            raise RequestConflict(
+                f"A request without a staff answer cannot be {Status(new_status).label}."
+            )
+        if new_status == Status.PENDENTE and answered:
+            raise RequestConflict("An answered request cannot go back to pending.")
     _stamp(form, now(), status=new_status)
     return form
 
