@@ -1,21 +1,23 @@
+from typing import Any
+
 from rest_framework import serializers
 
 from core.serializers import UserProfileSerializer
 from forms.models import Comment, ParentForm, StaffForm
 
 
-class IdQuerySerializer(serializers.Serializer):
+class IdQuerySerializer(serializers.Serializer[dict[str, Any]]):
     id = serializers.IntegerField()
 
 
-class ParentQuerySerializer(serializers.Serializer):
+class ParentQuerySerializer(serializers.Serializer[dict[str, Any]]):
     id = serializers.IntegerField(required=False)
     status = serializers.ChoiceField(choices=ParentForm.StatusChoices.choices, required=False)
     assigned_staff = serializers.EmailField(required=False)
     responsible_party = serializers.EmailField(required=False)
 
 
-class ParentsFormSerializer(serializers.ModelSerializer):
+class ParentsFormSerializer(serializers.ModelSerializer[ParentForm]):
     responsible_party = UserProfileSerializer(read_only=True)
 
     class Meta:
@@ -24,17 +26,17 @@ class ParentsFormSerializer(serializers.ModelSerializer):
         read_only_fields = ["created_at", "updated_at", "status", "id"]
 
 
-class StatusChangeSerializer(serializers.Serializer):
+class StatusChangeSerializer(serializers.Serializer[dict[str, Any]]):
     status = serializers.ChoiceField(choices=ParentForm.StatusChoices.choices)
 
 
-class StatusChangeResponseSerializer(serializers.Serializer):
+class StatusChangeResponseSerializer(serializers.Serializer[dict[str, Any]]):
     id = serializers.IntegerField()
     status = serializers.ChoiceField(choices=ParentForm.StatusChoices.choices)
     detail = serializers.CharField()
 
 
-class StaffFormSerializer(serializers.ModelSerializer):
+class StaffFormSerializer(serializers.ModelSerializer[StaffForm]):
     """Output of a staff answer."""
 
     assigned_staff = UserProfileSerializer(read_only=True)
@@ -44,7 +46,7 @@ class StaffFormSerializer(serializers.ModelSerializer):
         exclude = ["parent_form"]
 
 
-class StaffFormUpdateSerializer(serializers.ModelSerializer):
+class StaffFormUpdateSerializer(serializers.ModelSerializer[StaffForm]):
     class Meta:
         model = StaffForm
         fields = ["school_advice", "actions_taken", "final_notes"]
@@ -57,7 +59,7 @@ class StaffFormCreateSerializer(StaffFormUpdateSerializer):
         fields = [*StaffFormUpdateSerializer.Meta.fields, "parent_form_id"]
 
 
-class CommentSerializer(serializers.ModelSerializer):
+class CommentSerializer(serializers.ModelSerializer[Comment]):
     """Output of a comment."""
 
     user = serializers.CharField(read_only=True, source="user.full_name")
@@ -67,7 +69,7 @@ class CommentSerializer(serializers.ModelSerializer):
         exclude = ["parent_form"]
 
 
-class CommentUpdateSerializer(serializers.Serializer):
+class CommentUpdateSerializer(serializers.Serializer[dict[str, Any]]):
     comment = serializers.CharField()
 
 

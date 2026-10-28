@@ -4,13 +4,16 @@ Visibility, permissions and lifecycle rules live in forms.services; domain error
 APIExceptions and become 403, 404, 409 or 400 responses on their own.
 """
 
+from typing import Any
+
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
-from rest_framework import permissions, status, views
+from rest_framework import permissions, serializers, status, views
 from rest_framework.request import Request
 from rest_framework.response import Response
 
 from core.permissions import IsDomBoscoAdmin, IsDomBoscoParent, IsDomBoscoStaff
+from core.utils import authenticated_user
 from forms import services
 from forms.exceptions import RequestInvalid
 from forms.models import ParentForm
@@ -33,13 +36,16 @@ def _id_param(request: Request) -> int:
     query = IdQuerySerializer(data=request.query_params)
     if not query.is_valid():
         raise RequestInvalid("You must provide a valid id parameter.")
-    return query.validated_data["id"]
+    id_: int = query.validated_data["id"]
+    return id_
 
 
-def _valid(serializer_class, data):
+def _valid(serializer_class: type[serializers.BaseSerializer[Any]], data: Any) -> dict[str, Any]:
+    # data is the raw request body or query: validating it is this function's job.
     serializer = serializer_class(data=data)
     serializer.is_valid(raise_exception=True)
-    return serializer.validated_data
+    validated: dict[str, Any] = serializer.validated_data
+    return validated
 
 
 # ParentForm API
@@ -64,16 +70,18 @@ class ParentFormViewAPI(views.APIView):
             "single request instead of a list (404 when the user cannot see it)."
         ),
     )
-    def get(self, request: Request):
+    def get(self, request: Request) -> Response:
         # Empty query values count as absent, as they always did.
         params = {key: value for key, value in request.query_params.items() if value}
         query = _valid(ParentQuerySerializer, params)
         if "id" in query:
             return Response(
-                ParentsFormSerializer(services.get_request(request.user, query["id"])).data
+                ParentsFormSerializer(
+                    services.get_request(authenticated_user(request), query["id"])
+                ).data
             )
         forms = services.list_requests(
-            request.user,
+            authenticated_user(request),
             status=query.get("status"),
             assigned_staff=query.get("assigned_staff"),
             responsible_party=query.get("responsible_party"),
@@ -81,10 +89,10 @@ class ParentFormViewAPI(views.APIView):
         return Response(ParentsFormSerializer(forms, many=True).data)
 
     @extend_schema(request=ParentsFormSerializer, responses={201: ParentsFormSerializer})
-    def post(self, request: Request):
+    def post(self, request: Request) -> Response:
         """Creates a PENDENTE request owned by the current user (parents only)."""
         data = _valid(ParentsFormSerializer, request.data)
-        form = services.create_request(request.user, data)
+        form = services.create_request(authenticated_user(request), data)
         return Response(ParentsFormSerializer(form).data, status=status.HTTP_201_CREATED)
 
     @extend_schema(
@@ -92,16 +100,16 @@ class ParentFormViewAPI(views.APIView):
         request=ParentsFormSerializer,
         responses=ParentsFormSerializer,
     )
-    def put(self, request: Request):
+    def put(self, request: Request) -> Response:
         """Updates a request. A parent can only change their own request while it is PENDENTE."""
         data = _valid(ParentsFormSerializer, request.data)
-        form = services.update_request(request.user, _id_param(request), data)
+        form = services.update_request(authenticated_user(request), _id_param(request), data)
         return Response(ParentsFormSerializer(form).data)
 
     @extend_schema(parameters=[IdQuerySerializer], responses={200: None})
-    def delete(self, request: Request):
+    def delete(self, request: Request) -> Response:
         """Deletes a request. A parent can only delete their own request while it is PENDENTE."""
-        services.delete_request(request.user, _id_param(request))
+        services.delete_request(authenticated_user(request), _id_param(request))
         return Response(status=status.HTTP_200_OK)
 
 
@@ -114,7 +122,7 @@ class ParentFormsChoicesViewAPI(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     @extend_schema(responses={200: OpenApiTypes.OBJECT})
-    def get(self, request: Request):
+    def get(self, request: Request) -> Response:
         """Maps each choice field (relationship, status, required_by) to {value: label}."""
         return Response(
             {
@@ -138,7 +146,7 @@ class UpdateStatusParentFormAPI(views.APIView):
         request=StatusChangeSerializer,
         responses=StatusChangeResponseSerializer,
     )
-    def put(self, request: Request):
+    def put(self, request: Request) -> Response:
         """
         Changes the status of a request.
 
@@ -148,7 +156,7 @@ class UpdateStatusParentFormAPI(views.APIView):
         transition is a 409.
         """
         new_status = _valid(StatusChangeSerializer, request.data)["status"]
-        form = services.change_status(request.user, _id_param(request), new_status)
+        form = services.change_status(authenticated_user(request), _id_param(request), new_status)
         return Response(
             data={
                 "id": form.id,
@@ -171,22 +179,26 @@ class StaffFormViewAPI(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     @extend_schema(responses={200: StaffFormSerializer(many=True)})
-    def get(self, request: Request):
+    def get(self, request: Request) -> Response:
         """
         Lists staff answers: staff see their own, parents see the answers to their requests,
         admins see all.
         """
-        return Response(StaffFormSerializer(services.list_answers(request.user), many=True).data)
+        return Response(
+            StaffFormSerializer(services.list_answers(authenticated_user(request)), many=True).data
+        )
 
     @extend_schema(request=StaffFormCreateSerializer, responses={201: StaffFormSerializer})
-    def post(self, request: Request):
+    def post(self, request: Request) -> Response:
         """
         Answers a pending request: assigns the staff member and moves it to EM ANDAMENTO.
 
         Answering a request twice, or a finished or cancelled one, is a 409.
         """
         data = _valid(StaffFormCreateSerializer, request.data)
-        answer = services.answer_request(request.user, data.pop("parent_form_id"), data)
+        answer = services.answer_request(
+            authenticated_user(request), data.pop("parent_form_id"), data
+        )
         return Response(StaffFormSerializer(answer).data, status=status.HTTP_201_CREATED)
 
     @extend_schema(
@@ -194,10 +206,10 @@ class StaffFormViewAPI(views.APIView):
         request=StaffFormUpdateSerializer,
         responses=StaffFormSerializer,
     )
-    def put(self, request: Request):
+    def put(self, request: Request) -> Response:
         """Updates a staff answer. Only its staff member or an admin, until the request closes."""
         data = _valid(StaffFormUpdateSerializer, request.data)
-        answer = services.update_answer(request.user, _id_param(request), data)
+        answer = services.update_answer(authenticated_user(request), _id_param(request), data)
         return Response(StaffFormSerializer(answer).data)
 
 
@@ -211,10 +223,12 @@ class CommentViewAPI(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     @extend_schema(request=CommentCreateSerializer, responses={201: CommentSerializer})
-    def post(self, request: Request):
+    def post(self, request: Request) -> Response:
         """Adds a comment. Rejected with 409 while the request is still PENDENTE."""
         data = _valid(CommentCreateSerializer, request.data)
-        comment = services.add_comment(request.user, data["parent_form_id"], data["comment"])
+        comment = services.add_comment(
+            authenticated_user(request), data["parent_form_id"], data["comment"]
+        )
         return Response(CommentSerializer(comment).data, status=status.HTTP_201_CREATED)
 
     @extend_schema(
@@ -222,14 +236,14 @@ class CommentViewAPI(views.APIView):
         responses={200: CommentSerializer(many=True)},
         description="Lists the comments of the request given by `id`, oldest first.",
     )
-    def get(self, request: Request):
-        comments = services.list_comments(request.user, _id_param(request))
+    def get(self, request: Request) -> Response:
+        comments = services.list_comments(authenticated_user(request), _id_param(request))
         return Response(CommentSerializer(comments, many=True).data)
 
     @extend_schema(parameters=[IdQuerySerializer], responses={200: None})
-    def delete(self, request: Request):
+    def delete(self, request: Request) -> Response:
         """Deletes a comment (`id` is the comment id). Author only, while EM ANDAMENTO."""
-        services.delete_comment(request.user, _id_param(request))
+        services.delete_comment(authenticated_user(request), _id_param(request))
         return Response(status=status.HTTP_200_OK)
 
     @extend_schema(
@@ -237,8 +251,10 @@ class CommentViewAPI(views.APIView):
         request=CommentUpdateSerializer,
         responses=CommentSerializer,
     )
-    def put(self, request: Request):
+    def put(self, request: Request) -> Response:
         """Edits a comment (`id` is the comment id). Author only, while EM ANDAMENTO."""
         data = _valid(CommentUpdateSerializer, request.data)
-        comment = services.edit_comment(request.user, _id_param(request), data["comment"])
+        comment = services.edit_comment(
+            authenticated_user(request), _id_param(request), data["comment"]
+        )
         return Response(CommentSerializer(comment).data)

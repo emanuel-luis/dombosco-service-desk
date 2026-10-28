@@ -1,3 +1,4 @@
+from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.db import models
 
@@ -28,7 +29,8 @@ class ParentForm(models.Model):
         ESCOLA = 1, "Solicitado pela Escola"
 
     @property
-    def briefing(self):
+    @admin.display(description="Descrição resumida")
+    def briefing(self) -> str:
         return (
             self.issue_description[:BRIEFING_TRUNCATE_LIMIT_CHARACTERS] + "..."
             if len(self.issue_description) > BRIEFING_TRUNCATE_LIMIT_CHARACTERS
@@ -36,11 +38,9 @@ class ParentForm(models.Model):
         )
 
     @property
-    def student(self):
+    @admin.display(description="Aluno")
+    def student(self) -> str:
         return f"{self.student_name} - {self.student_class_name}/{self.student_grade_year}"
-
-    briefing.fget.short_description = "Descrição resumida"
-    student.fget.short_description = "Aluno"
 
     # Seção para Informações do Responsável (entende-se que o usuário já terá isso cadastrado)
     responsible_party = models.ForeignKey(
