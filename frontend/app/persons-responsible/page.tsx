@@ -5,7 +5,11 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import { Button } from "../_components/ui/button";
 import { Header } from "../_components/header";
 import AlunoForm from "../_components/StudentForm";
-import formsServices from "../services/ContactsService";
+import { api } from "../lib/api";
+import { toMessage } from "../lib/errors";
+import { toIsoDate } from "../lib/birthDate";
+import { canCreateRequest } from "../lib/roles";
+import { useAuth } from "../context/authContext";
 import Confirm from "../_components/Success";
 import Loader from "../_components/loader";
 import { useRouter } from "next/navigation";
@@ -25,8 +29,9 @@ const PersonsResponsibleForm =  () => {
   const [tratativaValue, setTratativaValue] = useState<{ tratativa?: string }>()
   const [parentValue, setParentValue] = useState<{ parentesco: string }>()
   const [isLoading, setIsLoading] = useState(true)
-  const [choices, setChoices] = useState([])
-  const [parent, setParent] = useState(true)
+  const [choices, setChoices] = useState<Record<string, string>>({})
+  const [error, setError] = useState("")
+  const { role, userLoading } = useAuth()
 
   const router = useRouter()
 
@@ -54,9 +59,8 @@ const PersonsResponsibleForm =  () => {
   
   });
 
-  const handleSubmit = () => {
-    console.log("Formulário enviado da onde não era pra enviar")
-  };
+  // The wizard submits through its own buttons; Enter must not submit the outer form.
+  const handleSubmit = () => {};
 
   const handleAdvance = (values : any) => {
     setParentValue(values)
@@ -78,86 +82,45 @@ const PersonsResponsibleForm =  () => {
 
   const toggleChange = async (data : any) => {
     setIsLoading(true)
-
-    const relationship = {
-        "0": "Pai",
-        "1": "Mãe",
-        "2": "Avô",
-        "3": "Avó",
-        "4": "Tio",
-        "5": "Tia",
-        "6": "Irmão",
-        "7": "Irmã",
-        "8": "Outro"
-    };
-    
-    const aplication = await formsServices.listAplications();
-    const filteredApplications = aplication.filter((item: any) =>
-      Array.isArray(item.groups) && item.groups.length === 1 && item.groups[0] === 2
-    );
-    if (filteredApplications.length > 0) {
-      setParent(false); 
-    }
-   
-    function getRelationshipKey() {
-        for (const [key, relValue] of Object.entries(relationship)) {
-            if (relValue.toLowerCase() === parentValue?.parentesco.toLowerCase()) {  
-                return key;
-            }
-        }
-        return null; 
-    }
-
-    data = {
-      "requested_by": parent ? 0 : 1, // WARNING
-      "student_name": data.nomeAluno,  
-      "student_birth_date": data.dataNascimento.split('/').reverse().join("-"), 
-      "student_grade_year": data.serie,
-      "student_class_name": data.turma,
-      "relationship_to_student": getRelationshipKey(),
-      "issue_description": tratativaValue?.tratativa
-    }
+    setError("")
 
     try {
-      await formsServices.createForm(data)
+      await api.createForm({
+        requested_by: 0, // 0 = requested by the parents
+        student_name: data.nomeAluno,
+        student_birth_date: toIsoDate(data.dataNascimento),
+        student_grade_year: Number(data.serie),
+        student_class_name: data.turma,
+        relationship_to_student: Number(parentValue?.parentesco),
+        issue_description: tratativaValue?.tratativa ?? "",
+      })
       setResponseTrue(true)
-    } catch(error) {
-      console.log(error)
+    } catch(e) {
+      setError(toMessage(e))
     } finally {
       setIsLoading(false)
     }
   }
 
-
   useEffect(() => {
-    setIsLoading(true)
-
-    const data = async () => {
-      try {
-        const choicesDate = await formsServices.listChoices()
-        setChoices(choicesDate.relationship)
-        setIsLoading(false)
-
-      } catch(error) {
-        console.log(error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    data()
-  }
-  , [])
+    api
+      .getChoices()
+      .then((result) => setChoices(result.relationship))
+      .catch((e) => setError(toMessage(e)))
+      .finally(() => setIsLoading(false))
+  }, [])
 
   return  (
     <>
       <Header />
       {
-      isLoading
-       ? <Loader isLoading={isLoading} /> : 
+      isLoading || userLoading
+       ? <Loader isLoading /> : !canCreateRequest(role)
+       ? <p role="alert" className="p-8 text-center text-destructive">Apenas pais e responsáveis podem criar solicitações.</p> : 
        <div className="flex justify-center items-center w-full">
        <div className="w-full max-w-md px-5 pt-5">
          <button onClick={() => showTratativa && !studentForm ? handleBack() : !studentForm ? router.back() : hideStudentForm()} className="text-primary mb-5"><BackArrow /></button>
+         {error && <p role="alert" className="text-destructive text-sm mb-4">{error}</p>}
          <h2 className="text-xl font-bold text-left mb-8">
            {!studentForm ? "Formulário de Responsável" : "Formulário do Aluno"}
          </h2>
@@ -193,9 +156,9 @@ const PersonsResponsibleForm =  () => {
                          } rounded-[4px] p-3 bg-card shadow-[0_4px_10px_0_rgba(0,0,0,0.04)] hover:border-primary outline-none`}
                        >
                          <option value="" label="Selecione uma opção" />
-                         {Object.values(choices).map(element => {
-                           return <option key={element} value={element} label={element} />
-                         })}
+                         {Object.entries(choices).map(([value, label]) => (
+                           <option key={value} value={value} label={label} />
+                         ))}
                          
                        </Field>
                        <ErrorMessage name="parentesco" component="div" className="text-destructive text-sm mt-1" />

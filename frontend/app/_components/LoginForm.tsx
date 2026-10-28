@@ -5,7 +5,9 @@ import type React from "react";
 import { useContext, useState } from "react";
 import { FaSignOutAlt } from "react-icons/fa";
 import { AuthContext } from "../context/authContext";
-import formsServices from "../services/ContactsService";
+import { api } from "../lib/api";
+import { GOOGLE_ENABLED } from "../lib/config";
+import { toMessage } from "../lib/errors";
 import { Header } from "./header";
 import { UNOFFICIAL_NOTICE } from "./footer";
 import { Button } from "./ui/button";
@@ -33,13 +35,11 @@ const LoginForm: React.FC = () => {
     }
 
     try {
-      const token = await formsServices.getToken(email, password);
-      login(token.access);
+      const { access } = await api.login(email, password);
+      login(access);
       router.push("/");
     } catch (error) {
-      setError("Erro ao fazer login.");
-      console.log(await formsServices.getToken(email, password));
-      console.error("Login error:", error);
+      setError(toMessage(error));
     }
   };
 
@@ -98,6 +98,16 @@ const LoginForm: React.FC = () => {
             <FaSignOutAlt color="#fff" size={20} className="mr-2" /> Entrar
           </button>
         </form>
+        {GOOGLE_ENABLED && (
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full mt-4"
+            onClick={loginWithGoogle}
+          >
+            Entrar com o Google
+          </Button>
+        )}
         <div className="flex items-center justify-center mt-2">
           <Button
             variant="link"

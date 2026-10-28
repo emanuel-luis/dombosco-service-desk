@@ -6,6 +6,7 @@ import useLoginValidation from "../utils/loginValidation"
 import InputMask from 'react-input-mask'
 import Loader from "./loader";
 import * as Yup from "yup"
+import { isPlausibleBirthDate } from "../lib/birthDate"
 
 const AlunoForm = ({toggleChange, formValues} : any) => {
   useLoginValidation()
@@ -17,23 +18,11 @@ const AlunoForm = ({toggleChange, formValues} : any) => {
   const validationSchema = Yup.object({
     nomeAluno: Yup.string()
         .required('Campo nome é obrigatório'),
-    dataNascimento: Yup.date()
-        .transform((value, originalValue) => {
-            const isValidDate = /^\d{2}\/\d{2}\/\d{4}$/.test(originalValue);
-            return isValidDate ? new Date(originalValue.split('/').reverse().join('-')) : null;
-        })
-        .nullable()
+    dataNascimento: Yup.string()
         .required("Data de nascimento é obrigatória")
-        .test("min-age", "O aluno deve ter pelo menos 18 anos", function(value) {
-            if (!value) return false;
-            const today = new Date();
-            const birthDate = new Date(value);
-            const age = today.getFullYear() - birthDate.getFullYear();
-            const monthDiff = today.getMonth() - birthDate.getMonth();
-            const dayDiff = today.getDate() - birthDate.getDate();
-
-            return age > 18 || (age === 18 && (monthDiff > 0 || (monthDiff === 0 && dayDiff >= 0)));
-        }),
+        .test("plausible-date", "Informe uma data de nascimento válida (DD/MM/AAAA).", (value) =>
+          !!value && isPlausibleBirthDate(value)
+        ),
     serie: Yup.number()
         .min(1, "Ano/Série é obrigatório")
         .required("Ano/Série é obrigatório"),
@@ -59,8 +48,6 @@ const AlunoForm = ({toggleChange, formValues} : any) => {
 
     try {
       toggleChange(value);
-    } catch(error) {
-      console.log(error)
     } finally {
       setIsLoading(false)
     }
