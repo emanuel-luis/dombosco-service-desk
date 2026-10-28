@@ -100,7 +100,7 @@ export default function Solicitações() {
 
   const changeStatus = (status: FormStatus) => form && run(() => api.updateStatus(form.id, status));
 
-  const canChange = form ? allowedStatuses(role, form.status, assigned) : [];
+  const canChange = form ? allowedStatuses(role, form.status, assigned, staffAnswer !== null) : [];
 
   return (
     <>

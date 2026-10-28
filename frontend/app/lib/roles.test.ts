@@ -49,30 +49,38 @@ describe("request actions", () => {
     expect(canEditOrDelete("staff", form(0), user)).toBe(false);
   });
 
-  it("staff answer pending requests only", () => {
+  it("staff and admins answer pending requests only", () => {
     expect(canAnswer("staff", form(0))).toBe(true);
     expect(canAnswer("staff", form(1))).toBe(false);
     expect(canAnswer("parent", form(0))).toBe(false);
+    expect(canAnswer("admin", form(0))).toBe(true);
+    expect(canAnswer("admin", form(1))).toBe(false);
   });
 });
 
 describe("allowedStatuses", () => {
   it("lets staff finalize or cancel assigned requests in progress", () => {
-    expect(allowedStatuses("staff", 1, true)).toEqual([2, 3]);
+    expect(allowedStatuses("staff", 1, true, true)).toEqual([2, 3]);
   });
 
   it("gives staff nothing on unassigned or non-active requests", () => {
-    expect(allowedStatuses("staff", 1, false)).toEqual([]);
-    expect(allowedStatuses("staff", 0, true)).toEqual([]);
-    expect(allowedStatuses("staff", 2, true)).toEqual([]);
+    expect(allowedStatuses("staff", 1, false, true)).toEqual([]);
+    expect(allowedStatuses("staff", 0, true, false)).toEqual([]);
+    expect(allowedStatuses("staff", 2, true, true)).toEqual([]);
   });
 
-  it("lets admins pick any other status", () => {
-    expect(allowedStatuses("admin", 2, false)).toEqual([0, 1, 3]);
+  it("lets admins move answered requests anywhere except back to pending", () => {
+    expect(allowedStatuses("admin", 2, false, true)).toEqual([1, 3]);
+    expect(allowedStatuses("admin", 3, false, true)).toEqual([1, 2]);
+  });
+
+  it("lets admins only cancel or restore unanswered requests", () => {
+    expect(allowedStatuses("admin", 0, false, false)).toEqual([3]);
+    expect(allowedStatuses("admin", 3, false, false)).toEqual([0]);
   });
 
   it("gives parents nothing", () => {
-    expect(allowedStatuses("parent", 1, true)).toEqual([]);
+    expect(allowedStatuses("parent", 1, true, true)).toEqual([]);
   });
 });
 
