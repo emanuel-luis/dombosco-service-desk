@@ -1,5 +1,5 @@
 """
-ASGI config for dombosco_atendimento project.
+ASGI config for dombosco_service_desk project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dombosco_atendimento.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dombosco_service_desk.settings")
 
 application = get_asgi_application()

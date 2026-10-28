@@ -1,16 +1,30 @@
+from typing import Any, ClassVar
+
 from django.conf import settings
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser, Group
 from django.db import models
 
 
-class UserManager(BaseUserManager):
+def is_staff_email(email: str) -> bool:
+    """True when the email's domain is DOM_BOSCO_EMAIL_DOMAIN or one of its subdomains.
+
+    Never true when the setting is unset. The setting may carry a leading "@".
+    """
+    domain = (settings.DOM_BOSCO_EMAIL_DOMAIN or "").strip().lower().lstrip("@")
+    if not domain or "@" not in email:
+        return False
+    email_domain = email.rsplit("@", 1)[1].lower()
+    return email_domain == domain or email_domain.endswith("." + domain)
+
+
+class UserManager(BaseUserManager["User"]):
     """
     Custom user model manager where email is the unique identifiers
     for authentication instead of usernames.
     """
 
-    def create_user(self, email, password, **extra_fields):
+    def create_user(self, email: str, password: str | None, **extra_fields: Any) -> "User":
         """
         Create and save a User with the given email and password.
         """
@@ -20,14 +34,9 @@ class UserManager(BaseUserManager):
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save()
-
-        if user.email.endswith(settings.DOM_BOSCO_EMAIL_DOMAIN):
-            group = Group.objects.get_or_create(name="Colaborador")
-            user.groups.add(group)
-
         return user
 
-    def create_superuser(self, email, password, **extra_fields):
+    def create_superuser(self, email: str, password: str | None, **extra_fields: Any) -> "User":
         """
         Create and save a SuperUser with the given email and password.
         """
@@ -43,20 +52,27 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractUser):
+    username = None  # type: ignore[assignment]
     email = models.EmailField(unique=True, verbose_name="E-mail")
     phone = models.CharField(max_length=20, null=True, blank=True, verbose_name="Telefone")
     mobile_phone = models.CharField(max_length=20, null=True, blank=True, verbose_name="Celular")
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS: ClassVar[list[str]] = []
 
-    objects = UserManager()
+    # The stubs type AbstractUser.objects as the contrib UserManager.
+    objects = UserManager()  # type: ignore[assignment,misc]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.email
 
     @property
-    def full_name(self):
+    def has_staff_email(self) -> bool:
+        """Typed-email check only. It proves nothing about ownership: never use it for access."""
+        return is_staff_email(self.email)
+
+    @property
+    def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
 
 
@@ -73,5 +89,5 @@ class Application(models.Model):
         verbose_name = "Aplicação"
         verbose_name_plural = "Aplicações"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
