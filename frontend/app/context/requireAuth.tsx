@@ -1,27 +1,20 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import useLoginValidation from "../utils/loginValidation";
+import { usePathname, useRouter } from "next/navigation";
+import { getToken } from "../lib/client";
+
+const PUBLIC_PATHS = ["/login", "/createAccount", "/api/auth/callback"];
 
 const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const router = useRouter();
-  useLoginValidation()
-  
+  const pathname = usePathname();
+
   useEffect(() => {
-    const getCookie = (name: string) => {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop()?.split(";").shift();
-    };
-
-    const tokenFromLocalStorage = localStorage.getItem("token");
-    const tokenFromCookies = getCookie("token");
-
-    if (!tokenFromLocalStorage && !tokenFromCookies) {
+    if (!PUBLIC_PATHS.includes(pathname) && !getToken()) {
       router.push("/login");
     }
-  }, [router]);
+  }, [router, pathname]);
 
   return <>{children}</>;
 };
