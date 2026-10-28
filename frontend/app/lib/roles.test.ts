@@ -77,14 +77,13 @@ describe("allowedStatuses", () => {
 });
 
 describe("canEditComment", () => {
-  it("allows the author, by e-mail or name, while in progress", () => {
-    expect(canEditComment("ana@example.com", 1, user)).toBe(true);
-    expect(canEditComment("Ana Souza", 1, user)).toBe(true);
+  it("allows the author, matched by user id, while in progress", () => {
+    expect(canEditComment(1, 1, user)).toBe(true);
   });
 
   it("blocks other authors and other statuses", () => {
-    expect(canEditComment("bia@example.com", 1, user)).toBe(false);
-    expect(canEditComment("ana@example.com", 2, user)).toBe(false);
-    expect(canEditComment("ana@example.com", 1, null)).toBe(false);
+    expect(canEditComment(2, 1, user)).toBe(false);
+    expect(canEditComment(1, 2, user)).toBe(false);
+    expect(canEditComment(1, 1, null)).toBe(false);
   });
 });
