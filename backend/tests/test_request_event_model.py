@@ -2,6 +2,7 @@ import uuid
 from datetime import UTC, datetime
 
 import pytest
+from django.db import IntegrityError, transaction
 
 from forms.models import EventLogImmutable, RequestEvent
 
@@ -42,3 +43,20 @@ def test_queryset_update_and_delete_raise():
     with pytest.raises(EventLogImmutable):
         RequestEvent.objects.all().delete()
     assert RequestEvent.objects.get().actor_role == "parent"
+
+
+def test_new_instance_with_an_existing_pk_cannot_overwrite_the_row():
+    original = make_event()
+    clone = RequestEvent(
+        id=original.pk,
+        event_id=uuid.uuid4(),
+        request_id=2,
+        event_type="request_deleted",
+        actor_role="admin",
+        occurred_at=original.occurred_at,
+        recorded_at=original.recorded_at,  # lets the update-first path succeed if not guarded
+    )
+    with pytest.raises(IntegrityError), transaction.atomic():
+        clone.save()
+    original.refresh_from_db()
+    assert (original.request_id, original.event_type) == (1, "request_created")
