@@ -1,0 +1,47 @@
+[project]
+name = "dombosco-atendimento-api"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "Django==5.1.2",
+    "djangorestframework==3.15.2",
+    "psycopg2-binary==2.9.10",
+    "djangorestframework-simplejwt==5.3.1",
+    "dj-rest-auth[with_social]==6.0.0",
+    "python-dotenv==1.0.1",
+    "drf-yasg==1.21.8",
+    "django-cors-headers==4.6.0",
+    "dj-database-url",
+]
+
+[dependency-groups]
+dev = [
+    "ruff",
+    "pytest",
+    "pytest-django",
+    "pytest-timeout",
+    "pytest-env",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["**/migrations"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "BLE", "I"]
+# The codebase relies on `from x import *`; removing them is out of scope for the tooling PR.
+ignore = ["F403", "F405"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "dombosco_atendimento.settings"
+addopts = "-ra --strict-markers --strict-config"
+timeout = 60
+testpaths = ["tests"]
+env = [
+    "D:SECRET_KEY=test-only-not-secret",
+    "D:DATABASE_URL=sqlite://:memory:",
+]
