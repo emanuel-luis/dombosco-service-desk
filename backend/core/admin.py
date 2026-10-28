@@ -50,7 +50,8 @@ class ApplicationAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
     ordering = ("name",)
 
 
-# Deleting a user here cascades to their requests and comments without writing request_events
-# (the log covers app/API writes only).
+# request_events covers app/API writes. The Django admin refuses to delete a user who still has
+# requests or answers (those admins deny delete), but the user's comments would cascade without
+# writing comment_deleted events.
 admin.site.register(User, UserAdmin)
 admin.site.register(Application, ApplicationAdmin)
