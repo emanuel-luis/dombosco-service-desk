@@ -20,18 +20,26 @@ export const canEditOrDelete = (
 ) =>
   role === "parent" && form.status === STATUS.PENDENTE && isOwner(form, user);
 
-// Staff answer pending requests; the API assigns the request on the first answer.
+// Staff (and admins) answer pending requests; the API assigns the request on the first answer.
 export const canAnswer = (role: Role, form: ParentForm) =>
-  role === "staff" && form.status === STATUS.PENDENTE;
+  (role === "staff" || role === "admin") && form.status === STATUS.PENDENTE;
 
 // Statuses the user may move the request to. The API still has the final say (409).
+// Admins move in any direction, but the status must stay consistent with the staff answer:
+// in progress or finished needs one, pending must not have one.
 export function allowedStatuses(
   role: Role,
   status: FormStatus,
   assignedToUser: boolean,
+  answered: boolean,
 ): FormStatus[] {
   if (role === "admin") {
-    return ([0, 1, 2, 3] as FormStatus[]).filter((s) => s !== status);
+    return ([0, 1, 2, 3] as FormStatus[]).filter((s) => {
+      if (s === status) return false;
+      if (!answered && (s === STATUS.EM_ANDAMENTO || s === STATUS.FINALIZADO)) return false;
+      if (answered && s === STATUS.PENDENTE) return false;
+      return true;
+    });
   }
   if (role === "staff" && assignedToUser && status === STATUS.EM_ANDAMENTO) {
     return [STATUS.FINALIZADO, STATUS.CANCELADO];
