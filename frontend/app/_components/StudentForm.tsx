@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { Button } from "./ui/button";
 import useLoginValidation from "../utils/loginValidation"
-import InputMask from 'react-input-mask'
+import { MaskedInput } from "./MaskedInput"
 import Loader from "./loader";
 import * as Yup from "yup"
 import { isPlausibleBirthDate } from "../lib/birthDate"
@@ -84,7 +84,7 @@ const AlunoForm = ({toggleChange, formValues} : any) => {
                   <Field
                     name="dataNascimento"
                     render={({ field } : any) => (
-                      <InputMask
+                      <MaskedInput
                         {...field}
                         mask="99/99/9999" // Define a máscara para data no formato DD/MM/YYYY
                         type="text"
