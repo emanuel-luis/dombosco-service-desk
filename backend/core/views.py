@@ -1,4 +1,5 @@
 from django.contrib.auth.models import Group
+from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, status, views
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -10,12 +11,14 @@ from core.serializers import *
 class GroupViewAPI(views.APIView):
     permission_classes = [permissions.IsAuthenticated & IsDomBoscoAdmin]
 
+    @extend_schema(responses={200: GroupSerializer(many=True)})
     def get(self, request: Request):
         groups = Group.objects.all()
 
         serializer = GroupSerializer(groups, many=True)
         return Response(serializer.data)
 
+    @extend_schema(request=GroupSerializer, responses={201: GroupSerializer})
     def post(self, request: Request):
         serializer = GroupSerializer(data=request.data)
         if serializer.is_valid():
@@ -23,6 +26,11 @@ class GroupViewAPI(views.APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(
+        request=GroupSerializer,
+        responses=GroupSerializer,
+        description="The target is given by `id` in the body.",
+    )
     def put(self, request: Request):
         try:
             group = Group.objects.get(id=request.data.get("id"))
@@ -47,6 +55,7 @@ class ApplicationViewAPI(views.APIView):
             return [permissions.IsAuthenticated()]
         return super().get_permissions()
 
+    @extend_schema(responses={200: ApplicationSerializer(many=True)})
     def get(self, request: Request):
         if is_superuser(request.user):
             applications = Application.objects.all()
@@ -56,6 +65,7 @@ class ApplicationViewAPI(views.APIView):
         serializer = ApplicationSerializer(applications, many=True)
         return Response(serializer.data)
 
+    @extend_schema(request=ApplicationSerializer, responses={201: ApplicationSerializer})
     def post(self, request: Request):
         serializer = ApplicationSerializer(data=request.data)
         if serializer.is_valid():
@@ -63,6 +73,11 @@ class ApplicationViewAPI(views.APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(
+        request=ApplicationSerializer,
+        responses=ApplicationSerializer,
+        description="The target is given by `id` in the body.",
+    )
     def put(self, request: Request):
         try:
             application = Application.objects.get(id=request.data.get("id"))
