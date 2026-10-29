@@ -400,7 +400,7 @@ requires-dist = [
     { name = "djangorestframework-simplejwt", specifier = "~=5.5" },
     { name = "drf-spectacular" },
     { name = "gunicorn" },
-    { name = "psycopg", extras = ["binary"], specifier = "~=3.2" },
+    { name = "psycopg", extras = ["binary"], specifier = "~=3.3" },
     { name = "pyarrow", marker = "extra == 'export'", specifier = ">=18" },
     { name = "pydantic-settings" },
     { name = "pyyaml" },

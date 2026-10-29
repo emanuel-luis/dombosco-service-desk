@@ -9,7 +9,7 @@ dependencies = [
     "djangorestframework-simplejwt~=5.5",
     "dj-rest-auth[with_social]~=7.0",
     "django-allauth~=65.0",
-    "psycopg[binary]~=3.2",
+    "psycopg[binary]~=3.3",
     "drf-spectacular",
     "django-cors-headers",
     "whitenoise",
