@@ -1,71 +1,103 @@
+# Monthly update PRs, one group per ecosystem for minor and patch. Semver-major version updates
+# are ignored (majors move by hand) and a release waits 7 days before it is proposed. Security
+# updates skip the schedule and the cooldown. .github/workflows/dependabot-auto-merge.yml merges
+# these PRs once CI is green.
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
+    cooldown:
+      default-days: 7
     groups:
       actions:
         patterns: ["*"]
+        update-types: ["minor", "patch"]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: uv
     directory: /backend
     schedule:
-      interval: weekly
+      interval: monthly
+    cooldown:
+      default-days: 7
     groups:
       python:
         patterns: ["*"]
-        # Majors arrive as their own PRs so breaking upgrades get a separate review.
         update-types: ["minor", "patch"]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: npm
     directory: /frontend
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
     ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
       # @types/node tracks the Node LTS major, which moves by hand with the Dockerfile and CI.
       - dependency-name: "@types/node"
         update-types: ["version-update:semver-major"]
-    schedule:
-      interval: weekly
     groups:
       npm:
         patterns: ["*"]
-        # Majors arrive as their own PRs so breaking upgrades get a separate review.
         update-types: ["minor", "patch"]
 
   - package-ecosystem: docker
     directory: /backend
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
     ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
       # The runtime stays on Python 3.12; only digest and patch updates of that tag.
       - dependency-name: "python"
         versions: [">=3.13"]
-    schedule:
-      interval: weekly
     groups:
       docker-backend:
         patterns: ["*"]
+        update-types: ["minor", "patch"]
 
   - package-ecosystem: docker
     directory: /frontend
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
     ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
       # Node majors move by hand, to an LTS line only, together with CI's setup-node.
       - dependency-name: "node"
         update-types: ["version-update:semver-major"]
-    schedule:
-      interval: weekly
     groups:
       docker-frontend:
         patterns: ["*"]
+        update-types: ["minor", "patch"]
 
   - package-ecosystem: docker-compose
     directory: /
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
     ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
       # Postgres majors need a data migration; they move by hand.
       - dependency-name: "postgres"
         update-types: ["version-update:semver-major"]
       # Built locally by compose (migrate and web services); not in any registry.
       - dependency-name: "dombosco-service-desk-*"
-    schedule:
-      interval: weekly
     groups:
       docker-compose:
         patterns: ["*"]
+        update-types: ["minor", "patch"]
